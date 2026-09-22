@@ -1,1015 +1,2001 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>TABO BOOKS | مكتبة تابو الرقمية</title>
+<meta charset="UTF-8">
 
-  <meta name="description"
-        content="TABO BOOKS - مكتبة رقمية تضم كتب تابو نور بصيغة PDF.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>TABO BOOKS | مكتبة تابو الرقمية</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
+<meta name="description"
+content="TABO BOOKS - مكتبة رقمية للكتب الإلكترونية PDF.">
 
-  <style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap"
+rel="stylesheet">
+
+
+<style>
+
+/* =========================
+   GENERAL
+========================= */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+
+    font-family:"Cairo",sans-serif;
+
+    background:
+    radial-gradient(
+        circle at top right,
+        rgba(212,175,55,.13),
+        transparent 30%
+    ),
+
+    radial-gradient(
+        circle at bottom left,
+        rgba(212,175,55,.08),
+        transparent 30%
+    ),
+
+    #080808;
+
+    color:#fff;
+
+    line-height:1.8;
+
+}
+
+button{
+    font-family:inherit;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+header{
+
+    text-align:center;
+
+    padding:75px 20px 55px;
+
+    background:
+    linear-gradient(
+        rgba(0,0,0,.65),
+        rgba(0,0,0,.92)
+    );
+
+    border-bottom:
+    1px solid rgba(212,175,55,.25);
+
+}
+
+.logo{
+
+    font-size:48px;
+
+    font-weight:900;
+
+    letter-spacing:5px;
+
+    color:#d4af37;
+
+}
+
+.logo-sub{
+
+    color:#aaa;
+
+    font-size:16px;
+
+    letter-spacing:3px;
+
+}
+
+header h1{
+
+    margin-top:30px;
+
+    font-size:clamp(28px,5vw,48px);
+
+    font-weight:900;
+
+}
+
+header h1 span{
+
+    color:#d4af37;
+
+}
+
+header p{
+
+    max-width:700px;
+
+    margin:15px auto 0;
+
+    color:#aaa;
+
+    font-size:17px;
+
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+main{
+
+    width:min(1200px,92%);
+
+    margin:auto;
+
+    padding:70px 0;
+
+}
+
+.section-title{
+
+    text-align:center;
+
+    margin-bottom:45px;
+
+}
+
+.section-title h2{
+
+    font-size:34px;
+
+    font-weight:900;
+
+}
+
+.section-title h2 span{
+
+    color:#d4af37;
+
+}
+
+.section-title p{
+
+    color:#999;
+
+    margin-top:8px;
+
+}
+
+
+/* =========================
+   BOOKS
+========================= */
+
+.books-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(4,1fr);
+
+    gap:25px;
+
+}
+
+.book-card{
+
+    background:
+    linear-gradient(
+        145deg,
+        #151515,
+        #0c0c0c
+    );
+
+    border:
+    1px solid rgba(212,175,55,.18);
+
+    border-radius:22px;
+
+    overflow:hidden;
+
+    transition:.4s;
+
+}
+
+.book-card:hover{
+
+    transform:translateY(-10px);
+
+    border-color:
+    rgba(212,175,55,.7);
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,.6);
+
+}
+
+
+/* =========================
+   BOOK IMAGE
+========================= */
+
+.book-cover{
+
+    position:relative;
+
+    padding:18px;
+
+    background:#111;
+
+}
+
+.book-image{
+
+    width:100%;
+
+    aspect-ratio:3/4;
+
+    border-radius:14px;
+
+    background:
+
+    linear-gradient(
+        145deg,
+        #181818,
+        #0d0d0d
+    );
+
+    border:
+    1px dashed rgba(212,175,55,.25);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#555;
+
+    overflow:hidden;
+
+}
+
+.book-image img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+.empty-image{
+
+    text-align:center;
+
+    color:#555;
+
+    font-size:13px;
+
+}
+
+.pdf-badge{
+
+    position:absolute;
+
+    top:30px;
+
+    left:30px;
+
+    z-index:2;
+
+    background:#d4af37;
+
+    color:#000;
+
+    padding:5px 12px;
+
+    border-radius:30px;
+
+    font-size:12px;
+
+    font-weight:900;
+
+}
+
+
+/* =========================
+   BOOK CONTENT
+========================= */
+
+.book-content{
+
+    padding:22px;
+
+}
+
+.book-content h3{
+
+    font-size:21px;
+
+    font-weight:900;
+
+    margin-bottom:12px;
+
+}
+
+.book-description{
+
+    color:#aaa;
+
+    font-size:14px;
+
+    min-height:105px;
+
+    margin-bottom:18px;
+
+}
+
+.book-meta{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:18px;
+
+}
+
+.price{
+
+    color:#d4af37;
+
+    font-size:25px;
+
+    font-weight:900;
+
+}
+
+.digital{
+
+    color:#777;
+
+    font-size:12px;
+
+}
+
+.buy-btn{
+
+    width:100%;
+
+    border:0;
+
+    cursor:pointer;
+
+    padding:13px 15px;
+
+    border-radius:12px;
+
+    background:
+    linear-gradient(
+        135deg,
+        #d4af37,
+        #f0d477
+    );
+
+    color:#050505;
+
+    font-size:15px;
+
+    font-weight:900;
+
+    transition:.3s;
+
+}
+
+.buy-btn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:
+    0 12px 28px
+    rgba(212,175,55,.3);
+
+}
+
+
+/* =========================
+   OFFERS
+========================= */
+
+.offers-section{
+
+    margin-top:90px;
+
+}
+
+.offers-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(3,1fr);
+
+    gap:22px;
+
+}
+
+.offer-card{
+
+    position:relative;
+
+    background:
+    linear-gradient(
+        145deg,
+        #171717,
+        #0b0b0b
+    );
+
+    border:
+    1px solid rgba(212,175,55,.3);
+
+    border-radius:20px;
+
+    padding:30px 25px;
+
+    text-align:center;
+
+    transition:.3s;
+
+}
+
+.offer-card:hover{
+
+    transform:translateY(-7px);
+
+    border-color:#d4af37;
+
+}
+
+.offer-card.featured{
+
+    border:
+    2px solid #d4af37;
+
+    box-shadow:
+    0 15px 45px
+    rgba(212,175,55,.12);
+
+}
+
+.offer-badge{
+
+    position:absolute;
+
+    top:-13px;
+
+    right:50%;
+
+    transform:translateX(50%);
+
+    background:#d4af37;
+
+    color:#000;
+
+    padding:4px 18px;
+
+    border-radius:30px;
+
+    font-size:12px;
+
+    font-weight:900;
+
+}
+
+.offer-card h3{
+
+    font-size:23px;
+
+    margin-bottom:10px;
+
+}
+
+.offer-old{
+
+    color:#777;
+
+    text-decoration:line-through;
+
+}
+
+.offer-price{
+
+    color:#d4af37;
+
+    font-size:36px;
+
+    font-weight:900;
+
+    margin:5px 0 15px;
+
+}
+
+.offer-card p{
+
+    color:#999;
+
+    font-size:14px;
+
+    margin-bottom:20px;
+
+}
+
+
+/* =========================
+   PAYMENT
+========================= */
+
+.payment-section{
+
+    margin-top:75px;
+
+}
+
+.payment-box{
+
+    background:
+    linear-gradient(
+        145deg,
+        rgba(212,175,55,.09),
+        rgba(255,255,255,.02)
+    );
+
+    border:
+    1px solid rgba(212,175,55,.3);
+
+    border-radius:22px;
+
+    padding:38px 25px;
+
+    text-align:center;
+
+}
+
+.payment-box h2{
+
+    font-size:28px;
+
+}
+
+.payment-box h2 span{
+
+    color:#d4af37;
+
+}
+
+.payment-subtitle{
+
+    color:#999;
+
+    margin-bottom:30px;
+
+}
+
+
+/* PAYMENT LOGOS */
+
+.payment-methods{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:25px;
+
+    flex-wrap:wrap;
+
+}
+
+.payment-method{
+
+    width:230px;
+
+    min-height:110px;
+
+    padding:18px;
+
+    border-radius:16px;
+
+    background:#181818;
+
+    border:
+    1px solid rgba(255,255,255,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+}
+
+.payment-logo{
+
+    width:110px;
+
+    height:45px;
+
+    object-fit:contain;
+
+}
+
+
+/*
+   ضع رابط لوجو InstaPay هنا
+*/
+
+.payment-logo.instapay{
+
+    /*
+    مثال:
+
+    src="ضع_رابط_لوجو_انستاباي_هنا"
+
+    */
+
+}
+
+
+/*
+   ضع رابط لوجو Vodafone Cash هنا
+*/
+
+.payment-logo.vodafone{
+
+    /*
+    مثال:
+
+    src="ضع_رابط_لوجو_فودافون_كاش_هنا"
+
+    */
+
+}
+
+
+.payment-method strong{
+
+    color:#d4af37;
+
+    font-size:16px;
+
+}
+
+.payment-number{
+
+    margin-top:28px;
+
+    font-size:26px;
+
+    font-weight:900;
+
+    direction:ltr;
+
+    letter-spacing:2px;
+
+}
+
+.payment-note{
+
+    color:#777;
+
+    font-size:13px;
+
+    margin-top:5px;
+
+}
+
+
+/* =========================
+   AUTHOR
+========================= */
+
+.author-section{
+
+    margin-top:80px;
+
+    padding:55px 25px;
+
+    text-align:center;
+
+    border-top:
+    1px solid rgba(212,175,55,.15);
+
+}
+
+.author-label{
+
+    color:#d4af37;
+
+    font-size:13px;
+
+    font-weight:800;
+
+    letter-spacing:3px;
+
+}
+
+.author-name-ar{
+
+    font-size:34px;
+
+    font-weight:900;
+
+}
+
+.author-name-en{
+
+    color:#d4af37;
+
+    font-size:20px;
+
+    font-weight:800;
+
+    letter-spacing:4px;
+
+}
+
+.author-bio{
+
+    max-width:700px;
+
+    margin:18px auto 0;
+
+    color:#999;
+
+    line-height:2;
+
+    font-size:15px;
+
+}
+
+
+/* =========================
+   FOOTER
+========================= */
+
+footer{
+
+    text-align:center;
+
+    padding:30px;
+
+    color:#666;
+
+    font-size:13px;
+
+}
+
+footer strong{
+
+    color:#d4af37;
+
+}
+
+
+/* ==================================================
+   MODAL
+   اختيار الكتب داخل العرض
+================================================== */
+
+.modal{
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+    rgba(0,0,0,.82);
+
+    backdrop-filter:blur(8px);
+
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    z-index:9999;
+
+    padding:20px;
+
+}
+
+.modal.active{
+
+    display:flex;
+
+}
+
+.modal-box{
+
+    width:min(520px,100%);
+
+    max-height:90vh;
+
+    overflow:auto;
+
+    background:
+    linear-gradient(
+        145deg,
+        #191919,
+        #0b0b0b
+    );
+
+    border:
+    1px solid rgba(212,175,55,.4);
+
+    border-radius:24px;
+
+    padding:30px;
+
+    box-shadow:
+    0 30px 80px
+    rgba(0,0,0,.7);
+
+}
+
+.modal-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+.modal-header h3{
+
+    font-size:23px;
+
+    color:#fff;
+
+}
+
+.close-modal{
+
+    width:38px;
+
+    height:38px;
+
+    border-radius:50%;
+
+    border:1px solid #444;
+
+    background:#111;
+
+    color:#fff;
+
+    cursor:pointer;
+
+    font-size:20px;
+
+}
+
+.modal-info{
+
+    color:#999;
+
+    font-size:14px;
+
+    margin-bottom:20px;
+
+}
+
+.selection-counter{
+
+    background:#151515;
+
+    border:
+    1px solid rgba(212,175,55,.2);
+
+    border-radius:12px;
+
+    padding:12px;
+
+    text-align:center;
+
+    margin-bottom:15px;
+
+    color:#aaa;
+
+}
+
+.selection-counter strong{
+
+    color:#d4af37;
+
+}
+
+
+/* BOOK CHECKBOXES */
+
+.book-option{
+
+    position:relative;
+
+    margin-bottom:12px;
+
+}
+
+.book-option input{
+
+    position:absolute;
+
+    opacity:0;
+
+}
+
+.book-option label{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:15px;
+
+    padding:15px;
+
+    border:
+    1px solid #292929;
+
+    background:#111;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.book-option label:hover{
+
+    border-color:#777;
+
+}
+
+.book-option input:checked + label{
+
+    border-color:#d4af37;
+
+    background:
+    rgba(212,175,55,.08);
+
+}
+
+.book-option-info{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+}
+
+.check-circle{
+
+    width:22px;
+
+    height:22px;
+
+    border-radius:50%;
+
+    border:2px solid #555;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.book-option input:checked + label
+.check-circle{
+
+    background:#d4af37;
+
+    border-color:#d4af37;
+
+}
+
+.book-option input:checked + label
+.check-circle::after{
+
+    content:"✓";
+
+    color:#000;
+
+    font-size:13px;
+
+    font-weight:900;
+
+}
+
+.book-option-title{
+
+    font-weight:700;
+
+}
+
+.book-option-price{
+
+    color:#d4af37;
+
+    font-size:13px;
+
+}
+
+
+/* MODAL BUTTON */
+
+.confirm-selection{
+
+    margin-top:20px;
+
+}
+
+.confirm-selection:disabled{
+
+    opacity:.35;
+
+    cursor:not-allowed;
+
+    transform:none;
+
+    box-shadow:none;
+
+}
+
+.modal-error{
+
+    display:none;
+
+    color:#ff7070;
+
+    text-align:center;
+
+    margin-top:12px;
+
+    font-size:13px;
+
+}
+
+.modal-error.show{
+
+    display:block;
+
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1050px){
+
+    .books-grid{
+
+        grid-template-columns:
+        repeat(2,1fr);
+
     }
 
-    html {
-      scroll-behavior: smooth;
-    }
+    .offers-grid{
 
-    body {
-      font-family: "Cairo", sans-serif;
-      background:
-        radial-gradient(circle at top right, rgba(212,175,55,.12), transparent 30%),
-        radial-gradient(circle at bottom left, rgba(212,175,55,.08), transparent 30%),
-        #080808;
-      color: #fff;
-      line-height: 1.8;
-      overflow-x: hidden;
-    }
-
-    a {
-      text-decoration: none;
-      color: inherit;
-    }
-
-    /* =========================
-       HEADER
-    ========================= */
-
-    header {
-      position: relative;
-      padding: 75px 20px 55px;
-      text-align: center;
-      background:
-        linear-gradient(rgba(0,0,0,.65), rgba(0,0,0,.9)),
-        radial-gradient(circle at center, #222, #050505 70%);
-      border-bottom: 1px solid rgba(212,175,55,.25);
-    }
-
-    .logo {
-      font-size: 48px;
-      font-weight: 900;
-      letter-spacing: 5px;
-      color: #d4af37;
-      text-shadow: 0 0 25px rgba(212,175,55,.25);
-    }
-
-    .logo-sub {
-      margin-top: 5px;
-      color: #aaa;
-      font-size: 16px;
-      letter-spacing: 3px;
-    }
-
-    header h1 {
-      margin-top: 30px;
-      font-size: clamp(28px, 5vw, 48px);
-      font-weight: 900;
-    }
-
-    header h1 span {
-      color: #d4af37;
-    }
-
-    header p {
-      max-width: 700px;
-      margin: 15px auto 0;
-      color: #bbb;
-      font-size: 17px;
-    }
-
-    /* =========================
-       MAIN
-    ========================= */
-
-    main {
-      width: min(1200px, 92%);
-      margin: auto;
-      padding: 70px 0;
-    }
-
-    .section-title {
-      text-align: center;
-      margin-bottom: 45px;
-    }
-
-    .section-title h2 {
-      font-size: 34px;
-      font-weight: 900;
-    }
-
-    .section-title h2 span {
-      color: #d4af37;
-    }
-
-    .section-title p {
-      color: #999;
-      margin-top: 8px;
-    }
-
-    /* =========================
-       BOOKS
-    ========================= */
-
-    .books-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 25px;
-    }
-
-    .book-card {
-      position: relative;
-      background: linear-gradient(145deg, #151515, #0d0d0d);
-      border: 1px solid rgba(212,175,55,.18);
-      border-radius: 22px;
-      overflow: hidden;
-      transition: .4s ease;
-      box-shadow: 0 10px 35px rgba(0,0,0,.35);
-    }
-
-    .book-card:hover {
-      transform: translateY(-10px);
-      border-color: rgba(212,175,55,.7);
-      box-shadow: 0 20px 50px rgba(0,0,0,.6);
-    }
-
-    .book-cover {
-      position: relative;
-      background: #111;
-      padding: 18px;
-    }
-
-    .book-cover img {
-      width: 100%;
-      aspect-ratio: 3 / 4;
-      object-fit: cover;
-      border-radius: 14px;
-      display: block;
-      box-shadow: 0 15px 30px rgba(0,0,0,.5);
-      transition: .4s;
-    }
-
-    .book-card:hover .book-cover img {
-      transform: scale(1.025);
-    }
-
-    .pdf-badge {
-      position: absolute;
-      top: 30px;
-      left: 30px;
-      background: #d4af37;
-      color: #000;
-      padding: 5px 12px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 900;
-      box-shadow: 0 5px 15px rgba(0,0,0,.4);
-    }
-
-    .book-content {
-      padding: 22px;
-    }
-
-    .book-content h3 {
-      font-size: 22px;
-      font-weight: 900;
-      margin-bottom: 12px;
-      color: #fff;
-    }
-
-    .book-description {
-      color: #aaa;
-      font-size: 14px;
-      min-height: 100px;
-      margin-bottom: 18px;
-    }
-
-    .book-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
-
-    .price {
-      color: #d4af37;
-      font-size: 25px;
-      font-weight: 900;
-    }
-
-    .digital {
-      color: #888;
-      font-size: 12px;
-    }
-
-    .buy-btn {
-      width: 100%;
-      border: 0;
-      cursor: pointer;
-      padding: 13px 15px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #d4af37, #f0d477);
-      color: #050505;
-      font-family: inherit;
-      font-size: 15px;
-      font-weight: 900;
-      transition: .3s;
-      box-shadow: 0 8px 20px rgba(212,175,55,.15);
-    }
-
-    .buy-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(212,175,55,.3);
-    }
-
-    /* =========================
-       OFFERS
-    ========================= */
-
-    .offers-section {
-      margin-top: 90px;
-    }
-
-    .offers-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
-    }
-
-    .offer-card {
-      position: relative;
-      background: linear-gradient(145deg, #171717, #0b0b0b);
-      border: 1px solid rgba(212,175,55,.3);
-      border-radius: 20px;
-      padding: 30px 25px;
-      text-align: center;
-      transition: .3s;
-    }
-
-    .offer-card:hover {
-      transform: translateY(-7px);
-      border-color: #d4af37;
-    }
-
-    .offer-card.featured {
-      border: 2px solid #d4af37;
-      box-shadow: 0 15px 45px rgba(212,175,55,.12);
-    }
-
-    .offer-badge {
-      position: absolute;
-      top: -13px;
-      right: 50%;
-      transform: translateX(50%);
-      background: #d4af37;
-      color: #000;
-      padding: 4px 18px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 900;
-    }
-
-    .offer-card h3 {
-      font-size: 23px;
-      margin-bottom: 10px;
-    }
-
-    .offer-old {
-      color: #777;
-      text-decoration: line-through;
-      font-size: 15px;
-    }
-
-    .offer-price {
-      color: #d4af37;
-      font-size: 36px;
-      font-weight: 900;
-      margin: 5px 0 15px;
-    }
-
-    .offer-card p {
-      color: #999;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    /* =========================
-       PAYMENT
-       هنا أصبحت طرق الدفع تحت العروض فقط
-    ========================= */
-
-    .payment-section {
-      margin-top: 75px;
-    }
-
-    .payment-box {
-      background:
-        linear-gradient(145deg, rgba(212,175,55,.09), rgba(255,255,255,.02)),
-        #111;
-      border: 1px solid rgba(212,175,55,.3);
-      border-radius: 22px;
-      padding: 35px 25px;
-      text-align: center;
-    }
-
-    .payment-box h2 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    .payment-box h2 span {
-      color: #d4af37;
-    }
-
-    .payment-subtitle {
-      color: #999;
-      margin-bottom: 25px;
-    }
-
-    .payment-methods {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    .payment-method {
-      min-width: 190px;
-      padding: 17px 25px;
-      border-radius: 14px;
-      background: #181818;
-      border: 1px solid rgba(255,255,255,.08);
-    }
-
-    .payment-method strong {
-      display: block;
-      color: #d4af37;
-      font-size: 18px;
-    }
-
-    .payment-method span {
-      color: #bbb;
-      font-size: 15px;
-    }
-
-    .payment-number {
-      margin-top: 25px;
-      font-size: 25px;
-      font-weight: 900;
-      color: #fff;
-      direction: ltr;
-      letter-spacing: 2px;
-    }
-
-    .payment-note {
-      margin-top: 10px;
-      color: #777;
-      font-size: 13px;
-    }
-
-    /* =========================
-       AUTHOR
-       آخر قسم في الصفحة
-    ========================= */
-
-    .author-section {
-      margin-top: 80px;
-      padding: 55px 25px;
-      text-align: center;
-      border-top: 1px solid rgba(212,175,55,.15);
-      border-bottom: 1px solid rgba(212,175,55,.15);
-      background: rgba(255,255,255,.015);
-    }
-
-    .author-label {
-      color: #d4af37;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 3px;
-      margin-bottom: 8px;
-    }
-
-    .author-name-ar {
-      font-size: 34px;
-      font-weight: 900;
-    }
-
-    .author-name-en {
-      color: #d4af37;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 4px;
-      margin-top: -3px;
-    }
-
-    .author-bio {
-      max-width: 700px;
-      margin: 18px auto 0;
-      color: #999;
-      line-height: 2;
-      font-size: 15px;
-    }
-
-    /* =========================
-       FOOTER
-    ========================= */
-
-    footer {
-      text-align: center;
-      padding: 30px 20px;
-      color: #666;
-      font-size: 13px;
-    }
-
-    footer strong {
-      color: #d4af37;
-    }
-
-    /* =========================
-       RESPONSIVE
-    ========================= */
-
-    @media (max-width: 1050px) {
-
-      .books-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .offers-grid {
-        grid-template-columns: 1fr;
-      }
+        grid-template-columns:1fr;
 
     }
 
-    @media (max-width: 600px) {
+}
 
-      header {
-        padding: 55px 18px 45px;
-      }
+@media(max-width:600px){
 
-      .logo {
-        font-size: 35px;
-      }
+    header{
 
-      .books-grid {
-        grid-template-columns: 1fr;
-      }
-
-      main {
-        width: 94%;
-        padding: 50px 0;
-      }
-
-      .section-title h2 {
-        font-size: 28px;
-      }
-
-      .book-description {
-        min-height: auto;
-      }
-
-      .payment-methods {
-        flex-direction: column;
-      }
-
-      .payment-method {
-        width: 100%;
-      }
-
-      .payment-number {
-        font-size: 21px;
-      }
+        padding:55px 18px 45px;
 
     }
 
-  </style>
+    .logo{
+
+        font-size:35px;
+
+    }
+
+    .books-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    main{
+
+        width:94%;
+
+        padding:50px 0;
+
+    }
+
+    .section-title h2{
+
+        font-size:28px;
+
+    }
+
+    .book-description{
+
+        min-height:auto;
+
+    }
+
+    .payment-methods{
+
+        flex-direction:column;
+
+    }
+
+    .payment-method{
+
+        width:100%;
+
+    }
+
+    .payment-number{
+
+        font-size:21px;
+
+    }
+
+    .modal-box{
+
+        padding:22px;
+
+    }
+
+}
+
+</style>
+
 </head>
+
 
 <body>
 
-  <!-- =========================
-       HEADER
-  ========================= -->
 
-  <header>
+<!-- ==================================================
+     HEADER
+================================================== -->
+
+<header>
 
     <div class="logo">
-      TABO BOOKS
+        TABO BOOKS
     </div>
 
     <div class="logo-sub">
-      مكتبة تابو الرقمية
+        مكتبة تابو الرقمية
     </div>
 
     <h1>
-      كتب تغيّر <span>طريقة تفكيرك</span>
+        كتب تغيّر
+        <span>طريقة تفكيرك</span>
     </h1>
 
     <p>
-      مجموعة مختارة من الكتب الرقمية التي تجمع بين الفكر،
-      التطوير الشخصي، المال، والوعي.
+        مجموعة مختارة من الكتب الرقمية التي تجمع بين
+        الفكر والتطوير الشخصي والمال والوعي.
     </p>
 
-  </header>
+</header>
 
 
-  <main>
 
-    <!-- =========================
-         BOOKS
-    ========================= -->
+<main>
 
-    <section>
 
-      <div class="section-title">
-        <h2>
-          <span>كتب TABO</span>
-        </h2>
+<!-- ==================================================
+     BOOKS
+================================================== -->
 
-        <p>
-          اختر كتابك وابدأ رحلتك
-        </p>
-      </div>
+<section>
 
+<div class="section-title">
 
-      <div class="books-grid">
+    <h2>
+        <span>كتب TABO</span>
+    </h2>
 
+    <p>
+        اختر كتابك وابدأ رحلتك
+    </p>
 
-        <!-- هرمون -->
+</div>
 
-        <article class="book-card">
 
-          <div class="book-cover">
+<div class="books-grid">
 
-            <span class="pdf-badge">
-              PDF
-            </span>
 
-            <img
-              src="assets/hormon.png"
-              alt="كتاب هرمون">
-          </div>
+<!-- =========================
+     BOOK 1
+========================= -->
 
-          <div class="book-content">
+<article class="book-card">
 
-            <h3>
-              هرمون
-            </h3>
+<div class="book-cover">
 
-            <p class="book-description">
-              كتاب يتناول تأثير الهرمونات والرغبات
-              على السلوك والقرارات، وكيف يمكن للإنسان
-              أن يفهم نفسه بصورة أعمق.
-            </p>
+    <span class="pdf-badge">
+        PDF
+    </span>
 
-            <div class="book-meta">
+    <div class="book-image">
 
-              <div class="price">
-                150 جنيه
-              </div>
+        <!--
+        ضع رابط صورة كتاب هرمون هنا
 
-              <div class="digital">
-                نسخة رقمية PDF
-              </div>
+        مثال:
 
-            </div>
+        <img src="رابط-الصورة" alt="كتاب هرمون">
 
-            <button
-              class="buy-btn"
-              onclick="buyBook('هرمون',150)">
-              شراء و تحميل PDF
-            </button>
+        -->
 
-          </div>
-
-        </article>
-
-
-        <!-- نحو القمة -->
-
-        <article class="book-card">
-
-          <div class="book-cover">
-
-            <span class="pdf-badge">
-              PDF
-            </span>
-
-            <img
-              src="assets/nahw-al-qimma.png"
-              alt="كتاب نحو القمة">
-          </div>
-
-          <div class="book-content">
-
-            <h3>
-              نحو القمة
-            </h3>
-
-            <p class="book-description">
-              رحلة عملية لبناء الطموح والانضباط،
-              وتحويل الأهداف الكبيرة إلى خطوات
-              واقعية قابلة للتنفيذ.
-            </p>
-
-            <div class="book-meta">
-
-              <div class="price">
-                150 جنيه
-              </div>
-
-              <div class="digital">
-                نسخة رقمية PDF
-              </div>
-
-            </div>
-
-            <button
-              class="buy-btn"
-              onclick="buyBook('نحو القمة',150)">
-              شراء و تحميل PDF
-            </button>
-
-          </div>
-
-        </article>
-
-
-        <!-- تمرد -->
-
-        <article class="book-card">
-
-          <div class="book-cover">
-
-            <span class="pdf-badge">
-              PDF
-            </span>
-
-            <img
-              src="assets/tamarrud.png"
-              alt="كتاب تمرد">
-          </div>
-
-          <div class="book-content">
-
-            <h3>
-              تمرد
-            </h3>
-
-            <p class="book-description">
-              دعوة لإعادة التفكير في القيود والأفكار
-              التي اعتدنا عليها، وصناعة طريق أكثر
-              استقلالًا ووعيًا.
-            </p>
-
-            <div class="book-meta">
-
-              <div class="price">
-                150 جنيه
-              </div>
-
-              <div class="digital">
-                نسخة رقمية PDF
-              </div>
-
-            </div>
-
-            <button
-              class="buy-btn"
-              onclick="buyBook('تمرد',150)">
-              شراء و تحميل PDF
-            </button>
-
-          </div>
-
-        </article>
-
-
-        <!-- كيف تصنع المليون الأول -->
-
-        <article class="book-card">
-
-          <div class="book-cover">
-
-            <span class="pdf-badge">
-              PDF
-            </span>
-
-            <img
-              src="assets/million.png"
-              alt="كتاب كيف تصنع المليون الأول">
-          </div>
-
-          <div class="book-content">
-
-            <h3>
-              كيف تصنع المليون الأول
-            </h3>
-
-            <p class="book-description">
-              أفكار ومبادئ عملية لفهم المال،
-              وبناء عقلية مالية تساعدك على صناعة
-              أول مليون بطريقة أكثر وعيًا.
-            </p>
-
-            <div class="book-meta">
-
-              <div class="price">
-                150 جنيه
-              </div>
-
-              <div class="digital">
-                نسخة رقمية PDF
-              </div>
-
-            </div>
-
-            <button
-              class="buy-btn"
-              onclick="buyBook('كيف تصنع المليون الأول',150)">
-              شراء و تحميل PDF
-            </button>
-
-          </div>
-
-        </article>
-
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         OFFERS
-    ========================= -->
-
-    <section class="offers-section">
-
-      <div class="section-title">
-
-        <h2>
-          <span>عروض TABO BOOKS</span>
-        </h2>
-
-        <p>
-          كلما اخترت أكثر، وفّرت أكثر
-        </p>
-
-      </div>
-
-
-      <div class="offers-grid">
-
-
-        <!-- 2 BOOKS -->
-
-        <div class="offer-card">
-
-          <h3>
-            كتابان
-          </h3>
-
-          <div class="offer-old">
-            بدلًا من 300 جنيه
-          </div>
-
-          <div class="offer-price">
-            250 جنيه
-          </div>
-
-          <p>
-            اختر أي كتابين من المكتبة.
-          </p>
-
-          <button
-            class="buy-btn"
-            onclick="bundleRequest(2)">
-            اختر العرض
-          </button>
-
+        <div class="empty-image">
+            ضع صورة الغلاف هنا
         </div>
 
+    </div>
 
-        <!-- 3 BOOKS -->
+</div>
 
-        <div class="offer-card featured">
 
-          <div class="offer-badge">
-            عرض مميز
-          </div>
+<div class="book-content">
 
-          <h3>
-            3 كتب
-          </h3>
+<h3>
+    هرمون
+</h3>
 
-          <div class="offer-old">
-            بدلًا من 450 جنيه
-          </div>
+<p class="book-description">
 
-          <div class="offer-price">
-            300 جنيه
-          </div>
+    كتاب يتناول تأثير الهرمونات والرغبات
+    على السلوك والقرارات، وكيف يمكن للإنسان
+    أن يفهم نفسه بصورة أعمق.
 
-          <p>
-            اختر أي 3 كتب من المكتبة.
-          </p>
+</p>
 
-          <button
-            class="buy-btn"
-            onclick="bundleRequest(3)">
-            اختر العرض
-          </button>
 
+<div class="book-meta">
+
+    <div class="price">
+        150 جنيه
+    </div>
+
+    <div class="digital">
+        نسخة رقمية PDF
+    </div>
+
+</div>
+
+
+<button
+class="buy-btn"
+onclick="buyBook('هرمون',150)">
+
+    شراء و تحميل PDF
+
+</button>
+
+</div>
+
+</article>
+
+
+
+<!-- =========================
+     BOOK 2
+========================= -->
+
+<article class="book-card">
+
+<div class="book-cover">
+
+    <span class="pdf-badge">
+        PDF
+    </span>
+
+    <div class="book-image">
+
+        <!--
+        ضع رابط صورة كتاب نحو القمة هنا
+        -->
+
+        <div class="empty-image">
+            ضع صورة الغلاف هنا
         </div>
 
+    </div>
 
-        <!-- 4 BOOKS -->
+</div>
 
-        <div class="offer-card">
 
-          <h3>
-            المجموعة كاملة
-          </h3>
+<div class="book-content">
 
-          <div class="offer-old">
-            بدلًا من 600 جنيه
-          </div>
+<h3>
+    نحو القمة
+</h3>
 
-          <div class="offer-price">
-            350 جنيه
-          </div>
+<p class="book-description">
 
-          <p>
-            الكتب الأربعة كاملة بصيغة PDF.
-          </p>
+    رحلة عملية لبناء الطموح والانضباط،
+    وتحويل الأهداف الكبيرة إلى خطوات
+    واقعية قابلة للتنفيذ.
 
-          <button
-            class="buy-btn"
-            onclick="bundleRequest(4)">
-            احصل على المجموعة
-          </button>
+</p>
 
+
+<div class="book-meta">
+
+    <div class="price">
+        150 جنيه
+    </div>
+
+    <div class="digital">
+        نسخة رقمية PDF
+    </div>
+
+</div>
+
+
+<button
+class="buy-btn"
+onclick="buyBook('نحو القمة',150)">
+
+    شراء و تحميل PDF
+
+</button>
+
+</div>
+
+</article>
+
+
+
+<!-- =========================
+     BOOK 3
+========================= -->
+
+<article class="book-card">
+
+<div class="book-cover">
+
+    <span class="pdf-badge">
+        PDF
+    </span>
+
+    <div class="book-image">
+
+        <!--
+        ضع رابط صورة كتاب تمرد هنا
+        -->
+
+        <div class="empty-image">
+            ضع صورة الغلاف هنا
         </div>
 
+    </div>
 
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         PAYMENT
-         موجود هنا فقط
-    ========================= -->
-
-    <section class="payment-section">
-
-      <div class="payment-box">
-
-        <h2>
-          طرق <span>الدفع المتاحة</span>
-        </h2>
-
-        <p class="payment-subtitle">
-          بعد اختيار الكتاب أو العرض يمكنك إتمام الدفع
-          والتواصل معنا عبر واتساب.
-        </p>
+</div>
 
 
-        <div class="payment-methods">
+<div class="book-content">
 
-          <div class="payment-method">
+<h3>
+    تمرد
+</h3>
 
-            <strong>
-              InstaPay
-            </strong>
+<p class="book-description">
 
-            <span>
-              متاح للدفع
-            </span>
+    دعوة لإعادة التفكير في القيود والأفكار
+    التي اعتدنا عليها، وصناعة طريق أكثر
+    استقلالًا ووعيًا.
 
-          </div>
+</p>
 
 
-          <div class="payment-method">
+<div class="book-meta">
 
-            <strong>
-              Vodafone Cash
-            </strong>
+    <div class="price">
+        150 جنيه
+    </div>
 
-            <span>
-              متاح للدفع
-            </span>
+    <div class="digital">
+        نسخة رقمية PDF
+    </div>
 
-          </div>
+</div>
 
+
+<button
+class="buy-btn"
+onclick="buyBook('تمرد',150)">
+
+    شراء و تحميل PDF
+
+</button>
+
+</div>
+
+</article>
+
+
+
+<!-- =========================
+     BOOK 4
+========================= -->
+
+<article class="book-card">
+
+<div class="book-cover">
+
+    <span class="pdf-badge">
+        PDF
+    </span>
+
+    <div class="book-image">
+
+        <!--
+        ضع رابط صورة كتاب كيف تصنع المليون الأول هنا
+        -->
+
+        <div class="empty-image">
+            ضع صورة الغلاف هنا
         </div>
 
+    </div>
 
-        <div class="payment-number">
-          01122969593
-        </div>
-
-        <div class="payment-note">
-          رقم الدفع عبر InstaPay و Vodafone Cash
-        </div>
-
-      </div>
-
-    </section>
+</div>
 
 
-    <!-- =========================
-         AUTHOR
-         آخر قسم قبل الفوتر
-    ========================= -->
+<div class="book-content">
 
-    <section class="author-section">
+<h3>
+    كيف تصنع المليون الأول
+</h3>
 
-      <div class="author-label">
-        AUTHOR
-      </div>
+<p class="book-description">
 
-      <div class="author-name-ar">
-        تابو نور
-      </div>
+    أفكار ومبادئ عملية لفهم المال،
+    وبناء عقلية مالية تساعدك على صناعة
+    أول مليون بطريقة أكثر وعيًا.
 
-      <div class="author-name-en">
-        TABONOOR
-      </div>
-
-      <p class="author-bio">
-        كاتب ومؤلف يهتم بموضوعات الوعي،
-        تطوير الذات، المال، الطموح، وفهم الإنسان
-        لنفسه والعالم من حوله.
-        من خلال TABO BOOKS يسعى إلى تقديم
-        أفكار وكتب تساعد القارئ على إعادة النظر
-        في أفكاره وصناعة مساره الخاص.
-      </p>
-
-    </section>
+</p>
 
 
-  </main>
+<div class="book-meta">
+
+    <div class="price">
+        150 جنيه
+    </div>
+
+    <div class="digital">
+        نسخة رقمية PDF
+    </div>
+
+</div>
 
 
-  <!-- =========================
-       FOOTER
-  ========================= -->
+<button
+class="buy-btn"
+onclick="buyBook('كيف تصنع المليون الأول',150)">
 
-  <footer>
+    شراء و تحميل PDF
 
-    © 2026
-    <strong>TABO BOOKS</strong>
-    — جميع الحقوق محفوظة
+</button>
 
-  </footer>
+</div>
 
-
-  <!-- =========================
-       JAVASCRIPT
-  ========================= -->
-
-  <script>
-
-    const WHATSAPP_NUMBER = "201122969593";
+</article>
 
 
-    function openWhatsApp(message) {
+</div>
 
-      const url =
-        "https://wa.me/" +
-        WHATSAPP_NUMBER +
-        "?text=" +
-        encodeURIComponent(message);
+</section>
 
-      window.open(url, "_blank");
 
+
+<!-- ==================================================
+     OFFERS
+================================================== -->
+
+<section class="offers-section">
+
+
+<div class="section-title">
+
+<h2>
+    <span>عروض TABO BOOKS</span>
+</h2>
+
+<p>
+    اختر الكتب التي تريدها واستفد من السعر الخاص
+</p>
+
+</div>
+
+
+<div class="offers-grid">
+
+
+<!-- =========================
+     OFFER 2
+========================= -->
+
+<div class="offer-card">
+
+<h3>
+    كتابان
+</h3>
+
+<div class="offer-old">
+    بدلًا من 300 جنيه
+</div>
+
+<div class="offer-price">
+    250 جنيه
+</div>
+
+<p>
+    اختر أي كتابين من المكتبة.
+</p>
+
+<button
+class="buy-btn"
+onclick="openOffer(2,250)">
+
+    اختر الكتابين
+
+</button>
+
+</div>
+
+
+
+<!-- =========================
+     OFFER 3
+========================= -->
+
+<div class="offer-card featured">
+
+<div class="offer-badge">
+    عرض مميز
+</div>
+
+<h3>
+    3 كتب
+</h3>
+
+<div class="offer-old">
+    بدلًا من 450 جنيه
+</div>
+
+<div class="offer-price">
+    300 جنيه
+</div>
+
+<p>
+    اختر أي 3 كتب من المكتبة.
+</p>
+
+<button
+class="buy-btn"
+onclick="openOffer(3,300)">
+
+    اختر 3 كتب
+
+</button>
+
+</div>
+
+
+
+<!-- =========================
+     OFFER 4
+========================= -->
+
+<div class="offer-card">
+
+<h3>
+    المجموعة كاملة
+</h3>
+
+<div class="offer-old">
+    بدلًا من 600 جنيه
+</div>
+
+<div class="offer-price">
+    350 جنيه
+</div>
+
+<p>
+    احصل على الكتب الأربعة كاملة.
+</p>
+
+<button
+class="buy-btn"
+onclick="openOffer(4,350)">
+
+    اختر المجموعة كاملة
+
+</button>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+
+<!-- ==================================================
+     PAYMENT
+================================================== -->
+
+<section class="payment-section">
+
+<div class="payment-box">
+
+
+<h2>
+    طرق <span>الدفع المتاحة</span>
+</h2>
+
+<p class="payment-subtitle">
+
+    يمكنك الدفع من خلال إحدى طرق الدفع التالية
+    ثم التواصل معنا عبر واتساب.
+
+</p>
+
+
+<div class="payment-methods">
+
+
+<!-- INSTAPAY -->
+
+<div class="payment-method">
+
+    <!--
+    ضع رابط لوجو InstaPay في src
+    -->
+
+    <img
+    class="payment-logo instapay"
+    src=""
+    alt="InstaPay">
+
+    <strong>
+        InstaPay
+    </strong>
+
+</div>
+
+
+
+<!-- VODAFONE CASH -->
+
+<div class="payment-method">
+
+    <!--
+    ضع رابط لوجو Vodafone Cash في src
+    -->
+
+    <img
+    class="payment-logo vodafone"
+    src=""
+    alt="Vodafone Cash">
+
+    <strong>
+        Vodafone Cash
+    </strong>
+
+</div>
+
+
+</div>
+
+
+<div class="payment-number">
+
+    01122969593
+
+</div>
+
+
+<div class="payment-note">
+
+    رقم الدفع عبر InstaPay و Vodafone Cash
+
+</div>
+
+
+</div>
+
+</section>
+
+
+
+<!-- ==================================================
+     AUTHOR
+================================================== -->
+
+<section class="author-section">
+
+<div class="author-label">
+    AUTHOR
+</div>
+
+<div class="author-name-ar">
+    تابو نور
+</div>
+
+<div class="author-name-en">
+    TABONOOR
+</div>
+
+<p class="author-bio">
+
+    كاتب ومؤلف يهتم بموضوعات الوعي،
+    تطوير الذات، المال، الطموح، وفهم الإنسان
+    لنفسه والعالم من حوله.
+
+</p>
+
+</section>
+
+
+</main>
+
+
+
+<!-- ==================================================
+     FOOTER
+================================================== -->
+
+<footer>
+
+© 2026
+
+<strong>
+    TABO BOOKS
+</strong>
+
+— جميع الحقوق محفوظة
+
+</footer>
+
+
+
+<!-- ==================================================
+     OFFER MODAL
+================================================== -->
+
+<div
+class="modal"
+id="offerModal">
+
+
+<div class="modal-box">
+
+
+<div class="modal-header">
+
+<h3 id="modalTitle">
+    اختر الكتب
+</h3>
+
+<button
+class="close-modal"
+onclick="closeOffer()">
+
+    ×
+
+</button>
+
+</div>
+
+
+<div class="modal-info"
+id="modalInfo">
+
+    اختر الكتب التي تريدها من العرض.
+
+</div>
+
+
+<div class="selection-counter">
+
+    تم اختيار:
+
+    <strong id="selectedCount">
+        0
+    </strong>
+
+    من
+
+    <strong id="requiredCount">
+        2
+    </strong>
+
+</div>
+
+
+
+<div id="bookSelection">
+
+
+<!-- يتم إنشاء الاختيارات بواسطة JavaScript -->
+
+</div>
+
+
+
+<div
+class="modal-error"
+id="modalError">
+
+    يجب اختيار العدد المطلوب من الكتب.
+
+</div>
+
+
+
+<button
+class="buy-btn confirm-selection"
+id="confirmOfferButton"
+disabled
+onclick="confirmOffer()">
+
+    متابعة إلى واتساب
+
+</button>
+
+
+</div>
+
+</div>
+
+
+
+<script>
+
+
+/* ==================================================
+   SETTINGS
+================================================== */
+
+const WHATSAPP_NUMBER =
+"201122969593";
+
+
+/* ==================================================
+   BOOK DATABASE
+================================================== */
+
+const BOOKS = [
+
+    {
+        name:"هرمون",
+        price:150
+    },
+
+    {
+        name:"نحو القمة",
+        price:150
+    },
+
+    {
+        name:"تمرد",
+        price:150
+    },
+
+    {
+        name:"كيف تصنع المليون الأول",
+        price:150
     }
 
+];
 
-    function buyBook(bookName, price) {
 
-      const message =
+let currentOfferCount = 0;
+
+let currentOfferPrice = 0;
+
+
+/* ==================================================
+   WHATSAPP
+================================================== */
+
+function openWhatsApp(message){
+
+    const url =
+    "https://wa.me/" +
+    WHATSAPP_NUMBER +
+    "?text=" +
+    encodeURIComponent(message);
+
+    window.open(
+        url,
+        "_blank"
+    );
+
+}
+
+
+/* ==================================================
+   SINGLE BOOK
+================================================== */
+
+function buyBook(
+    bookName,
+    price
+){
+
+    const message =
+
 `مرحبًا TABO BOOKS 👋
 
 أريد شراء وتحميل نسخة PDF من الكتاب:
 
-📚 الكتاب: ${bookName}
-💰 السعر: ${price} جنيه
+📚 الكتاب:
+${bookName}
+
+💰 السعر:
+${price} جنيه
 
 أريد إتمام عملية الشراء والدفع.
 
@@ -1020,36 +2006,379 @@
 رقم الدفع:
 01122969593`;
 
-      openWhatsApp(message);
+    openWhatsApp(message);
+
+}
+
+
+/* ==================================================
+   OPEN OFFER
+================================================== */
+
+function openOffer(
+    count,
+    price
+){
+
+    currentOfferCount =
+    count;
+
+    currentOfferPrice =
+    price;
+
+
+    const modal =
+    document.getElementById(
+        "offerModal"
+    );
+
+
+    const title =
+    document.getElementById(
+        "modalTitle"
+    );
+
+
+    const info =
+    document.getElementById(
+        "modalInfo"
+    );
+
+
+    const required =
+    document.getElementById(
+        "requiredCount"
+    );
+
+
+    const selection =
+    document.getElementById(
+        "bookSelection"
+    );
+
+
+    const counter =
+    document.getElementById(
+        "selectedCount"
+    );
+
+
+    const button =
+    document.getElementById(
+        "confirmOfferButton"
+    );
+
+
+    const error =
+    document.getElementById(
+        "modalError"
+    );
+
+
+    /* RESET */
+
+    selection.innerHTML = "";
+
+    counter.textContent = "0";
+
+    required.textContent = count;
+
+    button.disabled = true;
+
+    error.classList.remove(
+        "show"
+    );
+
+
+    /* TITLE */
+
+    if(count === 2){
+
+        title.textContent =
+        "اختر الكتابين";
+
+        info.textContent =
+        "اختر أي كتابين من الكتب الأربعة مقابل 250 جنيه.";
 
     }
 
 
-    function bundleRequest(count) {
+    if(count === 3){
 
-      let price = 0;
+        title.textContent =
+        "اختر 3 كتب";
 
-      if (count === 2) {
-        price = 250;
-      }
+        info.textContent =
+        "اختر أي 3 كتب من الكتب الأربعة مقابل 300 جنيه.";
 
-      if (count === 3) {
-        price = 300;
-      }
-
-      if (count === 4) {
-        price = 350;
-      }
+    }
 
 
-      let message =
+    if(count === 4){
+
+        title.textContent =
+        "المجموعة الكاملة";
+
+        info.textContent =
+        "سيتم اختيار الكتب الأربعة كاملة مقابل 350 جنيه.";
+
+    }
+
+
+    /* CREATE OPTIONS */
+
+    BOOKS.forEach(
+        (book,index)=>{
+
+            const wrapper =
+            document.createElement(
+                "div"
+            );
+
+            wrapper.className =
+            "book-option";
+
+
+            wrapper.innerHTML = `
+
+                <input
+                    type="checkbox"
+                    id="book_${index}"
+                    value="${book.name}"
+                    onchange="updateSelection()"
+                >
+
+                <label for="book_${index}">
+
+                    <div class="book-option-info">
+
+                        <span class="check-circle"></span>
+
+                        <span class="book-option-title">
+                            ${book.name}
+                        </span>
+
+                    </div>
+
+                    <span class="book-option-price">
+                        ${book.price} جنيه
+                    </span>
+
+                </label>
+            `;
+
+
+            selection.appendChild(
+                wrapper
+            );
+
+        }
+    );
+
+
+    /* IF ALL BOOKS */
+
+    if(count === 4){
+
+        document
+        .querySelectorAll(
+            "#bookSelection input"
+        )
+        .forEach(
+            checkbox=>{
+
+                checkbox.checked =
+                true;
+
+                checkbox.disabled =
+                true;
+
+            }
+        );
+
+        updateSelection();
+
+    }
+
+
+    modal.classList.add(
+        "active"
+    );
+
+}
+
+
+/* ==================================================
+   UPDATE SELECTION
+================================================== */
+
+function updateSelection(){
+
+    const checkboxes =
+    document.querySelectorAll(
+        "#bookSelection input"
+    );
+
+
+    const selected =
+    Array.from(
+        checkboxes
+    )
+    .filter(
+        checkbox =>
+        checkbox.checked
+    );
+
+
+    const count =
+    selected.length;
+
+
+    document.getElementById(
+        "selectedCount"
+    ).textContent =
+    count;
+
+
+    const button =
+    document.getElementById(
+        "confirmOfferButton"
+    );
+
+
+    const error =
+    document.getElementById(
+        "modalError"
+    );
+
+
+    if(count === currentOfferCount){
+
+        button.disabled =
+        false;
+
+        error.classList.remove(
+            "show"
+        );
+
+    }
+
+    else{
+
+        button.disabled =
+        true;
+
+    }
+
+
+    /*
+    منع العميل من تجاوز العدد المطلوب
+    */
+
+    if(count >= currentOfferCount){
+
+        checkboxes.forEach(
+            checkbox=>{
+
+                if(!checkbox.checked){
+
+                    checkbox.disabled =
+                    true;
+
+                }
+
+            }
+        );
+
+    }
+
+    else{
+
+        checkboxes.forEach(
+            checkbox=>{
+
+                if(!checkbox.disabled ||
+                   !checkbox.checked){
+
+                    checkbox.disabled =
+                    false;
+
+                }
+
+            }
+        );
+
+    }
+
+}
+
+
+/* ==================================================
+   CONFIRM OFFER
+================================================== */
+
+function confirmOffer(){
+
+    const checkboxes =
+    document.querySelectorAll(
+        "#bookSelection input:checked"
+    );
+
+
+    const selectedBooks =
+    Array.from(
+        checkboxes
+    )
+    .map(
+        checkbox =>
+        checkbox.value
+    );
+
+
+    if(
+        selectedBooks.length !==
+        currentOfferCount
+    ){
+
+        document
+        .getElementById(
+            "modalError"
+        )
+        .classList.add(
+            "show"
+        );
+
+        return;
+
+    }
+
+
+    const booksText =
+    selectedBooks
+    .map(
+        (book,index)=>
+        `${index + 1}. ${book}`
+    )
+    .join("\n");
+
+
+    const message =
+
 `مرحبًا TABO BOOKS 👋
 
-أريد الاستفادة من عرض ${count} كتب.
+أريد الاستفادة من عرض الكتب.
 
-💰 سعر العرض: ${price} جنيه
+🎁 العرض:
+${currentOfferCount} كتب
 
-أريد معرفة خطوات إتمام الدفع والحصول على الكتب بصيغة PDF.
+📚 الكتب التي اخترتها:
+
+${booksText}
+
+💰 سعر العرض:
+${currentOfferPrice} جنيه
+
+أريد إتمام عملية الشراء والدفع والحصول على نسخ PDF.
 
 طرق الدفع:
 • InstaPay
@@ -1059,33 +2388,79 @@
 01122969593`;
 
 
-      if (count === 4) {
+    closeOffer();
 
-        message =
-`مرحبًا TABO BOOKS 👋
+    openWhatsApp(
+        message
+    );
 
-أريد شراء المجموعة الكاملة.
-
-📚 الكتب الأربعة كاملة
-💰 سعر العرض: 350 جنيه
-
-أريد إتمام عملية الشراء والحصول على الكتب بصيغة PDF.
-
-طرق الدفع:
-• InstaPay
-• Vodafone Cash
-
-رقم الدفع:
-01122969593`;
-
-      }
+}
 
 
-      openWhatsApp(message);
+/* ==================================================
+   CLOSE MODAL
+================================================== */
+
+function closeOffer(){
+
+    document
+    .getElementById(
+        "offerModal"
+    )
+    .classList.remove(
+        "active"
+    );
+
+}
+
+
+/* ==================================================
+   CLOSE WHEN CLICK OUTSIDE
+================================================== */
+
+document
+.getElementById(
+    "offerModal"
+)
+.addEventListener(
+    "click",
+    function(event){
+
+        if(
+            event.target ===
+            this
+        ){
+
+            closeOffer();
+
+        }
 
     }
+);
 
-  </script>
+
+/* ==================================================
+   ESC KEY
+================================================== */
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key === "Escape"
+        ){
+
+            closeOffer();
+
+        }
+
+    }
+);
+
+</script>
+
 
 </body>
+
 </html>
