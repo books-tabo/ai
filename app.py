@@ -1,5 +1,5 @@
 """TABO BOOKS backend. Python 3.11+, pypdf, reportlab, Pillow."""
-import io, json, os, re, secrets, tempfile, threading, hmac, hashlib
+import io, json, os, re, secrets, hmac, hashlib
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -9,54 +9,30 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.utils import ImageReader
 from PIL import Image, ImageDraw, ImageFont
+import supabase_store as store
 
 ROOT = Path(__file__).resolve().parent
-DATA = Path(os.environ.get('TABO_DATA_DIR', ROOT / 'private-data')).resolve()
 BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','book2.pdf'),
          'book3': ('تمرد','book3.pdf'), 'book4': ('كيف تصنع المليون الأول','book4.pdf'),
          'book5': ('شهوات','book5.pdf'), 'book6': ('دليل السمو','book6.pdf')}
 PRICES = {1:150,2:250,3:300,4:350,5:420,6:500,7:550,8:620,9:700}
-PAYMENT_LINKS_FILE = ROOT / 'payment-links.json'
 PAYMOB_ID = 5932821
 PAYMOB_BASE = 'https://accept.paymob.com'
-LOCK = threading.RLock()
-DATA.mkdir(mode=0o700, parents=True, exist_ok=True)
-DB = DATA / 'orders.json'
 FONT = os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
 
 def checkout_ready():
     """Never accept payment unless originals and durable order storage are ready."""
     return (os.environ.get('TABO_CHECKOUT_ENABLED') == '1'
             and os.environ.get('TABO_PERSISTENT_STORAGE_READY') == '1'
-            and all((DATA / 'books' / filename).is_file() for _, filename in BOOKS.values())
-            and (bool(os.environ.get('PAYMOB_SECRET_KEY'))
-                 or any(payment_link(price) for price in PRICES.values())))
-
-def load():
-    if not DB.exists(): return {}
-    return json.loads(DB.read_text(encoding='utf-8'))
-
-def save(orders):
-    fd, name = tempfile.mkstemp(dir=DATA, prefix='.orders-')
-    try:
-        with os.fdopen(fd, 'w', encoding='utf-8') as f:
-            os.chmod(name, 0o600)
-            json.dump(orders, f, ensure_ascii=False)
-            f.flush(); os.fsync(f.fileno())
-        os.replace(name, DB)
-    finally:
-        if os.path.exists(name): os.unlink(name)
+            and store.ready()
+            and os.environ.get('TABO_ORIGINALS_VERIFIED') == '1'
+            and os.environ.get('PAYMOB_SECRET_KEY','').startswith('sk_test_')
+            and bool(os.environ.get('PAYMOB_PUBLIC_KEY','').startswith('pk_test_'))
+            and bool(os.environ.get('PAYMOB_HMAC_SECRET'))
+            and os.environ.get('TABO_PUBLIC_URL','').startswith('https://'))
 
 def now(): return datetime.now(timezone.utc).isoformat()
 def public(order): return {k:order[k] for k in ('id','status','items','total','currency','paymentMethod')}
-def payment_link(total):
-    if not PAYMENT_LINKS_FILE.exists(): return None
-    links=json.loads(PAYMENT_LINKS_FILE.read_text(encoding='utf-8'))
-    link=links.get(str(total))
-    parsed=urlparse(link) if isinstance(link,str) else None
-    if not parsed or parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password:
-        return None
-    return link
 def paymob_checkout(order, customer):
     secret=os.environ.get('PAYMOB_SECRET_KEY','')
     public=os.environ.get('PAYMOB_PUBLIC_KEY','')
@@ -95,10 +71,6 @@ def verify_paymob(obj, signature):
     except (KeyError,TypeError,ValueError): return False
     expected=hmac.new(secret.encode(),''.join(values).encode(),hashlib.sha512).hexdigest()
     return hmac.compare_digest(expected,signature.lower())
-def by_token(orders, token):
-    if not token or len(token) != 64: return None
-    return next((o for o in orders.values() if o['status']=='PAID' and hmac.compare_digest(o.get('token',''),token)), None)
-
 def make_stamp(name, phone, order_id, width):
     font = ImageFont.truetype(FONT, 26)
     canvas = Image.new('RGBA',(1800,125),(255,255,255,0))
@@ -109,7 +81,7 @@ def make_stamp(name, phone, order_id, width):
     return buf
 
 def watermarked(src, order):
-    reader=PdfReader(str(src)); writer=PdfWriter()
+    reader=PdfReader(io.BytesIO(src) if isinstance(src, bytes) else str(src)); writer=PdfWriter()
     for page in reader.pages:
         width=float(page.mediabox.width); height=float(page.mediabox.height)
         overlay=io.BytesIO(); c=Canvas(overlay,pagesize=(width,height))
@@ -152,25 +124,17 @@ class Handler(BaseHTTPRequestHandler):
                 if any(i not in BOOKS for i in ids) or len(set(ids))!=len(ids):
                     return self.respond(400,{'ok':False,'error':'الكتب غير صالحة أو مكررة.'})
                 total=PRICES[len(ids)]
-                dynamic=bool(os.environ.get('PAYMOB_SECRET_KEY'))
                 customer=data.get('customer')
-                if dynamic:
-                    if not isinstance(customer,dict) or not isinstance(customer.get('name'),str) or not 2<=len(customer['name'].strip())<=100 or not isinstance(customer.get('phone'),str) or not re.fullmatch(r'\+?[0-9]{8,15}',customer['phone']) or not isinstance(customer.get('email'),str) or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',customer['email']):
-                        return self.respond(400,{'ok':False,'error':'الاسم والبريد الإلكتروني ورقم الهاتف مطلوبة للدفع.'})
-                else:
-                    link=payment_link(total)
-                    if not link: return self.respond(503,{'ok':False,'error':'الدفع لم يُضبط بعد.'})
+                if not isinstance(customer,dict) or not isinstance(customer.get('name'),str) or not 2<=len(customer['name'].strip())<=100 or not isinstance(customer.get('phone'),str) or not re.fullmatch(r'\+?[0-9]{8,15}',customer['phone']) or not isinstance(customer.get('email'),str) or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',customer['email']):
+                    return self.respond(400,{'ok':False,'error':'الاسم والبريد الإلكتروني ورقم الهاتف مطلوبة للدفع.'})
                 order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':BOOKS[i][0]} for i in ids],
                        'total':total,'currency':'EGP','paymentMethod':'Payment Link','createdAt':now(),
                        'token':None,'buyer':None,'transactionId':None,'statusKey':secrets.token_hex(32)}
-                with LOCK:
-                    orders=load(); orders[order['id']]=order; save(orders)
-                if dynamic:
-                    try: link,paymob_id=paymob_checkout(order,customer)
-                    except Exception:
-                        return self.respond(503,{'ok':False,'error':'تعذر إنشاء صفحة الدفع التجريبية. تحقق من إعدادات Paymob.'})
-                    with LOCK:
-                        orders=load();orders[order['id']]['paymobOrderId']=paymob_id;save(orders)
+                store.insert(order)
+                try: link,paymob_id=paymob_checkout(order,customer)
+                except Exception:
+                    return self.respond(503,{'ok':False,'error':'تعذر إنشاء صفحة الدفع التجريبية. تحقق من إعدادات Paymob.'})
+                store.patch(order['id'],{'paymob_order_id':paymob_id},{'status':'eq.PENDING'})
                 return self.respond(201,{'ok':True,'order':public(order),'payment_url':link,
                                          'tracking_url':'/pending.html?key='+order['statusKey']})
             if route=='/api/paymob/webhook':
@@ -185,14 +149,18 @@ class Handler(BaseHTTPRequestHandler):
                 transaction=str(obj.get('id',''))
                 if not isinstance(reference,str) or not transaction:
                     return self.respond(200,{'ok':True,'paid':False})
-                with LOCK:
-                    orders=load();order=orders.get(reference)
-                    if not order or obj.get('integration_id')!=PAYMOB_ID or obj.get('currency')!='EGP' or obj.get('amount_cents')!=order['total']*100 or str(order_obj.get('id'))!=str(order.get('paymobOrderId')):
-                        return self.respond(200,{'ok':True,'paid':False})
-                    if any(other['id']!=reference and other.get('transactionId')==transaction for other in orders.values()):
+                order=store.find('id',reference) if store.ready() and re.fullmatch(r'TABO-[A-F0-9]{16}',reference) else None
+                if not order or obj.get('integration_id')!=PAYMOB_ID or obj.get('currency')!='EGP' or obj.get('amount_cents')!=order['total']*100 or str(order_obj.get('id'))!=str(order.get('paymobOrderId')):
+                    return self.respond(200,{'ok':True,'paid':False})
+                if order['status']=='PENDING':
+                    try:
+                        paid=store.patch(reference,{'status':'PAID','transaction_id':transaction,
+                                   'paid_at':now(),'download_token':secrets.token_hex(32)},
+                                   {'status':'eq.PENDING'})
+                    except RuntimeError:
                         return self.respond(409,{'ok':False,'error':'Duplicate transaction'})
-                    if order['status']=='PENDING':
-                        order['status']='PAID';order['transactionId']=transaction;order['paidAt']=now();order['token']=secrets.token_hex(32);save(orders)
+                    if not paid and store.find('id',reference)['transactionId']!=transaction:
+                        return self.respond(409,{'ok':False,'error':'Order already paid'})
                 return self.respond(200,{'ok':True,'paid':True})
             if route=='/api/admin/confirm-payment':
                 secret=os.environ.get('TABO_ADMIN_KEY','')
@@ -202,17 +170,20 @@ class Handler(BaseHTTPRequestHandler):
                 oid=data.get('order_id'); tid=data.get('transaction_id'); amount=data.get('amount'); currency=data.get('currency')
                 if not isinstance(tid,str) or not re.fullmatch(r'[A-Za-z0-9_.:-]{6,100}',tid):
                     return self.respond(400,{'ok':False,'error':'Transaction reference required'})
-                with LOCK:
-                    orders=load(); order=orders.get(oid)
-                    if not order: return self.respond(404,{'ok':False,'error':'Order not found'})
-                    if isinstance(amount,bool) or amount!=order['total'] or currency!=order['currency']:
-                        return self.respond(400,{'ok':False,'error':'Amount/currency mismatch'})
-                    if any(o['id']!=oid and o.get('transactionId')==tid for o in orders.values()):
-                        return self.respond(409,{'ok':False,'error':'Transaction already used'})
-                    if order['status']=='PAID' and order['transactionId']!=tid:
-                        return self.respond(409,{'ok':False,'error':'Order already paid with another transaction'})
-                    if order['status']!='PAID':
-                        order['status']='PAID';order['transactionId']=tid;order['paidAt']=now();order['token']=secrets.token_hex(32);save(orders)
+                if not store.ready(): return self.respond(503,{'ok':False,'error':'Database unavailable'})
+                order=store.find('id',oid) if isinstance(oid,str) and re.fullmatch(r'TABO-[A-F0-9]{16}',oid) else None
+                if not order: return self.respond(404,{'ok':False,'error':'Order not found'})
+                if isinstance(amount,bool) or amount!=order['total'] or currency!=order['currency']:
+                    return self.respond(400,{'ok':False,'error':'Amount/currency mismatch'})
+                if order['status']=='PAID' and order['transactionId']!=tid:
+                    return self.respond(409,{'ok':False,'error':'Order already paid with another transaction'})
+                if order['status']!='PAID':
+                    try:
+                        order=store.patch(oid,{'status':'PAID','transaction_id':tid,
+                                    'paid_at':now(),'download_token':secrets.token_hex(32)},
+                                    {'status':'eq.PENDING'})
+                    except RuntimeError: return self.respond(409,{'ok':False,'error':'Transaction already used'})
+                    if not order: return self.respond(409,{'ok':False,'error':'Order already paid'})
                 return self.respond(200,{'ok':True,'order_id':oid,'success_url':'/success.html?token='+order['token']})
             if route=='/api/buyer':
                 token=data.get('token',''); name=data.get('name',''); phone=data.get('phone','')
@@ -220,12 +191,15 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(400,{'ok':False,'error':'اكتب الاسم الصحيح (من حرفين إلى 100).'})
                 if not isinstance(phone,str) or not re.fullmatch(r'\+?[0-9]{8,15}',phone):
                     return self.respond(400,{'ok':False,'error':'اكتب رقم هاتف صحيح بالأرقام الإنجليزية.'})
-                with LOCK:
-                    orders=load();order=by_token(orders,token)
-                    if not order: return self.respond(403,{'ok':False,'error':'رابط غير صالح.'})
-                    if order['buyer'] and order['buyer']!={'name':name.strip(),'phone':phone}:
-                        return self.respond(409,{'ok':False,'error':'تم تسجيل بيانات المشتري مسبقًا. تواصل مع الدعم لتصحيحها.'})
-                    order['buyer']={'name':name.strip(),'phone':phone};save(orders)
+                order=store.find('download_token',token) if store.ready() and isinstance(token,str) and re.fullmatch(r'[0-9a-f]{64}',token) else None
+                if not order or order['status']!='PAID': return self.respond(403,{'ok':False,'error':'رابط غير صالح.'})
+                if order['buyer'] and order['buyer']!={'name':name.strip(),'phone':phone}:
+                    return self.respond(409,{'ok':False,'error':'تم تسجيل بيانات المشتري مسبقًا. تواصل مع الدعم لتصحيحها.'})
+                if not order['buyer']:
+                    updated=store.patch(order['id'],{'buyer':{'name':name.strip(),'phone':phone}},
+                                        {'status':'eq.PAID','buyer':'is.null'})
+                    if not updated and store.find('id',order['id'])['buyer']!={'name':name.strip(),'phone':phone}:
+                        return self.respond(409,{'ok':False,'error':'تم تسجيل بيانات المشتري مسبقًا.'})
                 return self.respond(200,{'ok':True})
             return self.respond(404,{'ok':False,'error':'Not found'})
         except (ValueError,json.JSONDecodeError,TypeError) as e:
@@ -241,27 +215,25 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/api/config': return self.respond(200,{'checkoutEnabled':checkout_ready()})
         if route=='/api/order-status':
             key=parse_qs(parsed.query).get('key',[''])[0]
-            if len(key)!=64: return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
-            with LOCK:
-                order=next((o for o in load().values() if hmac.compare_digest(o.get('statusKey',''),key)),None)
+            if not re.fullmatch(r'[0-9a-f]{64}',key): return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
+            order=store.find('status_key',key) if store.ready() else None
             if not order: return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
             return self.respond(200,{'ok':True,'status':order['status'],'order_id':order['id'],
               'books':[i['name'] for i in order['items']],
               'success_url':('/success.html?token='+order['token']) if order['status']=='PAID' else None})
         if route=='/api/downloads':
-            with LOCK: order=by_token(load(),token)
+            order=store.find('download_token',token) if store.ready() and re.fullmatch(r'[0-9a-f]{64}',token) else None
+            if order and order['status']!='PAID': order=None
             if not order: return self.respond(403,{'ok':False,'error':'رابط غير صالح أو الدفع غير مؤكد.'})
             return self.respond(200,{'ok':True,'needsBuyer':not bool(order['buyer']),
               'books':([{'id':i['id'],'name':i['name'],'url':'/api/download/'+i['id']+'?token='+quote(token)} for i in order['items']] if order['buyer'] else [])})
         match=re.fullmatch(r'/api/download/(book[1-6])',route)
         if match:
-            with LOCK: order=by_token(load(),token)
+            order=store.find('download_token',token) if store.ready() and re.fullmatch(r'[0-9a-f]{64}',token) else None
             book_id=match.group(1)
             if not order or not order['buyer'] or book_id not in [i['id'] for i in order['items']]:
                 return self.respond(403,{'ok':False,'error':'تحميل غير مصرح.'})
-            src=DATA/'books'/BOOKS[book_id][1]
-            if not src.is_file(): return self.respond(404,{'ok':False,'error':'ملف الكتاب غير متاح بعد.'})
-            try: payload=watermarked(src,order)
+            try: payload=watermarked(store.original(BOOKS[book_id][1]),order)
             except Exception: return self.respond(500,{'ok':False,'error':'تعذر تجهيز الكتاب. تواصل مع الدعم.'})
             self.send_response(200);self.send_header('Content-Type','application/pdf')
             self.send_header('Content-Disposition',f'attachment; filename="TABO-{book_id}-{order["id"]}.pdf"')
