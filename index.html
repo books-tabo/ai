@@ -1569,67 +1569,7 @@ footer{
 </section>
 
 
-<!-- =========================================================
-     PAYMENT
-========================================================= -->
-
-<section class="payment-section">
-
-    <div class="payment-inner">
-
-        <h2>
-            طرق الدفع
-        </h2>
-
-        <p>
-            الدفع متاح حاليًا من خلال إنستاباي أو فودافون كاش.
-        </p>
-
-        <div class="payment-methods">
-
-
-            <div class="payment-card">
-
-                <img
-                    src="https://i.ibb.co/xKGM9mtP/image.png"
-                    alt="InstaPay"
-                >
-
-                <h3>
-                    InstaPay
-                </h3>
-
-                <div class="payment-number">
-                    01122965693
-                </div>
-
-            </div>
-
-
-            <div class="payment-card">
-
-                <img
-                    src="https://i.ibb.co/MyBMBZG7/image.png"
-                    alt="Vodafone Cash"
-                >
-
-                <h3>
-                    Vodafone Cash
-                </h3>
-
-                <div class="payment-number">
-                    01122965693
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-</section>
-
+<section class="payment-section"><div class="payment-inner"><h2>الدفع الإلكتروني</h2><p>أضف الكتب للسلة، ثم اضغط «متابعة الدفع» للانتقال إلى رابط دفع آمن بقيمة طلبك بالجنيه المصري.</p></div></section>
 
 <!-- =========================================================
      AUTHOR
@@ -1889,6 +1829,13 @@ footer{
 
         <div class="cart-actions">
 
+            <div style="width:100%;padding:12px 0;text-align:right">
+                <p>بيانات التواصل المطلوبة لصفحة دفع Paymob التجريبية</p>
+                <input id="checkoutName" placeholder="الاسم الكامل" autocomplete="name" style="width:100%;padding:12px;margin:5px 0">
+                <input id="checkoutEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="email" style="width:100%;padding:12px;margin:5px 0">
+                <input id="checkoutPhone" type="tel" placeholder="رقم الهاتف بالأرقام الإنجليزية" autocomplete="tel" style="width:100%;padding:12px;margin:5px 0">
+            </div>
+
 
             <button
                 class="btn btn-dark"
@@ -1900,148 +1847,18 @@ footer{
 
             <button
                 class="btn btn-gold"
-                onclick="openPaymentChoice()"
+                onclick="checkoutWithPaymentLink()"
                 id="checkoutBtn"
             >
                 متابعة الدفع
             </button>
 
-
-        </div>
-
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     PAYMENT CHOICE MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="paymentChoiceModal"
-    onclick="closePaymentChoice(event)"
->
-
-    <div
-        class="modal"
-        onclick="event.stopPropagation()"
-    >
-
-        <button
-            class="modal-close"
-            onclick="closePaymentChoice()"
-        >
-            ×
-        </button>
-
-
-        <h2>
-            اختر طريقة الدفع
-        </h2>
-
-
-        <p
-            style="
-            color:#666;
-            margin-bottom:20px;
-            "
-        >
-            بعد اختيار طريقة الدفع سيتم تجهيز طلبك
-            وإرساله إلى واتساب.
-        </p>
-
-
-        <div class="payment-choice">
-
-
-            <button
-                onclick="selectPaymentMethod('InstaPay')"
-            >
-
-                <strong>
-                    InstaPay
-                </strong>
-
-                <br>
-
-                <span>
-                    01122965693
-                </span>
-
-            </button>
-
-
-            <button
-                onclick="selectPaymentMethod('Vodafone Cash')"
-            >
-
-                <strong>
-                    Vodafone Cash
-                </strong>
-
-                <br>
-
-                <span>
-                    01122965693
-                </span>
-
-            </button>
+            <p id="checkoutNotice" role="status" style="display:none;width:100%;text-align:center;color:#7c601b">
+                الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.
+            </p>
 
 
         </div>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     CONFIRMATION MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="confirmationModal"
-    onclick="closeConfirmation(event)"
->
-
-    <div
-        class="modal"
-        onclick="event.stopPropagation()"
-    >
-
-        <button
-            class="modal-close"
-            onclick="closeConfirmation()"
-        >
-            ×
-        </button>
-
-
-        <h2>
-            تأكيد الطلب
-        </h2>
-
-
-        <p
-            id="confirmationText"
-            class="modal-text"
-        ></p>
-
-
-        <button
-            class="btn btn-gold"
-            style="
-            width:100%;
-            margin-top:20px;
-            "
-            onclick="sendOrderToWhatsApp()"
-        >
-            تأكيد وإرسال الطلب عبر واتساب
-        </button>
 
 
     </div>
@@ -2578,16 +2395,9 @@ footer{
 const WHATSAPP_NUMBER =
     "201122965693";
 
-
-const PAYMENT_NUMBERS = {
-
-    "InstaPay":
-        "01122965693",
-
-    "Vodafone Cash":
-        "01122965693"
-
-};
+const BACKEND_URL = location.origin;
+let lastOrderId = localStorage.getItem("taboLastOrderId") || "";
+const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6"};
 
 
 /* =========================================================
@@ -2817,8 +2627,7 @@ let cart =
     ) || [];
 
 
-let selectedPaymentMethod =
-    "";
+
 
 
 let currentDetailsBook =
@@ -3648,353 +3457,52 @@ function closeBookDetails(
    PAYMENT CHOICE
 ========================================================= */
 
-function openPaymentChoice(){
-
-    const pricing =
-        calculatePricing();
-
-
-    if(
-        pricing.count === 0
-    ){
-
+async function checkoutWithPaymentLink(){
+    if(!window.TABO_CHECKOUT_READY){
+        alert('الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.');
         return;
-
     }
-
-
-    /* =========================
-       FACEBOOK PIXEL
-       InitiateCheckout
-    ========================= */
-
-    if(
-        typeof fbq !==
-        'undefined'
-    ){
-
-        fbq(
-            'track',
-            'InitiateCheckout',
-            {
-
-                value:
-                    pricing.final,
-
-                currency:
-                    'EGP',
-
-                num_items:
-                    cart.length
-
-            }
-        );
-
+    const pricing=calculatePricing();
+    if(!pricing.count) return;
+    const customer={
+        name:document.getElementById('checkoutName').value.trim(),
+        email:document.getElementById('checkoutEmail').value.trim(),
+        phone:document.getElementById('checkoutPhone').value.trim()
+    };
+    if(customer.name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)||!/^\+?[0-9]{8,15}$/.test(customer.phone)){
+        alert('أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.');return;
     }
-
-
-    document
-        .getElementById(
-            "paymentChoiceModal"
-        )
-        .classList.add(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "hidden";
-
+    const button=document.getElementById('checkoutBtn');
+    button.disabled=true;
+    try {
+        const response=await fetch(`${BACKEND_URL}/api/orders`,{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({items:cart.map(item=>({id:BOOK_IDS[item.name]})),customer})
+        });
+        const data=await response.json();
+        if(!response.ok||!data.ok) throw new Error(data.error||'تعذر إنشاء الطلب.');
+        const orderId=data.order.id;
+        localStorage.setItem('taboLastOrderId',orderId);
+        const key=new URL(data.tracking_url,location.origin).searchParams.get('key');
+        sessionStorage.setItem('taboPayment:'+key,data.payment_url);
+        window.location.assign(data.tracking_url);
+    } catch(error){alert(error.message||'تعذر الاتصال بخادم الدفع.');button.disabled=false;}
 }
 
-
-function closePaymentChoice(
-    event
-){
-
-    if(
-        event &&
-        event.target.id !==
-        "paymentChoiceModal"
-    ){
-
-        return;
-
-    }
-
-
-    document
-        .getElementById(
-            "paymentChoiceModal"
-        )
-        .classList.remove(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "";
-
-}
-
-
-/* =========================================================
-   SELECT PAYMENT METHOD
-========================================================= */
-
-function selectPaymentMethod(
-    method
-){
-
-    selectedPaymentMethod =
-        method;
-
-
-    closePaymentChoice();
-
-
-    const pricing =
-        calculatePricing();
-
-
-    document.getElementById(
-        "confirmationText"
-    ).textContent =
-
-        `سيتم إرسال طلبك عبر واتساب.
-
-عدد الكتب: ${pricing.count}
-
-السعر النهائي: ${pricing.final} جنيه
-
-طريقة الدفع: ${method}
-
-رقم الدفع: ${PAYMENT_NUMBERS[method]}
-
-بعد الإرسال ستتواصل مع TABO BOOKS لإتمام الدفع واستلام ملفات PDF.`;
-
-
-    document
-        .getElementById(
-            "confirmationModal"
-        )
-        .classList.add(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "hidden";
-
-}
-
-
-/* =========================================================
-   CLOSE CONFIRMATION
-========================================================= */
-
-function closeConfirmation(
-    event
-){
-
-    if(
-        event &&
-        event.target.id !==
-        "confirmationModal"
-    ){
-
-        return;
-
-    }
-
-
-    document
-        .getElementById(
-            "confirmationModal"
-        )
-        .classList.remove(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "";
-
-}
-
-
-/* =========================================================
-   SEND ORDER TO WHATSAPP
-========================================================= */
-
-function sendOrderToWhatsApp(){
-
-    const pricing =
-        calculatePricing();
-
-
-    if(
-        pricing.count === 0 ||
-        !selectedPaymentMethod
-    ){
-
-        return;
-
-    }
-
-
-    /* =========================
-       ORDER ID
-    ========================= */
-
-    const orderId =
-
-        'TABO-' +
-
-        Math.floor(
-            1000 +
-            Math.random() *
-            9000
-        );
-
-
-    /* =========================
-       FACEBOOK PIXEL
-       Lead
-    ========================= */
-
-    if(
-        typeof fbq !==
-        'undefined'
-    ){
-
-        fbq(
-            'track',
-            'Lead',
-            {
-
-                value:
-                    pricing.final,
-
-                currency:
-                    'EGP',
-
-                content_ids:
-                    cart.map(
-                        c =>
-                            c.name
-                    ),
-
-                num_items:
-                    cart.length
-
-            }
-        );
-
-    }
-
-
-    /* =========================
-       BOOKS LIST
-    ========================= */
-
-    const booksList =
-
-        cart
-
-        .map(
-            (item,index) =>
-
-                `${index + 1}. ${item.name}`
-
-        )
-
-        .join("\n");
-
-
-    /* =========================
-       WHATSAPP MESSAGE
-    ========================= */
-
-    const message =
-
-`كود الطلب: ${orderId}
-
-مرحبًا TABO BOOKS 👋
-
-أريد شراء الكتب التالية:
-
-${booksList}
-
-عدد الكتب: ${pricing.count}
-
-السعر الأصلي: ${pricing.original} جنيه
-
-الخصم: ${pricing.discount} جنيه
-
-السعر النهائي: ${pricing.final} جنيه
-
-طريقة الدفع: ${selectedPaymentMethod}
-
-رقم الدفع:
-${PAYMENT_NUMBERS[selectedPaymentMethod]}
-
-أرغب في إتمام الدفع واستلام ملفات PDF.
-
-شكرًا لكم.`;
-
-
-    /* =========================
-       OPEN WHATSAPP
-    ========================= */
-
-    const whatsappURL =
-
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
-
-    window.open(
-        whatsappURL,
-        "_blank"
-    );
-
-
-    /* =========================
-       CLEAR CART
-       بعد فتح الواتساب
-    ========================= */
-
-    cart = [];
-
-
-    saveCart();
-
-
-    updateCart();
-
-
-    /* =========================
-       CLOSE MODALS
-    ========================= */
-
-    document
-        .getElementById(
-            "confirmationModal"
-        )
-        .classList.remove(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "";
-
-
-    selectedPaymentMethod =
-        "";
-
-}
-
+window.TABO_CHECKOUT_READY=false;
+fetch('/api/config',{cache:'no-store'})
+    .then(response=>response.ok?response.json():{checkoutEnabled:false})
+    .then(config=>{
+        window.TABO_CHECKOUT_READY=config.checkoutEnabled===true;
+        if(!window.TABO_CHECKOUT_READY){
+            document.getElementById('checkoutBtn').disabled=true;
+            document.getElementById('checkoutNotice').style.display='block';
+        }
+    })
+    .catch(()=>{
+        document.getElementById('checkoutBtn').disabled=true;
+        document.getElementById('checkoutNotice').style.display='block';
+    });
 
 /* =========================================================
    INFO MODALS
