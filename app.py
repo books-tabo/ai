@@ -88,7 +88,11 @@ def watermarked(src, order):
         stamp=make_stamp(order['buyer']['name'],order['buyer']['phone'],order['id'],width)
         c.drawImage(ImageReader(stamp), width*.08, max(10,height*.025), width=width*.84, height=40, mask='auto')
         c.save(); overlay.seek(0)
-        page.merge_page(PdfReader(overlay).pages[0]); writer.add_page(page)
+        page.merge_page(PdfReader(overlay).pages[0])
+        writer.add_page(page)
+        # merge_page creates a combined, uncompressed content stream. Reapply
+        # lossless Flate compression so stamping does not inflate the PDF.
+        writer.pages[-1].compress_content_streams()
     out=io.BytesIO(); writer.write(out); return out.getvalue()
 
 class Handler(BaseHTTPRequestHandler):
