@@ -1,5 +1,6 @@
 """TABO BOOKS backend. Python 3.11+, pypdf, reportlab, Pillow."""
-import io, json, os, re, secrets, hmac, hashlib
+import io, json, os, re, secrets, hmac, hashlib, ipaddress, threading, time
+from collections import deque
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -20,6 +21,57 @@ PRICES = {1:150,2:250,3:300,4:350,5:420,6:500,7:550,8:620,9:700}
 PAYMOB_BASE = 'https://accept.paymob.com'
 FONT = os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
 
+
+class SlidingWindowLimiter:
+    """Small in-process abuse guard; Render/Cloudflare remain the DDoS boundary."""
+    def __init__(self):
+        self._events = {}
+        self._lock = threading.Lock()
+
+    def allow(self, key, limit, window_seconds):
+        current = time.monotonic()
+        cutoff = current - window_seconds
+        with self._lock:
+            events = self._events.setdefault(key, deque())
+            while events and events[0] <= cutoff:
+                events.popleft()
+            if len(events) >= limit:
+                retry_after = max(1, int(window_seconds - (current - events[0])) + 1)
+                return False, retry_after
+            events.append(current)
+            if len(self._events) > 5000:
+                for stale_key in list(self._events)[:1000]:
+                    stale = self._events[stale_key]
+                    while stale and stale[0] <= cutoff:
+                        stale.popleft()
+                    if not stale:
+                        self._events.pop(stale_key, None)
+            return True, 0
+
+
+RATE_LIMITER = SlidingWindowLimiter()
+POST_LIMITS = {
+    '/api/ratings': (12, 600),
+    '/api/orders': (6, 600),
+    '/api/buyer': (12, 600),
+    '/api/admin/confirm-payment': (10, 600),
+    '/api/paymob/webhook': (180, 60),
+}
+GET_LIMITS = {
+    '/api/order-status': (120, 600),
+    '/api/downloads': (60, 600),
+    '/api/download': (12, 3600),
+}
+
+
+def valid_https_base(value):
+    parsed = urlparse(str(value or '').strip())
+    if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password:
+        return None
+    if parsed.query or parsed.fragment:
+        return None
+    return parsed._replace(path=parsed.path.rstrip('/'), params='', query='', fragment='').geturl()
+
 def checkout_ready():
     """Never accept payment unless originals and durable order storage are ready."""
     return (os.environ.get('TABO_CHECKOUT_ENABLED') == '1'
@@ -28,8 +80,8 @@ def checkout_ready():
             and os.environ.get('TABO_ORIGINALS_VERIFIED') == '1'
             and os.environ.get('PAYMOB_SECRET_KEY','').startswith('sk_test_')
             and bool(os.environ.get('PAYMOB_PUBLIC_KEY','').startswith('pk_test_'))
-            and bool(os.environ.get('PAYMOB_HMAC_SECRET'))
-            and os.environ.get('TABO_PUBLIC_URL','').startswith('https://'))
+            and len(os.environ.get('PAYMOB_HMAC_SECRET','')) >= 32
+            and bool(valid_https_base(os.environ.get('TABO_PUBLIC_URL'))))
 
 def now(): return datetime.now(timezone.utc).isoformat()
 def public(order):
@@ -38,8 +90,8 @@ def public(order):
 def paymob_checkout(order, customer):
     secret=os.environ.get('PAYMOB_SECRET_KEY','')
     public=os.environ.get('PAYMOB_PUBLIC_KEY','')
-    site=os.environ.get('TABO_PUBLIC_URL','').rstrip('/')
-    if not secret.startswith('sk_test_') or not public.startswith('pk_test_') or not site.startswith('https://'):
+    site=valid_https_base(os.environ.get('TABO_PUBLIC_URL'))
+    if not secret.startswith('sk_test_') or not public.startswith('pk_test_') or not site:
         raise ValueError('Paymob Test keys and public HTTPS URL are not configured')
     first,*rest=customer['name'].strip().split()
     details={key:'NA' for key in ('apartment','floor','street','building','shipping_method','postal_code','city','state')}
@@ -55,9 +107,19 @@ def paymob_checkout(order, customer):
              'redirection_url':site+'/pending.html?key='+order['statusKey']}
     request=Request(PAYMOB_BASE+'/v1/intention/',data=json.dumps(payload).encode(),
                     headers={'Authorization':'Token '+secret,'Content-Type':'application/json'},method='POST')
-    with urlopen(request,timeout=15) as response: reply=json.load(response)
+    with urlopen(request,timeout=15) as response:
+        raw=response.read(1_048_577)
+    if len(raw)>1_048_576:
+        raise ValueError('Payment response too large')
+    reply=json.loads(raw)
     client=reply['client_secret']
-    return (PAYMOB_BASE+'/unifiedcheckout/?'+urlencode({'publicKey':public,'clientSecret':client}),
+    if not isinstance(client,str) or not 20 <= len(client) <= 4096:
+        raise ValueError('Invalid payment response')
+    payment_url=PAYMOB_BASE+'/unifiedcheckout/?'+urlencode({'publicKey':public,'clientSecret':client})
+    parsed_payment=urlparse(payment_url)
+    if parsed_payment.scheme!='https' or parsed_payment.netloc!='accept.paymob.com':
+        raise ValueError('Invalid payment destination')
+    return (payment_url,
             str(reply.get('intention_order_id') or reply.get('id') or ''))
 
 HMAC_FIELDS=('amount_cents','created_at','currency','error_occured','has_parent_transaction','id',
@@ -102,6 +164,33 @@ def watermarked(src, order):
     out=io.BytesIO(); writer.write(out); return out.getvalue(),len(reader.pages)
 
 class Handler(BaseHTTPRequestHandler):
+    server_version = 'TABO'
+    sys_version = ''
+
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(15)
+
+    def end_headers(self):
+        self.send_header('X-Content-Type-Options','nosniff')
+        self.send_header('X-Frame-Options','DENY')
+        self.send_header('Referrer-Policy','no-referrer')
+        self.send_header('Permissions-Policy','camera=(), microphone=(), geolocation=(), payment=()')
+        self.send_header('Cross-Origin-Opener-Policy','same-origin')
+        self.send_header('Cross-Origin-Resource-Policy','same-origin')
+        self.send_header('Strict-Transport-Security','max-age=31536000; includeSubDomains')
+        nonce=getattr(self,'_csp_nonce',None)
+        if nonce:
+            self.send_header('Content-Security-Policy',
+                "default-src 'self'; script-src 'nonce-"+nonce+"'; "
+                "style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ibb.co data:; "
+                "connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
+                "frame-ancestors 'none'; frame-src 'none'; form-action 'self'; worker-src 'none'; "
+                "upgrade-insecure-requests")
+        else:
+            self.send_header('Content-Security-Policy',"default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+        super().end_headers()
+
     def log_message(self, fmt,*args):
         # Avoid recording buyer details or bearer download tokens in server logs.
         print('%s %s %s' % (self.address_string(), self.command, urlparse(self.path).path))
@@ -111,19 +200,76 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store'); self.send_header('Content-Length',str(len(body)))
         for name,value in (extra_headers or {}).items(): self.send_header(name,value)
         self.end_headers(); self.wfile.write(body)
+
+    def client_id(self):
+        candidates=[]
+        for name in ('CF-Connecting-IP','True-Client-IP'):
+            if self.headers.get(name): candidates.append(self.headers[name].strip())
+        if self.headers.get('X-Forwarded-For'):
+            candidates.append(self.headers['X-Forwarded-For'].split(',',1)[0].strip())
+        candidates.append(self.client_address[0])
+        for candidate in candidates:
+            try: return ipaddress.ip_address(candidate).compressed
+            except ValueError: continue
+        return 'unknown'
+
+    def enforce_rate_limit(self, route, method):
+        lookup=POST_LIMITS if method=='POST' else GET_LIMITS
+        bucket=route
+        if method=='GET' and re.fullmatch(r'/api/download/book[1-6]',route):
+            bucket='/api/download'
+        limits=lookup.get(bucket)
+        if not limits: return True
+        allowed,retry=RATE_LIMITER.allow(method+':'+bucket+':'+self.client_id(),*limits)
+        if allowed: return True
+        self.respond(429,{'ok':False,'error':'طلبات كثيرة جدًا. حاول مرة أخرى بعد قليل.'},
+                     {'Retry-After':str(retry)})
+        return False
+
+    def same_origin_browser_request(self):
+        if self.headers.get('Sec-Fetch-Site','').lower()=='cross-site':
+            return False
+        origin=self.headers.get('Origin')
+        if not origin: return True
+        parsed=urlparse(origin)
+        host=self.headers.get('Host','').lower()
+        return parsed.netloc.lower()==host and parsed.scheme in ('https','http')
+
     def read_json(self):
+        if self.headers.get_content_type()!='application/json':
+            raise ValueError('Content-Type must be application/json')
         size=int(self.headers.get('Content-Length','0'))
         if size<1 or size>131_072: raise ValueError('Invalid request size')
         data=json.loads(self.rfile.read(size))
         if not isinstance(data,dict): raise ValueError('Invalid JSON object')
         return data
     def html(self, filename):
-        payload=(ROOT/filename).read_bytes(); self.send_response(200)
+        nonce=secrets.token_urlsafe(24)
+        source=(ROOT/filename).read_text(encoding='utf-8')
+        source=re.sub(r'<(script|style)(\b[^>]*)>',
+                      lambda match:'<'+match.group(1)+' nonce="'+nonce+'"'+match.group(2)+'>',source)
+        payload=source.encode('utf-8'); self._csp_nonce=nonce; self.send_response(200)
         self.send_header('Content-Type','text/html; charset=utf-8')
+        self.send_header('Cache-Control','no-store')
+        if filename in ('pending.html','success.html'):
+            self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
+
+    def unsupported(self):
+        return self.respond(405,{'ok':False,'error':'Method not allowed'},{'Allow':'GET, POST'})
+    do_OPTIONS=unsupported
+    do_TRACE=unsupported
+    do_PUT=unsupported
+    do_PATCH=unsupported
+    do_DELETE=unsupported
+    do_HEAD=unsupported
+
     def do_POST(self):
         route=urlparse(self.path).path
         try:
+            if not self.enforce_rate_limit(route,'POST'): return
+            if route in ('/api/ratings','/api/orders','/api/buyer') and not self.same_origin_browser_request():
+                return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
             if route=='/api/ratings':
                 book_id=data.get('book_id'); rating=data.get('rating')
@@ -132,12 +278,12 @@ class Handler(BaseHTTPRequestHandler):
                 if not store.ready():
                     return self.respond(503,{'ok':False,'error':'تعذر حفظ التقييم الآن. حاول مرة أخرى.'})
                 cookie=self.headers.get('Cookie','')
-                match=re.search(r'(?:^|;\s*)tabo_rating_id=([0-9a-f]{64})(?:;|$)',cookie)
+                match=re.search(r'(?:^|;\s*)(?:__Host-)?tabo_rating_id=([0-9a-f]{64})(?:;|$)',cookie)
                 rating_id=match.group(1) if match else secrets.token_hex(32)
                 secret=os.environ.get('SUPABASE_SECRET_KEY','')
                 voter_hash=hmac.new(secret.encode(),rating_id.encode(),hashlib.sha256).hexdigest()
                 stats=store.submit_rating(book_id,voter_hash,rating)
-                headers={'Set-Cookie':f'tabo_rating_id={rating_id}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax'}
+                headers={'Set-Cookie':f'__Host-tabo_rating_id={rating_id}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Strict; Priority=High'}
                 return self.respond(200,{'ok':True,'rating':rating,'stats':stats},headers)
             if route=='/api/orders':
                 if not checkout_ready():
@@ -243,6 +389,7 @@ class Handler(BaseHTTPRequestHandler):
             self.log_error('Internal error');return self.respond(500,{'ok':False,'error':'Server error'})
     def do_GET(self):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
+        if not self.enforce_rate_limit(route,'GET'): return
         if route=='/': return self.html('index.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
@@ -291,7 +438,8 @@ class Handler(BaseHTTPRequestHandler):
             except Exception: pass
             self.send_response(200);self.send_header('Content-Type','application/pdf')
             self.send_header('Content-Disposition',f'attachment; filename="TABO-{book_id}-{order["id"]}.pdf"')
-            self.send_header('Cache-Control','private, no-store');self.send_header('Content-Length',str(len(payload)))
+            self.send_header('Cache-Control','private, no-store');self.send_header('X-Robots-Tag','noindex, noarchive')
+            self.send_header('Content-Length',str(len(payload)))
             self.end_headers();return self.wfile.write(payload)
         return self.respond(404,{'ok':False,'error':'Not found'})
 

@@ -93,12 +93,17 @@ def exchange_rates(force=False):
             req = Request('https://open.er-api.com/v6/latest/EGP',
                           headers={'User-Agent': 'TABO-Books/1.0'})
             with urlopen(req, timeout=4) as response:
-                payload = json.load(response)
+                raw = response.read(262_145)
+            if len(raw) > 262_144:
+                raise ValueError('exchange-rate response too large')
+            payload = json.loads(raw)
             received = payload.get('rates') if isinstance(payload, dict) else None
             if isinstance(received, dict):
                 for currency in set(item['currency'] for item in COUNTRIES.values()):
                     value = received.get(currency)
-                    if isinstance(value, (int, float)) and value > 0:
+                    fallback = FALLBACK_RATES[currency]
+                    if (isinstance(value, (int, float)) and not isinstance(value, bool)
+                            and fallback / 5 <= value <= fallback * 5):
                         rates[currency] = float(value)
                 live = True
         except Exception:

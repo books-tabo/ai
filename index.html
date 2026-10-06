@@ -14,72 +14,6 @@
     content="TABO BOOKS - مكتبة تابو الرقمية للكتب الإلكترونية في الوعي وتطوير الذات والمال والطموح."
 >
 
-<!-- =========================================================
-     FACEBOOK PIXEL
-     ضع Pixel ID مكان YOUR_PIXEL_ID_HERE
-========================================================= -->
-
-<script>
-
-!function(f,b,e,v,n,t,s)
-{
-    if(f.fbq)return;
-
-    n=f.fbq=function(){
-
-        n.callMethod ?
-        n.callMethod.apply(n,arguments) :
-        n.queue.push(arguments)
-
-    };
-
-    if(!f._fbq)f._fbq=n;
-
-    n.push=n;
-    n.loaded=!0;
-    n.version='2.0';
-    n.queue=[];
-
-    t=b.createElement(e);
-    t.async=!0;
-    t.src=v;
-
-    s=b.getElementsByTagName(e)[0];
-
-    s.parentNode.insertBefore(t,s)
-
-}
-(
-    window,
-    document,
-    'script',
-    'https://connect.facebook.net/en_US/fbevents.js'
-);
-
-fbq(
-    'init',
-    'YOUR_PIXEL_ID_HERE'
-);
-
-fbq(
-    'track',
-    'PageView'
-);
-
-</script>
-
-<noscript>
-
-<img
-    height="1"
-    width="1"
-    style="display:none"
-    src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID_HERE&ev=PageView&noscript=1"
-/>
-
-</noscript>
-
-
 <style>
 
 /* =========================================================
@@ -1687,7 +1621,7 @@ html[dir="ltr"] .info-highlight{
         <label for="countrySelect" id="countryLabel">الدولة</label>
         <select id="countrySelect" aria-label="اختر الدولة"></select>
         <div class="language-switch" aria-label="Language">
-            <button type="button" id="languageToggle" onclick="toggleLanguage()">اللغة</button>
+            <button type="button" id="languageToggle">اللغة</button>
         </div>
         <span class="location-note" id="locationNote">يمكنك تغيير الدولة واللغة من هنا.</span>
     </div>
@@ -1738,7 +1672,7 @@ html[dir="ltr"] .info-highlight{
 
 <button
     class="floating-cart"
-    onclick="openCart()"
+    id="floatingCartBtn"
     aria-label="السلة"
 >
 
@@ -1761,17 +1695,15 @@ html[dir="ltr"] .info-highlight{
 <div
     class="modal-overlay"
     id="bookDetailsModal"
-    onclick="closeBookDetails(event)"
 >
 
     <div
         class="modal"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeBookDetails()"
+            id="closeBookDetailsBtn"
         >
             ×
         </button>
@@ -1828,17 +1760,15 @@ html[dir="ltr"] .info-highlight{
 <div
     class="modal-overlay"
     id="cartModal"
-    onclick="closeCart(event)"
 >
 
     <div
         class="modal"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeCart()"
+            id="closeCartBtn"
         >
             ×
         </button>
@@ -1915,7 +1845,6 @@ html[dir="ltr"] .info-highlight{
 
             <button
                 class="btn btn-dark" id="continueShoppingBtn"
-                onclick="continueShopping()"
             >
                 متابعة التسوق
             </button>
@@ -1923,7 +1852,6 @@ html[dir="ltr"] .info-highlight{
 
             <button
                 class="btn btn-gold"
-                onclick="checkoutWithPaymentLink()"
                 id="checkoutBtn"
             >
                 متابعة الدفع
@@ -1949,17 +1877,14 @@ html[dir="ltr"] .info-highlight{
 <div
     class="modal-overlay info-modal"
     id="aboutModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
@@ -2030,17 +1955,14 @@ html[dir="ltr"] .info-highlight{
 <div
     class="modal-overlay info-modal"
     id="contactModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
@@ -2135,17 +2057,14 @@ html[dir="ltr"] .info-highlight{
 <div
     class="modal-overlay info-modal"
     id="privacyModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
@@ -2269,17 +2188,14 @@ html[dir="ltr"] .info-highlight{
 <div
     class="modal-overlay info-modal"
     id="refundModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
@@ -2360,17 +2276,14 @@ html[dir="ltr"] .info-highlight{
 <div
     class="modal-overlay info-modal"
     id="deliveryModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
@@ -3079,7 +2992,7 @@ function renderBooks(){
                         <button
                             class="add-cart-btn"
                             id="addBtn-${index}"
-                            onclick="addBookToCart('${book.id}')"
+                            data-book-id="${book.id}"
                         >
                             ${t("addCart")}
                         </button>
@@ -3152,34 +3065,6 @@ function addBookToCart(
 
 
     saveCart();
-
-
-    /* =========================
-       FACEBOOK PIXEL
-       AddToCart
-    ========================= */
-
-    if(
-        typeof fbq !==
-        'undefined'
-    ){
-
-        fbq(
-            'track',
-            'AddToCart',
-            {
-
-                value:
-                    calculatePricing()
-                    .final,
-
-                currency:
-                    storeConfig.currency
-
-            }
-        );
-
-    }
 
 
     updateCart();
@@ -3430,7 +3315,7 @@ function renderCart(){
 
                     <button
                         class="delete-item"
-                        onclick="removeFromCart(${index})"
+                        data-cart-index="${index}"
                         title="${t("delete")}"
                     >
                         ×
@@ -3873,6 +3758,28 @@ document.addEventListener(
     function(){
         Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) INFO_AR[id]=el.innerHTML;});
         applyStaticCopy();
+        document.getElementById("languageToggle")?.addEventListener("click",toggleLanguage);
+        document.getElementById("floatingCartBtn")?.addEventListener("click",openCart);
+        document.getElementById("closeBookDetailsBtn")?.addEventListener("click",()=>closeBookDetails());
+        document.getElementById("bookDetailsModal")?.addEventListener("click",event=>closeBookDetails(event));
+        document.getElementById("closeCartBtn")?.addEventListener("click",()=>closeCart());
+        document.getElementById("cartModal")?.addEventListener("click",event=>closeCart(event));
+        document.getElementById("continueShoppingBtn")?.addEventListener("click",continueShopping);
+        document.getElementById("checkoutBtn")?.addEventListener("click",checkoutWithPaymentLink);
+        document.getElementById("booksGrid")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-book-id]");
+            if(button) addBookToCart(button.dataset.bookId);
+        });
+        document.getElementById("cartItems")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-cart-index]");
+            if(button) removeFromCart(Number(button.dataset.cartIndex));
+        });
+        document.querySelectorAll(".info-modal").forEach(modal=>{
+            modal.addEventListener("click",event=>{
+                if(event.target===modal) closeInfoModal();
+            });
+            modal.querySelector(".modal-close")?.addEventListener("click",()=>closeInfoModal());
+        });
         document.getElementById("countrySelect")?.addEventListener("change",event=>{
             localStorage.setItem("taboCountry",event.target.value);
             loadStoreConfig(event.target.value);

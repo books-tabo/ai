@@ -5,6 +5,9 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
 
+JSON_RESPONSE_LIMIT = 2 * 1024 * 1024
+ORIGINAL_PDF_LIMIT = 100 * 1024 * 1024
+
 def ready():
     return bool(os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_SECRET_KEY'))
 
@@ -18,7 +21,9 @@ def request(path, method='GET', payload=None, params=None, headers=None):
     req = Request(url, data=body, headers=h, method=method)
     try:
         with urlopen(req, timeout=20) as response:
-            content = response.read()
+            content = response.read(JSON_RESPONSE_LIMIT + 1)
+            if len(content) > JSON_RESPONSE_LIMIT:
+                raise RuntimeError('Supabase response exceeded the safe size limit')
             return json.loads(content) if content else None
     except HTTPError as error:
         # Do not surface the response: it can contain identifiers or private data.
@@ -62,7 +67,15 @@ def original(book_name):
     req = Request(base + '/storage/v1/object/authenticated/tabo-originals/' + quote(book_name),
                   headers={'apikey': key, 'Authorization': 'Bearer ' + key})
     with urlopen(req, timeout=60) as response:
-        return response.read()
+        length=response.headers.get('Content-Length')
+        if length and int(length)>ORIGINAL_PDF_LIMIT:
+            raise RuntimeError('Original PDF exceeded the safe size limit')
+        payload=response.read(ORIGINAL_PDF_LIMIT + 1)
+    if len(payload)>ORIGINAL_PDF_LIMIT:
+        raise RuntimeError('Original PDF exceeded the safe size limit')
+    if not payload.startswith(b'%PDF-'):
+        raise RuntimeError('Original file is not a PDF')
+    return payload
 
 def book_stats():
     """Return only public-safe aggregate book metadata."""

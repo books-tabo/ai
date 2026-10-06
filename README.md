@@ -36,3 +36,12 @@ The six original PDFs in the separately held `TABO_BOOKS_BACKEND_READY.zip` must
 Set Paymob **test** secret/public/HMAC keys and `TABO_PUBLIC_URL` in private server configuration. If manual payment confirmation is needed for tests, configure a separate strong `TABO_ADMIN_KEY`. EGP defaults to method ID 5932821; configure reviewed IDs for additional currencies in `PAYMOB_PAYMENT_METHODS_JSON`. The signed webhook is `/api/paymob/webhook`. Confirm each currency with a real sandbox transaction and download each purchased watermarked PDF. Only then set `TABO_CHECKOUT_ENABLED=1`. Production Paymob credentials and end-to-end testing need a separate change.
 
 Never put original books, payment secrets or buyer details in a public repository, a web page or a commit.
+
+## Security controls
+
+- The server adds a nonce-based Content Security Policy, HSTS, clickjacking, MIME-sniffing, referrer and browser-permission protections to every response.
+- Browser write endpoints accept JSON only, reject cross-site submissions and use per-route rate limits. Render or a CDN/WAF remains responsible for network-level DDoS protection and globally shared limits if the service is scaled beyond one instance.
+- Download/status tokens are random 256-bit values. Paid PDFs are read from the private `tabo-originals` bucket, size/type checked, watermarked per buyer and returned with private no-store/no-index headers.
+- `public.orders`, `public.book_stats` and `public.book_ratings` use RLS and have no `anon` or `authenticated` grants. Public-schema default privileges are locked down; grant access explicitly for every new table, sequence or function.
+- Keep `SUPABASE_SECRET_KEY`, Paymob secrets and `TABO_ADMIN_KEY` only in Render. Rotate a credential immediately if it is pasted into chat, a ticket, a log or any other non-secret channel, then update Render and redeploy.
+- Keep pinned dependencies current and rerun the syntax, API-abuse and PDF-watermark tests before each production release.
