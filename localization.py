@@ -1,50 +1,46 @@
-"""Country, currency and localized pricing helpers for TABO BOOKS."""
+"""Country detection and fixed EGP/USD pricing helpers for TABO BOOKS."""
 import json
-import math
 import os
-import threading
-import time
-from urllib.request import Request, urlopen
 
 
 COUNTRIES = {
     'EG': {'ar': 'مصر', 'en': 'Egypt', 'currency': 'EGP'},
-    'SA': {'ar': 'السعودية', 'en': 'Saudi Arabia', 'currency': 'SAR'},
-    'AE': {'ar': 'الإمارات', 'en': 'United Arab Emirates', 'currency': 'AED'},
-    'KW': {'ar': 'الكويت', 'en': 'Kuwait', 'currency': 'KWD'},
-    'QA': {'ar': 'قطر', 'en': 'Qatar', 'currency': 'QAR'},
-    'BH': {'ar': 'البحرين', 'en': 'Bahrain', 'currency': 'BHD'},
-    'OM': {'ar': 'عُمان', 'en': 'Oman', 'currency': 'OMR'},
-    'JO': {'ar': 'الأردن', 'en': 'Jordan', 'currency': 'JOD'},
-    'PS': {'ar': 'فلسطين', 'en': 'Palestine', 'currency': 'ILS'},
-    'IQ': {'ar': 'العراق', 'en': 'Iraq', 'currency': 'IQD'},
-    'LB': {'ar': 'لبنان', 'en': 'Lebanon', 'currency': 'LBP'},
-    'SY': {'ar': 'سوريا', 'en': 'Syria', 'currency': 'SYP'},
-    'YE': {'ar': 'اليمن', 'en': 'Yemen', 'currency': 'YER'},
-    'SD': {'ar': 'السودان', 'en': 'Sudan', 'currency': 'SDG'},
-    'SO': {'ar': 'الصومال', 'en': 'Somalia', 'currency': 'SOS'},
-    'DJ': {'ar': 'جيبوتي', 'en': 'Djibouti', 'currency': 'DJF'},
-    'KM': {'ar': 'جزر القمر', 'en': 'Comoros', 'currency': 'KMF'},
-    'LY': {'ar': 'ليبيا', 'en': 'Libya', 'currency': 'LYD'},
-    'TN': {'ar': 'تونس', 'en': 'Tunisia', 'currency': 'TND'},
-    'DZ': {'ar': 'الجزائر', 'en': 'Algeria', 'currency': 'DZD'},
-    'MA': {'ar': 'المغرب', 'en': 'Morocco', 'currency': 'MAD'},
-    'MR': {'ar': 'موريتانيا', 'en': 'Mauritania', 'currency': 'MRU'},
+    'SA': {'ar': 'السعودية', 'en': 'Saudi Arabia', 'currency': 'USD'},
+    'AE': {'ar': 'الإمارات', 'en': 'United Arab Emirates', 'currency': 'USD'},
+    'KW': {'ar': 'الكويت', 'en': 'Kuwait', 'currency': 'USD'},
+    'QA': {'ar': 'قطر', 'en': 'Qatar', 'currency': 'USD'},
+    'BH': {'ar': 'البحرين', 'en': 'Bahrain', 'currency': 'USD'},
+    'OM': {'ar': 'عُمان', 'en': 'Oman', 'currency': 'USD'},
+    'JO': {'ar': 'الأردن', 'en': 'Jordan', 'currency': 'USD'},
+    'PS': {'ar': 'فلسطين', 'en': 'Palestine', 'currency': 'USD'},
+    'IQ': {'ar': 'العراق', 'en': 'Iraq', 'currency': 'USD'},
+    'LB': {'ar': 'لبنان', 'en': 'Lebanon', 'currency': 'USD'},
+    'SY': {'ar': 'سوريا', 'en': 'Syria', 'currency': 'USD'},
+    'YE': {'ar': 'اليمن', 'en': 'Yemen', 'currency': 'USD'},
+    'SD': {'ar': 'السودان', 'en': 'Sudan', 'currency': 'USD'},
+    'SO': {'ar': 'الصومال', 'en': 'Somalia', 'currency': 'USD'},
+    'DJ': {'ar': 'جيبوتي', 'en': 'Djibouti', 'currency': 'USD'},
+    'KM': {'ar': 'جزر القمر', 'en': 'Comoros', 'currency': 'USD'},
+    'LY': {'ar': 'ليبيا', 'en': 'Libya', 'currency': 'USD'},
+    'TN': {'ar': 'تونس', 'en': 'Tunisia', 'currency': 'USD'},
+    'DZ': {'ar': 'الجزائر', 'en': 'Algeria', 'currency': 'USD'},
+    'MA': {'ar': 'المغرب', 'en': 'Morocco', 'currency': 'USD'},
+    'MR': {'ar': 'موريتانيا', 'en': 'Mauritania', 'currency': 'USD'},
 }
 
-# Amount of each currency per EGP. Used only if the live feed is unavailable.
-FALLBACK_RATES = {
-    'EGP': 1.0, 'SAR': 0.0714, 'AED': 0.0699, 'KWD': 0.00584,
-    'QAR': 0.0693, 'BHD': 0.00716, 'OMR': 0.00733, 'JOD': 0.0135,
-    'ILS': 0.0705, 'IQD': 24.95, 'LBP': 1705.0, 'SYP': 250.0,
-    'YER': 4.76, 'SDG': 11.44, 'SOS': 10.88, 'DJF': 3.38,
-    'KMF': 8.35, 'LYD': 0.092, 'TND': 0.058, 'DZD': 2.57,
-    'MAD': 0.18, 'MRU': 0.75,
+# Fixed international bundle ladder. It preserves the Egyptian bundle discounts
+# while keeping one simple price for every supported country outside Egypt.
+USD_PRICES = {
+    '1': 5.99,
+    '2': 9.99,
+    '3': 11.99,
+    '4': 13.99,
+    '5': 16.99,
+    '6': 19.99,
+    '7': 21.99,
+    '8': 24.99,
+    '9': 27.99,
 }
-
-_FX_LOCK = threading.Lock()
-_FX_CACHE = {'loaded_at': 0.0, 'rates': FALLBACK_RATES.copy(), 'live': False}
-_FX_TTL = 12 * 60 * 60
 
 
 def normalize_country(value):
@@ -69,89 +65,19 @@ def country_from_headers(headers):
     return 'EG'
 
 
-def _custom_rates():
-    raw = os.environ.get('TABO_FX_RATES_JSON', '').strip()
-    if not raw:
-        return {}
-    try:
-        values = json.loads(raw)
-        return {str(k).upper(): float(v) for k, v in values.items()
-                if float(v) > 0}
-    except (TypeError, ValueError, json.JSONDecodeError):
-        return {}
-
-
-def exchange_rates(force=False):
-    """Return EGP-based FX rates, refreshed at most twice daily."""
-    with _FX_LOCK:
-        age = time.time() - _FX_CACHE['loaded_at']
-        if not force and _FX_CACHE['loaded_at'] and age < _FX_TTL:
-            return _FX_CACHE['rates'].copy(), _FX_CACHE['live']
-        rates = FALLBACK_RATES.copy()
-        live = False
-        try:
-            req = Request('https://open.er-api.com/v6/latest/EGP',
-                          headers={'User-Agent': 'TABO-Books/1.0'})
-            with urlopen(req, timeout=4) as response:
-                raw = response.read(262_145)
-            if len(raw) > 262_144:
-                raise ValueError('exchange-rate response too large')
-            payload = json.loads(raw)
-            received = payload.get('rates') if isinstance(payload, dict) else None
-            if isinstance(received, dict):
-                for currency in set(item['currency'] for item in COUNTRIES.values()):
-                    value = received.get(currency)
-                    fallback = FALLBACK_RATES[currency]
-                    if (isinstance(value, (int, float)) and not isinstance(value, bool)
-                            and fallback / 5 <= value <= fallback * 5):
-                        rates[currency] = float(value)
-                live = True
-        except Exception:
-            pass
-        rates.update(_custom_rates())
-        _FX_CACHE.update(loaded_at=time.time(), rates=rates, live=live)
-        return rates.copy(), live
-
-
-def _round_up_friendly(value, currency):
-    """Create stable, readable local prices without dropping below conversion."""
-    if currency == 'EGP':
-        return int(value)
-    if value < 1:
-        step = 0.05
-    elif value < 10:
-        step = 0.5
-    elif value < 100:
-        step = 1
-    elif value < 1_000:
-        step = 5
-    elif value < 10_000:
-        step = 50
-    elif value < 100_000:
-        step = 500
-    else:
-        step = 1_000
-    rounded = math.ceil((value - 1e-12) / step) * step
-    return round(rounded, 2) if step < 1 else int(rounded)
-
-
 def pricing_for_country(base_prices, country):
     code = normalize_country(country)
     meta = COUNTRIES[code]
-    rates, live = exchange_rates()
-    currency = meta['currency']
-    multiplier = 1 if code == 'EG' else 2
-    rate = rates.get(currency, FALLBACK_RATES[currency])
-    prices = {
-        str(count): _round_up_friendly(amount * multiplier * rate, currency)
-        for count, amount in base_prices.items()
-    }
+    egypt = code == 'EG'
+    currency = 'EGP' if egypt else 'USD'
+    prices = ({str(count): amount for count, amount in base_prices.items()}
+              if egypt else USD_PRICES.copy())
     return {
         'country': code,
         'currency': currency,
-        'multiplier': multiplier,
+        'multiplier': 1 if egypt else 2,
         'prices': prices,
-        'rateSource': 'live' if live else 'fallback',
+        'rateSource': 'fixed',
         'countries': [
             {'code': item_code, 'nameAr': item['ar'], 'nameEn': item['en'],
              'currency': item['currency']}
@@ -162,6 +88,12 @@ def pricing_for_country(base_prices, country):
 
 def payment_methods():
     methods = {'EGP': int(os.environ.get('PAYMOB_EGP_METHOD_ID', '5932821'))}
+    usd_method = os.environ.get('PAYMOB_USD_METHOD_ID', '').strip()
+    if usd_method:
+        try:
+            methods['USD'] = int(usd_method)
+        except ValueError:
+            pass
     raw = os.environ.get('PAYMOB_PAYMENT_METHODS_JSON', '').strip()
     if raw:
         try:
