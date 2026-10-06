@@ -213,11 +213,22 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError: continue
         return 'unknown'
 
+    def geo_client_ip(self):
+        if self.headers.get('CF-Ray') and self.headers.get('CF-Connecting-IP'):
+            candidate=self.headers['CF-Connecting-IP'].strip()
+            try: return ipaddress.ip_address(candidate).compressed
+            except ValueError: pass
+        try: return ipaddress.ip_address(self.client_address[0]).compressed
+        except ValueError: return 'unknown'
+
     def pricing_country(self, requested=None):
-        detected = localization.country_from_proxy_headers(self.headers)
-        if not detected:
-            detected = localization.country_from_ip(self.client_id())
-        return localization.pricing_country(requested, detected)
+        selected=localization.normalize_country(requested)
+        if selected!='EG': return selected
+        edge_country=localization.country_from_proxy_headers(self.headers)
+        if edge_country and edge_country!='EG':
+            return localization.pricing_country(selected,edge_country)
+        verified_country=localization.country_from_ip(self.geo_client_ip())
+        return localization.pricing_country(selected,verified_country)
 
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
