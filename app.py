@@ -213,6 +213,12 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError: continue
         return 'unknown'
 
+    def pricing_country(self, requested=None):
+        detected = localization.country_from_proxy_headers(self.headers)
+        if not detected:
+            detected = localization.country_from_ip(self.client_id())
+        return localization.pricing_country(requested, detected)
+
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
         bucket=route
@@ -294,9 +300,7 @@ class Handler(BaseHTTPRequestHandler):
                 ids=[x.get('id') if isinstance(x,dict) else None for x in items]
                 if any(i not in BOOKS for i in ids) or len(set(ids))!=len(ids):
                     return self.respond(400,{'ok':False,'error':'الكتب غير صالحة أو مكررة.'})
-                requested_country=data.get('country')
-                country=(localization.normalize_country(requested_country)
-                         if requested_country else localization.country_from_headers(self.headers))
+                country=self.pricing_country(data.get('country'))
                 price_config=localization.pricing_for_country(PRICES,country)
                 total=price_config['prices'][str(len(ids))]
                 currency=price_config['currency']
@@ -399,8 +403,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/api/config': return self.respond(200,{'checkoutEnabled':checkout_ready()})
         if route=='/api/store-config':
             requested=parse_qs(parsed.query).get('country',[''])[0]
-            country=(localization.normalize_country(requested)
-                     if requested else localization.country_from_headers(self.headers))
+            country=self.pricing_country(requested)
             config=localization.pricing_for_country(PRICES,country)
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=localization.payment_method_for(config['currency']) is not None
