@@ -63,3 +63,28 @@ def original(book_name):
                   headers={'apikey': key, 'Authorization': 'Bearer ' + key})
     with urlopen(req, timeout=60) as response:
         return response.read()
+
+def book_stats():
+    """Return only public-safe aggregate book metadata."""
+    rows=request('/rest/v1/book_stats', params={
+        'select':'book_id,rating_sum,review_count,download_count,page_count,file_size_bytes',
+        'order':'book_id.asc'
+    })
+    result={}
+    for row in rows or []:
+        reviews=int(row.get('review_count') or 0)
+        rating=(float(row.get('rating_sum') or 0)/reviews) if reviews else None
+        result[row['book_id']]={
+            'rating':round(rating,1) if rating is not None else None,
+            'reviews':reviews,
+            'downloads':int(row.get('download_count') or 0),
+            'pageCount':row.get('page_count'),
+            'fileSizeBytes':int(row.get('file_size_bytes') or 0)
+        }
+    return result
+
+def record_download(book_id, page_count):
+    request('/rest/v1/rpc/increment_book_download', 'POST', {
+        'p_book_id':book_id,
+        'p_page_count':int(page_count)
+    })

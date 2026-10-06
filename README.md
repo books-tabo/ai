@@ -26,6 +26,8 @@ Open `http://127.0.0.1:3000`. `GET /api/config` reports `checkoutEnabled: false`
 - Egypt keeps the base EGP price ladder. Other supported countries use twice the Egyptian price, converted from EGP to the local currency and rounded upward to a readable amount.
 - Exchange rates refresh every 12 hours from the configured public feed, with conservative fallback rates. Use `TABO_FX_RATES_JSON` to pin reviewed rates when required.
 - Checkout remains unavailable for a currency until its Paymob payment method ID is added to `PAYMOB_PAYMENT_METHODS_JSON`.
+- Each book has a dedicated `/books/book1` through `/books/book6` page. Legal and support content uses standalone `/about`, `/contact`, `/privacy`, `/refund` and `/delivery` routes.
+- `public.book_stats` stores real file sizes and starts review/download counts at zero. A successful authorized PDF download increments its book counter and records the page count without exposing the private original.
 
 ## Before accepting orders
 

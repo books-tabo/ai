@@ -99,7 +99,7 @@ def watermarked(src, order):
         # merge_page creates a combined, uncompressed content stream. Reapply
         # lossless Flate compression so stamping does not inflate the PDF.
         writer.pages[-1].compress_content_streams()
-    out=io.BytesIO(); writer.write(out); return out.getvalue()
+    out=io.BytesIO(); writer.write(out); return out.getvalue(),len(reader.pages)
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt,*args):
@@ -231,6 +231,8 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/': return self.html('index.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
+        if re.fullmatch(r'/books/book[1-6]',route) or route=='/book.html': return self.html('book.html')
+        if route in ('/about','/contact','/privacy','/refund','/delivery'): return self.html('info.html')
         if route=='/health': return self.respond(200,{'ok':True})
         if route=='/api/config': return self.respond(200,{'checkoutEnabled':checkout_ready()})
         if route=='/api/store-config':
@@ -241,6 +243,13 @@ class Handler(BaseHTTPRequestHandler):
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=localization.payment_method_for(config['currency']) is not None
             return self.respond(200,config)
+        if route=='/api/book-stats':
+            defaults={book_id:{'rating':None,'reviews':0,'downloads':0,'pageCount':None}
+                      for book_id in BOOKS}
+            if store.ready():
+                try: defaults.update(store.book_stats())
+                except Exception: pass
+            return self.respond(200,defaults)
         if route=='/api/order-status':
             key=parse_qs(parsed.query).get('key',[''])[0]
             if not re.fullmatch(r'[0-9a-f]{64}',key): return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
@@ -261,8 +270,10 @@ class Handler(BaseHTTPRequestHandler):
             book_id=match.group(1)
             if not order or not order['buyer'] or book_id not in [i['id'] for i in order['items']]:
                 return self.respond(403,{'ok':False,'error':'تحميل غير مصرح.'})
-            try: payload=watermarked(store.original(BOOKS[book_id][1]),order)
+            try: payload,page_count=watermarked(store.original(BOOKS[book_id][1]),order)
             except Exception: return self.respond(500,{'ok':False,'error':'تعذر تجهيز الكتاب. تواصل مع الدعم.'})
+            try: store.record_download(book_id,page_count)
+            except Exception: pass
             self.send_response(200);self.send_header('Content-Type','application/pdf')
             self.send_header('Content-Disposition',f'attachment; filename="TABO-{book_id}-{order["id"]}.pdf"')
             self.send_header('Cache-Control','private, no-store');self.send_header('Content-Length',str(len(payload)))

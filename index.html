@@ -422,6 +422,10 @@ header p{
 
     cursor:pointer;
 
+    display:inline-block;
+
+    text-decoration:none;
+
     text-align:right;
 
     padding:
@@ -429,6 +433,28 @@ header p{
     0
     14px;
 
+}
+
+.book-rating{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin:7px 0 5px;
+    font-size:12px;
+    color:#777;
+}
+
+.rating-stars{
+    color:#c9a227;
+    letter-spacing:1px;
+    font-size:16px;
+    direction:ltr;
+}
+
+.book-meta-line{
+    min-height:24px;
+    margin-top:5px;
 }
 
 .book-bottom{
@@ -699,7 +725,8 @@ footer{
 
 }
 
-.footer-links button{
+.footer-links button,
+.footer-links a{
 
     background:none;
 
@@ -721,10 +748,34 @@ footer{
 
 }
 
-.footer-links button:hover{
+.footer-links button:hover,
+.footer-links a:hover{
 
     color:#c9a227;
 
+}
+
+footer .site-controls{
+    position:static;
+    background:transparent;
+    color:#ddd;
+    border:0;
+    border-bottom:1px solid #222;
+    padding:0 0 20px;
+    margin:0 auto 20px;
+    max-width:900px;
+}
+
+footer .site-controls select,
+footer .language-switch button{
+    background:#111;
+    color:#eee;
+    border-color:#4e4324;
+}
+
+footer .language-switch button.active{
+    background:#c9a227;
+    color:#111;
 }
 
 .footer-copy{
@@ -1549,17 +1600,6 @@ html[dir="ltr"] .info-highlight{
 
 </div>
 
-<div class="site-controls" aria-label="إعدادات الدولة واللغة">
-    <label for="countrySelect" id="countryLabel">الدولة والأسعار</label>
-    <select id="countrySelect" aria-label="اختر الدولة"></select>
-    <div class="language-switch" aria-label="Language">
-        <button type="button" id="langAr" onclick="setLanguage('ar')">العربية</button>
-        <button type="button" id="langEn" onclick="setLanguage('en')">English</button>
-    </div>
-    <span class="location-note" id="locationNote">تم تحديد الدولة تلقائيًا ويمكنك تغييرها.</span>
-</div>
-
-
 <!-- =========================================================
      HEADER
 ========================================================= -->
@@ -1635,42 +1675,42 @@ html[dir="ltr"] .info-highlight{
 
 <footer>
 
+    <div class="site-controls" aria-label="إعدادات الدولة واللغة">
+        <label for="countrySelect" id="countryLabel">الدولة والأسعار</label>
+        <select id="countrySelect" aria-label="اختر الدولة"></select>
+        <div class="language-switch" aria-label="Language">
+            <button type="button" id="langAr" onclick="setLanguage('ar')">العربية</button>
+            <button type="button" id="langEn" onclick="setLanguage('en')">English</button>
+        </div>
+        <span class="location-note" id="locationNote">تم تحديد الدولة تلقائيًا ويمكنك تغييرها.</span>
+    </div>
+
 
     <div class="footer-links">
 
-        <button id="footerAbout"
-            onclick="openInfoModal('aboutModal')"
-        >
+        <a id="footerAbout" href="/about">
             من نحن
-        </button>
+        </a>
 
 
-        <button id="footerContact"
-            onclick="openInfoModal('contactModal')"
-        >
+        <a id="footerContact" href="/contact">
             تواصل معنا
-        </button>
+        </a>
 
 
-        <button id="footerPrivacy"
-            onclick="openInfoModal('privacyModal')"
-        >
+        <a id="footerPrivacy" href="/privacy">
             سياسة الخصوصية
-        </button>
+        </a>
 
 
-        <button id="footerRefund"
-            onclick="openInfoModal('refundModal')"
-        >
+        <a id="footerRefund" href="/refund">
             الاسترداد والإلغاء
-        </button>
+        </a>
 
 
-        <button id="footerDelivery"
-            onclick="openInfoModal('deliveryModal')"
-        >
+        <a id="footerDelivery" href="/delivery">
             التوصيل والتسليم
-        </button>
+        </a>
 
     </div>
 
@@ -2465,7 +2505,7 @@ const UI_COPY = {
         preview:"الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.",
         currencyPending:"الدفع بهذه العملة سيُتاح بعد تفعيلها من Paymob.",
         aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
-        pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة",
+        pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
         emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
         promoLead:"أضف أكثر من كتاب واحصل على سعر أفضل", books:"كتب",
         addAnother:"أضف كتابًا آخر مقابل {difference} إضافية لتحصل على السعر الجديد: {next}.",
@@ -2489,7 +2529,7 @@ const UI_COPY = {
         preview:"Orders are currently unavailable; this is a store preview.",
         currencyPending:"Payments in this currency will be available after Paymob activates it.",
         aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
-        pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added",
+        pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
         emptyCart:"Your cart is currently empty.", delete:"Remove",
         promoLead:"Add more books and get a better bundle price", books:"books",
         addAnother:"Add one more book for {difference} to unlock the new total: {next}.",
@@ -2709,6 +2749,24 @@ const BOOK_TRANSLATIONS = {
 };
 
 BOOKS.forEach((book,index)=>{ book.id=`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
+
+let BOOK_STATS=Object.fromEntries(BOOKS.map(book=>[book.id,{rating:null,reviews:0,downloads:0}]));
+
+function ratingMarkup(bookId){
+    const stats=BOOK_STATS[bookId]||{rating:null,reviews:0};
+    const value=Number(stats.rating)||0;
+    const filled=Math.max(0,Math.min(5,Math.round(value)));
+    const stars="★".repeat(filled)+"☆".repeat(5-filled);
+    const label=stats.reviews?`${value.toFixed(1)} (${stats.reviews})`:t("newBook");
+    return `<div class="book-rating" aria-label="${label}"><span class="rating-stars">${stars}</span><span>${label}</span></div>`;
+}
+
+async function loadBookStats(){
+    try{
+        const response=await fetch("/api/book-stats",{cache:"no-store"});
+        if(response.ok){BOOK_STATS={...BOOK_STATS,...await response.json()};renderBooks();}
+    }catch(error){}
+}
 
 function localizedBook(book){
     return currentLanguage === "en" ? {...book,...book.en,id:book.id,image:book.image} : book;
@@ -2973,27 +3031,28 @@ function renderBooks(){
                         alt="${displayBook.name}"
                     >
 
-                    <span class="pdf-badge">PDF</span>
-
                 </div>
 
                 <div class="book-content">
 
                     <div class="book-title">
                         ${displayBook.name}
-                        <span class="title-pdf">PDF</span>
                     </div>
+
+                    ${ratingMarkup(book.id)}
+
+                    <div class="book-meta-line"><span class="title-pdf">PDF</span></div>
 
                     <div class="book-description">
                         ${displayBook.shortDescription}
                     </div>
 
-                    <button
+                    <a
                         class="read-more-btn"
-                        onclick="openBookDetails(${index})"
+                        href="/books/${book.id}"
                     >
                         ${t("readMore")}
-                    </button>
+                    </a>
 
                     <div class="book-bottom">
 
@@ -3807,6 +3866,8 @@ document.addEventListener(
             loadStoreConfig(event.target.value);
         });
         loadStoreConfig();
+        loadBookStats();
+        if(new URLSearchParams(location.search).get("cart")==="1") setTimeout(openCart,500);
 
     }
 );
