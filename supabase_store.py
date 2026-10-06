@@ -32,6 +32,8 @@ def order(row):
         'paymentMethod': row['payment_method'], 'statusKey': row['status_key'],
         'token': row['download_token'], 'buyer': row['buyer'],
         'transactionId': row['transaction_id'], 'paymobOrderId': row['paymob_order_id'],
+        'country': row.get('country') or 'EG',
+        'paymobMethodId': row.get('paymob_method_id'),
     }
 
 def find(field, value):
@@ -42,7 +44,8 @@ def insert(o):
     request('/rest/v1/orders', 'POST', {
         'id': o['id'], 'status': 'PENDING', 'items': o['items'], 'total': o['total'],
         'currency': o['currency'], 'payment_method': o['paymentMethod'],
-        'status_key': o['statusKey']
+        'status_key': o['statusKey'], 'country': o.get('country','EG'),
+        'paymob_method_id': o.get('paymobMethodId')
     }, headers={'Prefer': 'return=minimal'})
 
 def patch(oid, changes, conditions=None):

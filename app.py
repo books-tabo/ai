@@ -10,13 +10,13 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.utils import ImageReader
 from PIL import Image, ImageDraw, ImageFont
 import supabase_store as store
+import localization
 
 ROOT = Path(__file__).resolve().parent
 BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','book2.pdf'),
          'book3': ('تمرد','book3.pdf'), 'book4': ('كيف تصنع المليون الأول','book4.pdf'),
          'book5': ('شهوات','book5.pdf'), 'book6': ('دليل السمو','book6.pdf')}
 PRICES = {1:150,2:250,3:300,4:350,5:420,6:500,7:550,8:620,9:700}
-PAYMOB_ID = 5932821
 PAYMOB_BASE = 'https://accept.paymob.com'
 FONT = os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
 
@@ -32,7 +32,9 @@ def checkout_ready():
             and os.environ.get('TABO_PUBLIC_URL','').startswith('https://'))
 
 def now(): return datetime.now(timezone.utc).isoformat()
-def public(order): return {k:order[k] for k in ('id','status','items','total','currency','paymentMethod')}
+def public(order):
+    keys=('id','status','items','total','currency','paymentMethod','country')
+    return {k:order[k] for k in keys if k in order}
 def paymob_checkout(order, customer):
     secret=os.environ.get('PAYMOB_SECRET_KEY','')
     public=os.environ.get('PAYMOB_PUBLIC_KEY','')
@@ -41,9 +43,13 @@ def paymob_checkout(order, customer):
         raise ValueError('Paymob Test keys and public HTTPS URL are not configured')
     first,*rest=customer['name'].strip().split()
     details={key:'NA' for key in ('apartment','floor','street','building','shipping_method','postal_code','city','state')}
-    details.update(first_name=first,last_name=' '.join(rest) or first,email=customer['email'],phone_number=customer['phone'],country='EG')
-    payload={'amount':order['total']*100,'currency':'EGP','payment_methods':[PAYMOB_ID],
-             'items':[{'name':'TABO BOOKS order '+order['id'],'amount':order['total']*100,'quantity':1}],
+    method_id=localization.payment_method_for(order['currency'])
+    if not method_id:
+        raise ValueError('Paymob is not configured for '+order['currency'])
+    amount_minor=localization.amount_to_minor(order['total'],order['currency'])
+    details.update(first_name=first,last_name=' '.join(rest) or first,email=customer['email'],phone_number=customer['phone'],country=order['country'])
+    payload={'amount':amount_minor,'currency':order['currency'],'payment_methods':[method_id],
+             'items':[{'name':'TABO BOOKS order '+order['id'],'amount':amount_minor,'quantity':1}],
              'billing_data':details,'special_reference':order['id'],
              'notification_url':site+'/api/paymob/webhook',
              'redirection_url':site+'/pending.html?key='+order['statusKey']}
@@ -127,12 +133,21 @@ class Handler(BaseHTTPRequestHandler):
                 ids=[x.get('id') if isinstance(x,dict) else None for x in items]
                 if any(i not in BOOKS for i in ids) or len(set(ids))!=len(ids):
                     return self.respond(400,{'ok':False,'error':'الكتب غير صالحة أو مكررة.'})
-                total=PRICES[len(ids)]
+                requested_country=data.get('country')
+                country=(localization.normalize_country(requested_country)
+                         if requested_country else localization.country_from_headers(self.headers))
+                price_config=localization.pricing_for_country(PRICES,country)
+                total=price_config['prices'][str(len(ids))]
+                currency=price_config['currency']
+                paymob_method_id=localization.payment_method_for(currency)
+                if not paymob_method_id:
+                    return self.respond(503,{'ok':False,'error':'الدفع بهذه العملة سيُتاح بعد تفعيلها من Paymob.'})
                 customer=data.get('customer')
                 if not isinstance(customer,dict) or not isinstance(customer.get('name'),str) or not 2<=len(customer['name'].strip())<=100 or not isinstance(customer.get('phone'),str) or not re.fullmatch(r'\+?[0-9]{8,15}',customer['phone']) or not isinstance(customer.get('email'),str) or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',customer['email']):
                     return self.respond(400,{'ok':False,'error':'الاسم والبريد الإلكتروني ورقم الهاتف مطلوبة للدفع.'})
                 order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':BOOKS[i][0]} for i in ids],
-                       'total':total,'currency':'EGP','paymentMethod':'Payment Link','createdAt':now(),
+                       'total':total,'currency':currency,'country':country,
+                       'paymobMethodId':paymob_method_id,'paymentMethod':'Payment Link','createdAt':now(),
                        'token':None,'buyer':None,'transactionId':None,'statusKey':secrets.token_hex(32)}
                 store.insert(order)
                 try: link,paymob_id=paymob_checkout(order,customer)
@@ -154,7 +169,8 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(reference,str) or not transaction:
                     return self.respond(200,{'ok':True,'paid':False})
                 order=store.find('id',reference) if store.ready() and re.fullmatch(r'TABO-[A-F0-9]{16}',reference) else None
-                if not order or obj.get('integration_id')!=PAYMOB_ID or obj.get('currency')!='EGP' or obj.get('amount_cents')!=order['total']*100 or str(order_obj.get('id'))!=str(order.get('paymobOrderId')):
+                expected_amount=localization.amount_to_minor(order['total'],order['currency']) if order else None
+                if not order or obj.get('integration_id')!=order.get('paymobMethodId') or obj.get('currency')!=order['currency'] or obj.get('amount_cents')!=expected_amount or str(order_obj.get('id'))!=str(order.get('paymobOrderId')):
                     return self.respond(200,{'ok':True,'paid':False})
                 if order['status']=='PENDING':
                     try:
@@ -217,6 +233,14 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/success.html': return self.html('success.html')
         if route=='/health': return self.respond(200,{'ok':True})
         if route=='/api/config': return self.respond(200,{'checkoutEnabled':checkout_ready()})
+        if route=='/api/store-config':
+            requested=parse_qs(parsed.query).get('country',[''])[0]
+            country=(localization.normalize_country(requested)
+                     if requested else localization.country_from_headers(self.headers))
+            config=localization.pricing_for_country(PRICES,country)
+            config['checkoutEnabled']=checkout_ready()
+            config['checkoutSupported']=localization.payment_method_for(config['currency']) is not None
+            return self.respond(200,config)
         if route=='/api/order-status':
             key=parse_qs(parsed.query).get('key',[''])[0]
             if not re.fullmatch(r'[0-9a-f]{64}',key): return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
