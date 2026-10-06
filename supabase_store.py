@@ -88,3 +88,16 @@ def record_download(book_id, page_count):
         'p_book_id':book_id,
         'p_page_count':int(page_count)
     })
+
+def submit_rating(book_id, voter_hash, rating):
+    """Create or update one browser's rating and return the fresh aggregate."""
+    result=request('/rest/v1/rpc/submit_book_rating', 'POST', {
+        'p_book_id':book_id,
+        'p_voter_hash':voter_hash,
+        'p_rating':int(rating)
+    })
+    if not isinstance(result,dict): raise RuntimeError('Invalid rating response')
+    return {
+        'rating':float(result['rating']),
+        'reviews':int(result['reviews'])
+    }

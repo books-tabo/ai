@@ -443,7 +443,12 @@ header p{
     margin:7px 0 5px;
     font-size:12px;
     color:#777;
+    text-decoration:none;
+    cursor:pointer;
 }
+
+.book-rating:hover .rating-cta{text-decoration:underline}
+.rating-cta{color:#9b761b;font-weight:800}
 
 .rating-stars{
     color:#c9a227;
@@ -2505,7 +2510,7 @@ const UI_COPY = {
         preview:"الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.",
         currencyPending:"الدفع بهذه العملة سيُتاح بعد تفعيلها من Paymob.",
         aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
-        pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
+        pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد", rateBook:"قيّم الكتاب",
         emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
         promoLead:"أضف أكثر من كتاب واحصل على سعر أفضل", books:"كتب",
         addAnother:"أضف كتابًا آخر مقابل {difference} إضافية لتحصل على السعر الجديد: {next}.",
@@ -2529,7 +2534,7 @@ const UI_COPY = {
         preview:"Orders are currently unavailable; this is a store preview.",
         currencyPending:"Payments in this currency will be available after Paymob activates it.",
         aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
-        pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
+        pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet", rateBook:"Rate this book",
         emptyCart:"Your cart is currently empty.", delete:"Remove",
         promoLead:"Add more books and get a better bundle price", books:"books",
         addAnother:"Add one more book for {difference} to unlock the new total: {next}.",
@@ -2758,7 +2763,7 @@ function ratingMarkup(bookId){
     const filled=Math.max(0,Math.min(5,Math.round(value)));
     const stars="★".repeat(filled)+"☆".repeat(5-filled);
     const label=stats.reviews?`${value.toFixed(1)} (${stats.reviews})`:t("newBook");
-    return `<div class="book-rating" aria-label="${label}"><span class="rating-stars">${stars}</span><span>${label}</span></div>`;
+    return `<a class="book-rating" href="/books/${bookId}#rate" aria-label="${label}. ${t("rateBook")}"><span class="rating-stars">${stars}</span><span>${label}</span><span class="rating-cta">${t("rateBook")}</span></a>`;
 }
 
 async function loadBookStats(){

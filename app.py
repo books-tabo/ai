@@ -105,10 +105,11 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt,*args):
         # Avoid recording buyer details or bearer download tokens in server logs.
         print('%s %s %s' % (self.address_string(), self.command, urlparse(self.path).path))
-    def respond(self, code, obj):
+    def respond(self, code, obj, extra_headers=None):
         body=json.dumps(obj,ensure_ascii=False).encode()
         self.send_response(code); self.send_header('Content-Type','application/json; charset=utf-8')
         self.send_header('Cache-Control','no-store'); self.send_header('Content-Length',str(len(body)))
+        for name,value in (extra_headers or {}).items(): self.send_header(name,value)
         self.end_headers(); self.wfile.write(body)
     def read_json(self):
         size=int(self.headers.get('Content-Length','0'))
@@ -124,6 +125,20 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             data=self.read_json()
+            if route=='/api/ratings':
+                book_id=data.get('book_id'); rating=data.get('rating')
+                if book_id not in BOOKS or isinstance(rating,bool) or not isinstance(rating,int) or not 1<=rating<=5:
+                    return self.respond(400,{'ok':False,'error':'اختر تقييمًا صحيحًا من نجمة إلى خمس نجوم.'})
+                if not store.ready():
+                    return self.respond(503,{'ok':False,'error':'تعذر حفظ التقييم الآن. حاول مرة أخرى.'})
+                cookie=self.headers.get('Cookie','')
+                match=re.search(r'(?:^|;\s*)tabo_rating_id=([0-9a-f]{64})(?:;|$)',cookie)
+                rating_id=match.group(1) if match else secrets.token_hex(32)
+                secret=os.environ.get('SUPABASE_SECRET_KEY','')
+                voter_hash=hmac.new(secret.encode(),rating_id.encode(),hashlib.sha256).hexdigest()
+                stats=store.submit_rating(book_id,voter_hash,rating)
+                headers={'Set-Cookie':f'tabo_rating_id={rating_id}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax'}
+                return self.respond(200,{'ok':True,'rating':rating,'stats':stats},headers)
             if route=='/api/orders':
                 if not checkout_ready():
                     return self.respond(503,{'ok':False,'error':'الشراء غير متاح حاليًا. يرجى العودة قريبًا.'})
