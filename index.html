@@ -324,11 +324,23 @@ header p{
 
 }
 
+.book-cover-link{
+    position:relative;
+    display:block;
+    color:inherit;
+    text-decoration:none;
+}
+
+.book-cover-link:focus-visible{
+    outline:3px solid #c9a227;
+    outline-offset:3px;
+}
+
 .pdf-badge{
 
     position:absolute;
 
-    top:12px;
+    bottom:12px;
 
     right:12px;
 
@@ -444,11 +456,7 @@ header p{
     font-size:12px;
     color:#777;
     text-decoration:none;
-    cursor:pointer;
 }
-
-.book-rating:hover .rating-cta{text-decoration:underline}
-.rating-cta{color:#9b761b;font-weight:800}
 
 .rating-stars{
     color:#c9a227;
@@ -1372,11 +1380,6 @@ footer .language-switch button.active{
     font-size:11px;
 }
 
-html[dir="ltr"] .pdf-badge{
-    right:auto;
-    left:12px;
-}
-
 html[dir="ltr"] .title-pdf{
     margin-right:0;
     margin-left:7px;
@@ -1681,13 +1684,12 @@ html[dir="ltr"] .info-highlight{
 <footer>
 
     <div class="site-controls" aria-label="إعدادات الدولة واللغة">
-        <label for="countrySelect" id="countryLabel">الدولة والأسعار</label>
+        <label for="countrySelect" id="countryLabel">الدولة</label>
         <select id="countrySelect" aria-label="اختر الدولة"></select>
         <div class="language-switch" aria-label="Language">
-            <button type="button" id="langAr" onclick="setLanguage('ar')">العربية</button>
-            <button type="button" id="langEn" onclick="setLanguage('en')">English</button>
+            <button type="button" id="languageToggle" onclick="toggleLanguage()">اللغة</button>
         </div>
-        <span class="location-note" id="locationNote">تم تحديد الدولة تلقائيًا ويمكنك تغييرها.</span>
+        <span class="location-note" id="locationNote">يمكنك تغيير الدولة واللغة من هنا.</span>
     </div>
 
 
@@ -2496,7 +2498,7 @@ const TIMEZONE_COUNTRIES = {
 
 const UI_COPY = {
     ar:{
-        countryLabel:"الدولة والأسعار", locationNote:"تم تحديد الدولة تلقائيًا ويمكنك تغييرها.",
+        countryLabel:"الدولة", language:"اللغة", locationNote:"يمكنك تغيير الدولة واللغة من هنا.",
         heroTitle:"كتب تغيّر طريقة تفكيرك",
         heroDescription:"مكتبة تابو الرقمية — كتب في الوعي، تطوير الذات، المال، الطموح وفهم الإنسان لنفسه والعالم من حوله.",
         paymentTitle:"الدفع الإلكتروني", paymentDescription:"أضف الكتب للسلة، ثم اضغط «متابعة الدفع» للانتقال إلى رابط دفع آمن بقيمة طلبك.",
@@ -2510,7 +2512,7 @@ const UI_COPY = {
         preview:"الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.",
         currencyPending:"الدفع بهذه العملة سيُتاح بعد تفعيلها من Paymob.",
         aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
-        pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد", rateBook:"قيّم الكتاب",
+        pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
         emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
         promoLead:"أضف أكثر من كتاب واحصل على سعر أفضل", books:"كتب",
         addAnother:"أضف كتابًا آخر مقابل {difference} إضافية لتحصل على السعر الجديد: {next}.",
@@ -2520,7 +2522,7 @@ const UI_COPY = {
         ,aboutTitle:"من نحن",contactTitle:"تواصل معنا",privacyTitle:"سياسة الخصوصية",refundTitle:"سياسة الاسترداد والإلغاء",deliveryTitle:"سياسة التوصيل والتسليم"
     },
     en:{
-        countryLabel:"Country & pricing", locationNote:"Your country was detected automatically. You can change it.",
+        countryLabel:"Country", language:"Language", locationNote:"You can change the country and language here.",
         heroTitle:"Books that change how you think",
         heroDescription:"TABO BOOKS is a digital library about awareness, personal growth, money, ambition, and understanding yourself and the world around you.",
         paymentTitle:"Secure online payment", paymentDescription:"Add books to your cart, then continue to a secure checkout for the displayed amount.",
@@ -2534,7 +2536,7 @@ const UI_COPY = {
         preview:"Orders are currently unavailable; this is a store preview.",
         currencyPending:"Payments in this currency will be available after Paymob activates it.",
         aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
-        pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet", rateBook:"Rate this book",
+        pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
         emptyCart:"Your cart is currently empty.", delete:"Remove",
         promoLead:"Add more books and get a better bundle price", books:"books",
         addAnother:"Add one more book for {difference} to unlock the new total: {next}.",
@@ -2763,7 +2765,7 @@ function ratingMarkup(bookId){
     const filled=Math.max(0,Math.min(5,Math.round(value)));
     const stars="★".repeat(filled)+"☆".repeat(5-filled);
     const label=stats.reviews?`${value.toFixed(1)} (${stats.reviews})`:t("newBook");
-    return `<a class="book-rating" href="/books/${bookId}#rate" aria-label="${label}. ${t("rateBook")}"><span class="rating-stars">${stars}</span><span>${label}</span><span class="rating-cta">${t("rateBook")}</span></a>`;
+    return `<div class="book-rating" aria-label="${label}"><span class="rating-stars">${stars}</span><span>${label}</span></div>`;
 }
 
 async function loadBookStats(){
@@ -2831,7 +2833,7 @@ function renderCountryOptions(){
     const select=document.getElementById("countrySelect");
     if(!select||!storeConfig.countries.length) return;
     select.innerHTML=storeConfig.countries.map(country=>
-        `<option value="${country.code}">${currentLanguage==="ar"?country.nameAr:country.nameEn} — ${country.currency}</option>`
+        `<option value="${country.code}">${currentLanguage==="ar"?country.nameAr:country.nameEn}</option>`
     ).join("");
     select.value=storeConfig.country;
 }
@@ -2856,8 +2858,8 @@ function applyStaticCopy(){
     Object.entries(ids).forEach(([key,id])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
     const name=document.getElementById("checkoutName"), email=document.getElementById("checkoutEmail"), phone=document.getElementById("checkoutPhone");
     if(name) name.placeholder=t("fullName"); if(email) email.placeholder=t("email"); if(phone) phone.placeholder=t("phone");
-    document.getElementById("langAr")?.classList.toggle("active",currentLanguage==="ar");
-    document.getElementById("langEn")?.classList.toggle("active",currentLanguage==="en");
+    const languageToggle=document.getElementById("languageToggle");
+    if(languageToggle) languageToggle.textContent=t("language");
     const modalTitles={aboutModalTitle:"aboutTitle",contactModalTitle:"contactTitle",privacyModalTitle:"privacyTitle",refundModalTitle:"refundTitle",deliveryModalTitle:"deliveryTitle"};
     Object.entries(modalTitles).forEach(([id,key])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
     Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) el.innerHTML=currentLanguage==="en"?INFO_EN[id]:(INFO_AR[id]||el.innerHTML);});
@@ -2868,6 +2870,10 @@ function setLanguage(language){
     localStorage.setItem("taboLanguage",currentLanguage);
     applyStaticCopy(); renderCountryOptions(); renderPromo(); renderBooks(); updateCart();
     if(currentDetailsBook) openBookDetails(BOOKS.indexOf(currentDetailsBook));
+}
+
+function toggleLanguage(){
+    setLanguage(currentLanguage==="ar"?"en":"ar");
 }
 
 async function loadStoreConfig(country=browserCountryHint()){
@@ -3028,15 +3034,16 @@ function renderBooks(){
 
             card.innerHTML = `
 
-                <div style="position:relative;">
+                <a class="book-cover-link" href="/books/${book.id}" aria-label="${t("readMore")} — ${displayBook.name}">
 
                     <img
                         class="book-image"
                         src="${book.image}"
                         alt="${displayBook.name}"
                     >
+                    <span class="pdf-badge">PDF</span>
 
-                </div>
+                </a>
 
                 <div class="book-content">
 
