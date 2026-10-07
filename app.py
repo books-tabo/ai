@@ -72,14 +72,22 @@ def valid_https_base(value):
         return None
     return parsed._replace(path=parsed.path.rstrip('/'), params='', query='', fragment='').geturl()
 
+def valid_paymob_test_secret(value):
+    """Accept Paymob's global and Egypt-prefixed test secret keys."""
+    return str(value or '').startswith(('sk_test_', 'egy_sk_test_'))
+
+def valid_paymob_test_public(value):
+    """Accept Paymob's global and Egypt-prefixed test public keys."""
+    return str(value or '').startswith(('pk_test_', 'egy_pk_test_'))
+
 def checkout_ready():
     """Never accept payment unless originals and durable order storage are ready."""
     return (os.environ.get('TABO_CHECKOUT_ENABLED') == '1'
             and os.environ.get('TABO_PERSISTENT_STORAGE_READY') == '1'
             and store.ready()
             and os.environ.get('TABO_ORIGINALS_VERIFIED') == '1'
-            and os.environ.get('PAYMOB_SECRET_KEY','').startswith('sk_test_')
-            and bool(os.environ.get('PAYMOB_PUBLIC_KEY','').startswith('pk_test_'))
+            and valid_paymob_test_secret(os.environ.get('PAYMOB_SECRET_KEY'))
+            and valid_paymob_test_public(os.environ.get('PAYMOB_PUBLIC_KEY'))
             and len(os.environ.get('PAYMOB_HMAC_SECRET','')) >= 32
             and bool(valid_https_base(os.environ.get('TABO_PUBLIC_URL'))))
 
@@ -91,7 +99,7 @@ def paymob_checkout(order, customer):
     secret=os.environ.get('PAYMOB_SECRET_KEY','')
     public=os.environ.get('PAYMOB_PUBLIC_KEY','')
     site=valid_https_base(os.environ.get('TABO_PUBLIC_URL'))
-    if not secret.startswith('sk_test_') or not public.startswith('pk_test_') or not site:
+    if not valid_paymob_test_secret(secret) or not valid_paymob_test_public(public) or not site:
         raise ValueError('Paymob Test keys and public HTTPS URL are not configured')
     first,*rest=customer['name'].strip().split()
     details={key:'NA' for key in ('apartment','floor','street','building','shipping_method','postal_code','city','state')}
