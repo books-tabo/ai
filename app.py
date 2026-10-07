@@ -80,16 +80,22 @@ def valid_paymob_test_public(value):
     """Accept Paymob's global and Egypt-prefixed test public keys."""
     return str(value or '').startswith(('pk_test_', 'egy_pk_test_'))
 
+def checkout_readiness():
+    """Return non-secret readiness checks for safe operational diagnostics."""
+    return {
+        'checkout_enabled': os.environ.get('TABO_CHECKOUT_ENABLED') == '1',
+        'persistent_storage_confirmed': os.environ.get('TABO_PERSISTENT_STORAGE_READY') == '1',
+        'supabase_configured': store.ready(),
+        'originals_verified': os.environ.get('TABO_ORIGINALS_VERIFIED') == '1',
+        'paymob_secret_test': valid_paymob_test_secret(os.environ.get('PAYMOB_SECRET_KEY')),
+        'paymob_public_test': valid_paymob_test_public(os.environ.get('PAYMOB_PUBLIC_KEY')),
+        'paymob_hmac_configured': len(os.environ.get('PAYMOB_HMAC_SECRET','')) >= 32,
+        'public_url_valid': bool(valid_https_base(os.environ.get('TABO_PUBLIC_URL'))),
+    }
+
 def checkout_ready():
     """Never accept payment unless originals and durable order storage are ready."""
-    return (os.environ.get('TABO_CHECKOUT_ENABLED') == '1'
-            and os.environ.get('TABO_PERSISTENT_STORAGE_READY') == '1'
-            and store.ready()
-            and os.environ.get('TABO_ORIGINALS_VERIFIED') == '1'
-            and valid_paymob_test_secret(os.environ.get('PAYMOB_SECRET_KEY'))
-            and valid_paymob_test_public(os.environ.get('PAYMOB_PUBLIC_KEY'))
-            and len(os.environ.get('PAYMOB_HMAC_SECRET','')) >= 32
-            and bool(valid_https_base(os.environ.get('TABO_PUBLIC_URL'))))
+    return all(checkout_readiness().values())
 
 def now(): return datetime.now(timezone.utc).isoformat()
 def public(order):
@@ -468,4 +474,6 @@ class Handler(BaseHTTPRequestHandler):
 if __name__=='__main__':
     host=os.environ.get('HOST','127.0.0.1');port=int(os.environ.get('PORT','3000'))
     print(f'TABO BOOKS listening on {host}:{port}',flush=True)
+    missing=[name for name,ready in checkout_readiness().items() if not ready]
+    print('Checkout readiness: '+('ready' if not missing else 'blocked: '+','.join(missing)),flush=True)
     ThreadingHTTPServer((host,port),Handler).serve_forever()
