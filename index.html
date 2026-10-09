@@ -2386,7 +2386,7 @@ const WHATSAPP_NUMBER =
 
 const BACKEND_URL = location.origin;
 let lastOrderId = localStorage.getItem("taboLastOrderId") || "";
-const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6"};
+const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7"};
 let currentLanguage = localStorage.getItem("taboLanguage") ||
     ((navigator.language || "ar").toLowerCase().startsWith("en") ? "en" : "ar");
 let storeConfig = {
@@ -2653,6 +2653,32 @@ const BOOKS = [
         idea:
         `السمو ليس أن تصبح أفضل من الآخرين؛ السمو أن ترتقي بنفسك.`
 
+    },
+
+    {
+
+        name:"إلى كل بنت",
+
+        price:150,
+
+        image:"/book7-cover.jpg",
+
+        shortDescription:
+        "رحلة نفسية واجتماعية تساعد كل فتاة على فهم ذاتها، ووضع حدودها، والتمييز بين الحب والتعلّق، واختيار حياتها دون أن تخسر نفسها.",
+
+        about:
+        `«إلى كل بنت» يبدأ من السؤال الذي يسبق الحب والزواج والناس: هل اخترتِ نفسكِ؟
+
+يناقش الكتاب تقدير الذات، وصورة الجسد، والمقارنة، وضغط المجتمع، ثم ينتقل إلى العلاقات والحدود والقدرة على قول «لا»، قبل أن يتناول الحب والتعلّق واختيار شريك الحياة والعلامات التي تستحق الانتباه.
+
+لا يدعو الكتاب إلى رفض الحب أو الزواج، بل إلى دخولهما بقلب مفتوح ووعي يحمي الكرامة والأحلام والهوية. وهو يذكّر كل فتاة بأنها ليست فقط موضوعًا للاختيار، بل صاحبة اختيار أيضًا.`,
+
+        adds:
+        `يساعدك الكتاب على فهم ما تريدينه حقًا بعيدًا عن المقارنة وضغط الآخرين، وبناء حدود صحية، والتمييز بين القرب والسيطرة وبين الحب والتعلّق، ورؤية العلاقة الجيدة بوصفها مساحة للنمو لا سببًا للانطفاء.`,
+
+        idea:
+        `قبل أن تختاري حياتكِ، تعلّمي كيف تختارين نفسكِ.`
+
     }
 
 
@@ -2667,7 +2693,8 @@ const BOOK_TRANSLATIONS = {
     book3:{name:"Rebellion",shortDescription:"A journey toward freedom, conscious choice and understanding the effect of fear and social expectations.",about:"Rebellion is not a call for chaos. It is an invitation to reclaim your right to choose your life consciously, examine habits and pressure, and take responsibility for the results of your choices.",adds:"It helps you separate what you truly want from what you learned to want merely to satisfy others.",idea:"Freedom matters only when you know what to do with it."},
     book4:{name:"How to Make Your First Million",cardName:"The First Million",shortDescription:"A practical guide to value, income, capital, investing and building the ability to create wealth.",about:"This book offers no shortcut to wealth. It starts with value, skill and income, then moves through sales, marketing, saving, capital, investing and building assets that can grow.",adds:"It clarifies how skill and value can become income, then capital, assets and a repeatable system.",idea:"Do not only chase a million; build the ability that can create it."},
     book5:{name:"Desires",shortDescription:"Understand the hidden desires behind money, love, success, attention and status.",about:"Desires looks beyond physical desire to the motives behind money, love, success, fame, status and power. It asks not only what we want, but why we want it.",adds:"It helps you distinguish needs, wants and impulses, pause before reacting, and understand what your desires are really asking for.",idea:"The question is not only what you desire, but why you desire it."},
-    book6:{name:"Guide to Elevation",shortDescription:"A practical journey of inner and outer growth through thought, discipline, health, money, relationships and purpose.",about:"Guide to Elevation treats growth as rising above your previous self rather than competing with others. It turns broad self-development ideas into questions, exercises and practical steps.",adds:"It helps you focus on what you can control, influence what you can change, and build progress through small consistent actions.",idea:"Elevation is not becoming better than others; it is raising yourself."}
+    book6:{name:"Guide to Elevation",shortDescription:"A practical journey of inner and outer growth through thought, discipline, health, money, relationships and purpose.",about:"Guide to Elevation treats growth as rising above your previous self rather than competing with others. It turns broad self-development ideas into questions, exercises and practical steps.",adds:"It helps you focus on what you can control, influence what you can change, and build progress through small consistent actions.",idea:"Elevation is not becoming better than others; it is raising yourself."},
+    book7:{name:"To Every Girl",shortDescription:"A psychological and social journey into self-worth, boundaries, love, attachment and choosing your life without losing yourself.",about:"To Every Girl begins with the question that comes before love, marriage and other people's expectations: have you chosen yourself? It explores self-worth, body image, comparison, social pressure, boundaries, attachment and how to choose a mature life partner without abandoning your identity or dreams.",adds:"It helps you understand what you truly want, build healthy boundaries, distinguish love from attachment and control, and recognize a relationship that supports growth rather than self-erasure.",idea:"Before you choose your life, learn how to choose yourself."}
 };
 
 BOOKS.forEach((book,index)=>{ book.id=`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
