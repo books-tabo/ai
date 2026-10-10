@@ -57,7 +57,6 @@ POST_LIMITS = {
     '/api/buyer': (12, 600),
     '/api/admin/confirm-payment': (10, 600),
     '/api/paymob/webhook': (180, 60),
-    '/api/admin/upload-original': (3, 3600),
 }
 GET_LIMITS = {
     '/api/order-status': (120, 600),
@@ -284,7 +283,7 @@ class Handler(BaseHTTPRequestHandler):
         payload=source.encode('utf-8'); self._csp_nonce=nonce; self.send_response(200)
         self.send_header('Content-Type','text/html; charset=utf-8')
         self.send_header('Cache-Control','no-store')
-        if filename in ('pending.html','success.html','upload.html'):
+        if filename in ('pending.html','success.html'):
             self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
 
@@ -307,23 +306,6 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
-            if route=='/api/admin/upload-original':
-                secret=os.environ.get('TABO_UPLOAD_TOKEN','')
-                supplied=self.headers.get('X-Upload-Token','')
-                if len(secret)<32 or not hmac.compare_digest(secret,supplied):
-                    return self.respond(403,{'ok':False,'error':'Unauthorized'})
-                if not self.same_origin_browser_request():
-                    return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
-                if self.headers.get_content_type()!='application/pdf':
-                    return self.respond(415,{'ok':False,'error':'PDF required'})
-                size=int(self.headers.get('Content-Length','0'))
-                if size<5 or size>store.ORIGINAL_PDF_LIMIT:
-                    return self.respond(413,{'ok':False,'error':'Invalid file size'})
-                payload=self.rfile.read(size)
-                if len(payload)!=size or not payload.startswith(b'%PDF-'):
-                    return self.respond(400,{'ok':False,'error':'Invalid PDF'})
-                store.upload_original('book8.pdf',payload)
-                return self.respond(201,{'ok':True,'name':'book8.pdf','bytes':size})
             if route in ('/api/ratings','/api/orders','/api/buyer') and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
@@ -447,7 +429,6 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/': return self.html('index.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
-        if route=='/admin-upload': return self.html('upload.html')
         if re.fullmatch(r'/books/book[1-8]',route) or route=='/book.html': return self.html('book.html')
         if route=='/book7-cover.jpg': return self.asset('book7-cover.jpg','image/jpeg')
         if route=='/book8-cover.jpg': return self.asset('book8-cover.jpg','image/jpeg')
