@@ -77,6 +77,23 @@ def original(book_name):
         raise RuntimeError('Original file is not a PDF')
     return payload
 
+def upload_original(book_name, payload):
+    """Upload one validated original through the trusted server only."""
+    if book_name != 'book8.pdf' or not payload.startswith(b'%PDF-') or len(payload) > ORIGINAL_PDF_LIMIT:
+        raise ValueError('Invalid original PDF')
+    base = os.environ['SUPABASE_URL'].rstrip('/')
+    key = os.environ['SUPABASE_SECRET_KEY']
+    req = Request(base + '/storage/v1/object/tabo-originals/' + quote(book_name),
+                  data=payload,
+                  headers={'apikey': key, 'Authorization': 'Bearer ' + key,
+                           'Content-Type': 'application/pdf', 'x-upsert': 'false'},
+                  method='POST')
+    try:
+        with urlopen(req, timeout=120) as response:
+            response.read(JSON_RESPONSE_LIMIT + 1)
+    except HTTPError as error:
+        raise RuntimeError('Supabase upload failed: HTTP ' + str(error.code)) from error
+
 def book_stats():
     """Return only public-safe aggregate book metadata."""
     rows=request('/rest/v1/book_stats', params={
