@@ -18,7 +18,7 @@ BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','boo
          'book3': ('تمرد','book3.pdf'), 'book4': ('كيف تصنع المليون الأول','book4.pdf'),
          'book5': ('شهوات','book5.pdf'), 'book6': ('دليل السمو','book6.pdf'),
          'book7': ('إلى كل بنت','book7.pdf'), 'book8': ('أصنام','book8.pdf')}
-PRICES = {1:150,2:250,3:300,4:350,5:420,6:500,7:550,8:620,9:700}
+PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999}
 PAYMOB_BASE = 'https://accept.paymob.com'
 FONT = os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
 

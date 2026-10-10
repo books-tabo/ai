@@ -425,6 +425,19 @@ header p{
 
 }
 
+.book-price,
+.book-previous-price{
+    direction:ltr;
+    unicode-bidi:isolate;
+}
+
+.book-previous-price{
+    color:#999;
+    font-size:14px;
+    margin-bottom:5px;
+    text-decoration:line-through;
+}
+
 .book-format{
 
     font-size:12px;
@@ -1425,6 +1438,12 @@ html[dir="ltr"] .info-highlight{
 
     }
 
+    .book-previous-price{
+
+        font-size:12px;
+
+    }
+
     .book-format{
 
         font-size:10px;
@@ -1623,7 +1642,6 @@ html[dir="ltr"] .info-highlight{
         <div class="language-switch" aria-label="Language">
             <button type="button" id="languageToggle">اللغة</button>
         </div>
-        <span class="location-note" id="locationNote">يمكنك تغيير الدولة واللغة من هنا.</span>
     </div>
 
 
@@ -1794,7 +1812,7 @@ html[dir="ltr"] .info-highlight{
             <div class="summary-row">
 
                 <span id="originalPriceLabel">
-                    السعر الأصلي
+                    السعر السابق
                 </span>
 
                 <strong id="cartOriginal">
@@ -1804,23 +1822,10 @@ html[dir="ltr"] .info-highlight{
             </div>
 
 
-            <div class="summary-row">
-
-                <span id="discountLabel">
-                    الخصم
-                </span>
-
-                <strong id="cartDiscount">
-                    0 جنيه
-                </strong>
-
-            </div>
-
-
             <div class="summary-row summary-final">
 
                 <span id="finalPriceLabel">
-                    السعر النهائي
+                    السعر الحالي
                 </span>
 
                 <strong id="cartFinal">
@@ -2395,7 +2400,8 @@ let storeConfig = {
     checkoutEnabled:false,
     checkoutSupported:true,
     countries:[],
-    prices:{"1":150,"2":250,"3":300,"4":350,"5":420,"6":500,"7":550,"8":620,"9":700}
+    prices:{"1":199,"2":299,"3":399,"4":499,"5":599,"6":699,"7":799,"8":899,"9":999},
+    compareAtPrice:299
 };
 
 const TIMEZONE_COUNTRIES = {
@@ -2411,14 +2417,14 @@ const TIMEZONE_COUNTRIES = {
 
 const UI_COPY = {
     ar:{
-        countryLabel:"الدولة", language:"اللغة", locationNote:"سعر مصر بالجنيه متاح للزوار داخل مصر فقط.",
+        countryLabel:"الدولة", language:"اللغة",
         heroTitle:"كتب تغيّر طريقة تفكيرك",
         heroDescription:"مكتبة تابو الرقمية — كتب في الوعي، تطوير الذات، المال، الطموح وفهم الإنسان لنفسه والعالم من حوله.",
         paymentTitle:"الدفع الإلكتروني", paymentDescription:"أضف الكتب للسلة، ثم اضغط «متابعة الدفع» للانتقال إلى رابط دفع آمن بقيمة طلبك.",
         authorName:"تابو نور", authorDescription:"كاتب ومؤلف يهتم بموضوعات الوعي، تطوير الذات، المال، الطموح، وفهم الإنسان لنفسه والعالم من حوله.",
         about:"من نحن", contact:"تواصل معنا", privacy:"سياسة الخصوصية", refund:"الاسترداد والإلغاء", delivery:"التوصيل والتسليم",
         footerCopy:"© 2026 TABO BOOKS — جميع الحقوق محفوظة", cartTitle:"سلة الكتب",
-        original:"السعر الأصلي", discount:"الخصم", final:"السعر النهائي",
+        original:"السعر السابق", final:"السعر الحالي",
         checkoutFields:"بيانات التواصل المطلوبة لصفحة الدفع", fullName:"الاسم الكامل",
         email:"البريد الإلكتروني", phone:"رقم الهاتف بالأرقام الإنجليزية",
         continueShopping:"متابعة التسوق", checkout:"متابعة الدفع",
@@ -2435,14 +2441,14 @@ const UI_COPY = {
         ,aboutTitle:"من نحن",contactTitle:"تواصل معنا",privacyTitle:"سياسة الخصوصية",refundTitle:"سياسة الاسترداد والإلغاء",deliveryTitle:"سياسة التوصيل والتسليم"
     },
     en:{
-        countryLabel:"Country", language:"Language", locationNote:"Egyptian-pound pricing is available only to visitors in Egypt.",
+        countryLabel:"Country", language:"Language",
         heroTitle:"Books that change how you think",
         heroDescription:"TABO BOOKS is a digital library about awareness, personal growth, money, ambition, and understanding yourself and the world around you.",
         paymentTitle:"Secure online payment", paymentDescription:"Add books to your cart, then continue to a secure checkout for the displayed amount.",
         authorName:"TABO NOOR", authorDescription:"An author focused on awareness, personal growth, money, ambition, and understanding human nature and the world around us.",
         about:"About us", contact:"Contact us", privacy:"Privacy policy", refund:"Refunds & cancellation", delivery:"Digital delivery",
         footerCopy:"© 2026 TABO BOOKS — All rights reserved", cartTitle:"Book cart",
-        original:"Original price", discount:"Discount", final:"Final price",
+        original:"Previous price", final:"Current price",
         checkoutFields:"Contact details required for checkout", fullName:"Full name",
         email:"Email address", phone:"Phone number in English digits",
         continueShopping:"Continue shopping", checkout:"Continue to payment",
@@ -2755,23 +2761,23 @@ function localizedBook(book){
 
 let PRICING_LADDER = {
 
-    1:150,
+    1:199,
 
-    2:250,
+    2:299,
 
-    3:300,
+    3:399,
 
-    4:350,
+    4:499,
 
-    5:420,
+    5:599,
 
-    6:500,
+    6:699,
 
-    7:550,
+    7:799,
 
-    8:620,
+    8:899,
 
-    9:700
+    9:999
 
 };
 
@@ -2792,7 +2798,7 @@ function browserCountryHint(){
 
 function formatMoney(value){
     try {
-        return new Intl.NumberFormat(currentLanguage==="ar"?"ar-EG":"en",{
+        return new Intl.NumberFormat("en-US",{
             style:"currency",currency:storeConfig.currency,maximumFractionDigits:2
         }).format(Number(value)||0);
     } catch(error){ return `${value} ${storeConfig.currency}`; }
@@ -2810,7 +2816,7 @@ function renderCountryOptions(){
 function renderPromo(){
     const track=document.getElementById("promoTrack");
     if(!track) return;
-    const items=Object.keys(PRICING_LADDER).slice(0,6).map(count=>
+    const items=Object.keys(PRICING_LADDER).slice(0,BOOKS.length).map(count=>
         `<span class="promo-item"><b>${count}</b> ${t("books")} — ${formatMoney(PRICING_LADDER[count])}</span>`
     );
     track.innerHTML=[`<span class="promo-item">${t("promoLead")}</span>`,...items,...items].join("");
@@ -2819,10 +2825,10 @@ function renderPromo(){
 function applyStaticCopy(){
     document.documentElement.lang=currentLanguage;
     document.documentElement.dir=currentLanguage==="ar"?"rtl":"ltr";
-    const ids={countryLabel:"countryLabel",locationNote:"locationNote",heroTitle:"heroTitle",heroDescription:"heroDescription",
+    const ids={countryLabel:"countryLabel",heroTitle:"heroTitle",heroDescription:"heroDescription",
         paymentTitle:"paymentTitle",paymentDescription:"paymentDescription",authorName:"authorName",authorDescription:"authorDescription",
         about:"footerAbout",contact:"footerContact",privacy:"footerPrivacy",refund:"footerRefund",delivery:"footerDelivery",footerCopy:"footerCopy",
-        cartTitle:"cartTitle",original:"originalPriceLabel",discount:"discountLabel",final:"finalPriceLabel",checkoutFields:"checkoutFieldsLabel",
+        cartTitle:"cartTitle",original:"originalPriceLabel",final:"finalPriceLabel",checkoutFields:"checkoutFieldsLabel",
         continueShopping:"continueShoppingBtn",checkout:"checkoutBtn",aboutBook:"detailsAboutTitle",adds:"detailsAddsTitle"};
     Object.entries(ids).forEach(([key,id])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
     const name=document.getElementById("checkoutName"), email=document.getElementById("checkoutEmail"), phone=document.getElementById("checkoutPhone");
@@ -2903,7 +2909,7 @@ function calculatePricing(){
         cart.length;
 
 
-    const original = count * Number(PRICING_LADDER[1] || 0);
+    const original = count * Number(storeConfig.compareAtPrice || PRICING_LADDER[1] || 0);
 
 
     if(count === 0){
@@ -3039,6 +3045,10 @@ function renderBooks(){
 
                         <div class="book-price">
                             ${formatMoney(PRICING_LADDER[1])}
+                        </div>
+
+                        <div class="book-previous-price">
+                            ${formatMoney(storeConfig.compareAtPrice || PRICING_LADDER[1])}
                         </div>
 
                         <div class="book-format">
@@ -3315,12 +3325,6 @@ function renderCart(){
 
 
         document.getElementById(
-            "cartDiscount"
-        ).textContent =
-            formatMoney(0);
-
-
-        document.getElementById(
             "cartFinal"
         ).textContent =
             formatMoney(0);
@@ -3388,13 +3392,6 @@ function renderCart(){
     ).textContent =
 
         formatMoney(pricing.original);
-
-
-    document.getElementById(
-        "cartDiscount"
-    ).textContent =
-
-        formatMoney(pricing.discount);
 
 
     document.getElementById(

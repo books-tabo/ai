@@ -36,15 +36,15 @@ COUNTRIES = {
 # Fixed international bundle ladder. It preserves the Egyptian bundle discounts
 # while keeping one simple price for every supported country outside Egypt.
 USD_PRICES = {
-    '1': 5.99,
-    '2': 9.99,
-    '3': 11.99,
-    '4': 13.99,
-    '5': 16.99,
-    '6': 19.99,
-    '7': 21.99,
-    '8': 24.99,
-    '9': 27.99,
+    '1': 9.99,
+    '2': 17.99,
+    '3': 24.99,
+    '4': 29.99,
+    '5': 34.99,
+    '6': 39.99,
+    '7': 44.99,
+    '8': 49.99,
+    '9': 54.99,
 }
 
 _GEO_CACHE = {}
@@ -124,6 +124,7 @@ def pricing_for_country(base_prices, country):
         'currency': currency,
         'multiplier': 1 if egypt else 2,
         'prices': prices,
+        'compareAtPrice': 299 if egypt else 14.99,
         'rateSource': 'fixed',
         'countries': [
             {'code': item_code, 'nameAr': item['ar'], 'nameEn': item['en'],
