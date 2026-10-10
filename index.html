@@ -2797,10 +2797,18 @@ function browserCountryHint(){
 }
 
 function formatMoney(value){
+    const amount=Number(value)||0;
     try {
+        if(storeConfig.currency==="EGP"){
+            const digits=new Intl.NumberFormat("en-US",{
+                minimumFractionDigits:Number.isInteger(amount)?0:2,
+                maximumFractionDigits:2
+            }).format(amount);
+            return currentLanguage==="ar"?`${digits} جنيه`:`EGP ${digits}`;
+        }
         return new Intl.NumberFormat("en-US",{
             style:"currency",currency:storeConfig.currency,maximumFractionDigits:2
-        }).format(Number(value)||0);
+        }).format(amount);
     } catch(error){ return `${value} ${storeConfig.currency}`; }
 }
 
