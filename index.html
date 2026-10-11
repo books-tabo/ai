@@ -2391,7 +2391,7 @@ const WHATSAPP_NUMBER =
 
 const BACKEND_URL = location.origin;
 let lastOrderId = localStorage.getItem("taboLastOrderId") || "";
-const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8"};
+const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9"};
 let currentLanguage = localStorage.getItem("taboLanguage") ||
     ((navigator.language || "ar").toLowerCase().startsWith("en") ? "en" : "ar");
 let storeConfig = {
@@ -2711,6 +2711,32 @@ const BOOKS = [
         idea:
         `السؤال ليس ماذا تملك، بل: ما الذي يملكك؟`
 
+    },
+
+    {
+
+        name:"تأثير الكوبرا",
+
+        price:150,
+
+        image:"/book9-cover.jpg",
+
+        shortDescription:
+        "رحلة في الاقتصاد السلوكي وصناعة القرار تكشف كيف قد تحوّل الحوافز غير المحسوبة الحلول الذكية إلى مشكلات أكبر.",
+
+        about:
+        `«تأثير الكوبرا» كتاب عن القرارات التي تبدأ بنية حسنة وتنتهي بنتائج عكسية. ينطلق من حكاية مكافآت أفاعي الكوبرا ليفحص ما يحدث حين تدفع الحوافز الناس إلى تحسين الرقم بدل تحقيق الغاية، أو استغلال ثغرات النظام بدل حل المشكلة.
+
+ينتقل الكتاب من فهم النتائج غير المقصودة إلى عالم الشركات والمؤسسات؛ حيث مؤشرات الأداء والمكافآت والقواعد التي قد تحقق ما يُقاس وتُفسد ما أُريد.
+
+ثم يقدم طريقة عملية لاختبار القرارات، ورصد آثارها من الدرجة الثانية، وتصميم أنظمة أصعب على التحايل وأكثر اتزانًا.`,
+
+        adds:
+        `يساعدك الكتاب على التفكير في العواقب قبل تنفيذ القرار، واكتشاف الحوافز الخاطئة والثغرات مبكرًا، والتمييز بين نجاح المؤشر ونجاح الهدف الحقيقي.`,
+
+        idea:
+        `ليس الذكاء أن تطارد الكوبرا كلما ظهرت؛ الذكاء أن تكتشف لماذا يستمر نظامك في إنتاجها.`
+
     }
 
 
@@ -2727,7 +2753,8 @@ const BOOK_TRANSLATIONS = {
     book5:{name:"Desires",shortDescription:"Understand the hidden desires behind money, love, success, attention and status.",about:"Desires looks beyond physical desire to the motives behind money, love, success, fame, status and power. It asks not only what we want, but why we want it.",adds:"It helps you distinguish needs, wants and impulses, pause before reacting, and understand what your desires are really asking for.",idea:"The question is not only what you desire, but why you desire it."},
     book6:{name:"Guide to Elevation",shortDescription:"A practical journey of inner and outer growth through thought, discipline, health, money, relationships and purpose.",about:"Guide to Elevation treats growth as rising above your previous self rather than competing with others. It turns broad self-development ideas into questions, exercises and practical steps.",adds:"It helps you focus on what you can control, influence what you can change, and build progress through small consistent actions.",idea:"Elevation is not becoming better than others; it is raising yourself."},
     book7:{name:"To Every Girl",shortDescription:"A psychological and social journey into self-worth, boundaries, love, attachment and choosing your life without losing yourself.",about:"To Every Girl begins with the question that comes before love, marriage and other people's expectations: have you chosen yourself? It explores self-worth, body image, comparison, social pressure, boundaries, attachment and how to choose a mature life partner without abandoning your identity or dreams.",adds:"It helps you understand what you truly want, build healthy boundaries, distinguish love from attachment and control, and recognize a relationship that supports growth rather than self-erasure.",idea:"Before you choose your life, learn how to choose yourself."},
-    book8:{name:"Idols",shortDescription:"A journey through awareness and willpower that exposes modern idols and helps you use money, technology and desire without being ruled by them.",about:"Idols begins with a simple truth: idols did not disappear; they changed form. A phone, money, desire, appearances or the approval of others can define your value and make choices for you. Across four parts and twenty-two chapters, the book moves from recognizing modern servitude to rebuilding attention, restraint, responsibility and conscious choice.",adds:"It helps you identify what consumes your attention and will, understand your relationship with technology, money, desire, status, approval, fear and anger, then turn faith, discipline and responsibility into practical tools for freedom.",idea:"The question is not what you own, but what owns you."}
+    book8:{name:"Idols",shortDescription:"A journey through awareness and willpower that exposes modern idols and helps you use money, technology and desire without being ruled by them.",about:"Idols begins with a simple truth: idols did not disappear; they changed form. A phone, money, desire, appearances or the approval of others can define your value and make choices for you. Across four parts and twenty-two chapters, the book moves from recognizing modern servitude to rebuilding attention, restraint, responsibility and conscious choice.",adds:"It helps you identify what consumes your attention and will, understand your relationship with technology, money, desire, status, approval, fear and anger, then turn faith, discipline and responsibility into practical tools for freedom.",idea:"The question is not what you own, but what owns you."},
+    book9:{name:"Cobra Effect",shortDescription:"A behavioral-economics journey into how poorly designed incentives can turn sensible solutions into larger problems.",about:"Cobra Effect examines decisions that begin with good intentions and end in unintended consequences. Starting from the famous cobra-bounty story, it explores what happens when people optimize a metric instead of the real goal, exploit loopholes, or game the system. It then moves into companies and institutions, where KPIs, rewards and rules can succeed numerically while failing in reality, and offers a practical framework for testing incentives and second-order effects before they become crises.",adds:"It helps you anticipate consequences, detect bad incentives and loopholes early, and distinguish a successful metric from a genuinely successful outcome.",idea:"Intelligence is not chasing every cobra; it is discovering why the system keeps producing them."}
 };
 
 BOOKS.forEach((book,index)=>{ book.id=`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
