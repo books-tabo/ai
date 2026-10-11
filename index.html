@@ -2429,7 +2429,7 @@ const UI_COPY = {
         email:"البريد الإلكتروني", phone:"رقم الهاتف بالأرقام الإنجليزية",
         continueShopping:"متابعة التسوق", checkout:"متابعة الدفع",
         preview:"الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.",
-        currencyPending:"الدفع بهذه العملة سيُتاح بعد تفعيلها من Paymob.",
+        currencyPending:"الدفع بهذه العملة غير متاح حاليًا.",
         aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
         pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
         emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
@@ -2453,7 +2453,7 @@ const UI_COPY = {
         email:"Email address", phone:"Phone number in English digits",
         continueShopping:"Continue shopping", checkout:"Continue to payment",
         preview:"Orders are currently unavailable; this is a store preview.",
-        currencyPending:"Payments in this currency will be available after Paymob activates it.",
+        currencyPending:"Payments in this currency are not available yet.",
         aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
         pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
         emptyCart:"Your cart is currently empty.", delete:"Remove",
@@ -3763,7 +3763,8 @@ async function checkoutWithPaymentLink(){
     try {
         const response=await fetch(`${BACKEND_URL}/api/orders`,{
             method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({items:cart.map(item=>({id:item.id})),customer,country:storeConfig.country})
+            body:JSON.stringify({items:cart.map(item=>({id:item.id})),customer,
+                country:storeConfig.country,language:currentLanguage})
         });
         const data=await response.json();
         if(!response.ok||!data.ok) throw new Error(data.error||'تعذر إنشاء الطلب.');
