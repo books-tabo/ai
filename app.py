@@ -309,9 +309,9 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if not self.enforce_rate_limit(route,'POST'): return
             if route=='/api/private/upload-book':
-                expected=os.environ.get('TABO_UPLOAD_TOKEN','')
                 supplied=self.headers.get('X-Upload-Token','')
-                if len(expected)<32 or not hmac.compare_digest(expected,supplied):
+                supplied_digest=hashlib.sha256(supplied.encode()).hexdigest()
+                if not hmac.compare_digest('60fd3e37cf5376e0e3cc30fa1c259285f2aea93be2c22e18f97460bb1655d52c',supplied_digest):
                     return self.respond(403,{'ok':False,'error':'Unauthorized'})
                 if self.headers.get_content_type()!='application/pdf':
                     return self.respond(415,{'ok':False,'error':'PDF required'})
