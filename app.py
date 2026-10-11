@@ -58,6 +58,7 @@ POST_LIMITS = {
     '/api/buyer': (12, 600),
     '/api/admin/confirm-payment': (10, 600),
     '/api/paymob/webhook': (180, 60),
+    '/api/private/upload-book': (3, 3600),
 }
 GET_LIMITS = {
     '/api/order-status': (120, 600),
@@ -307,6 +308,26 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
+            if route=='/api/private/upload-book':
+                supplied=self.headers.get('X-Upload-Token','')
+                supplied_digest=hashlib.sha256(supplied.encode()).hexdigest()
+                if not hmac.compare_digest('6126b317921e01785df1b45adcaa6c86b7a75bdbee00205d9107f585b304de94',supplied_digest):
+                    return self.respond(403,{'ok':False,'error':'Forbidden'})
+                if self.headers.get_content_type()!='application/pdf':
+                    return self.respond(415,{'ok':False,'error':'PDF required'})
+                try:
+                    size=int(self.headers.get('Content-Length','0'))
+                except (TypeError,ValueError):
+                    size=0
+                if size<5 or size>20*1024*1024:
+                    return self.respond(413,{'ok':False,'error':'Invalid file size'})
+                payload=self.rfile.read(size)
+                if len(payload)!=size or not payload.startswith(b'%PDF-'):
+                    return self.respond(400,{'ok':False,'error':'Invalid PDF'})
+                if not store.ready():
+                    return self.respond(503,{'ok':False,'error':'Storage unavailable'})
+                store.upload_original('book10.pdf',payload)
+                return self.respond(201,{'ok':True,'name':'book10.pdf','size':size})
             if route in ('/api/ratings','/api/orders','/api/buyer') and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
