@@ -18,8 +18,9 @@ BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','boo
          'book3': ('تمرد','book3.pdf'), 'book4': ('كيف تصنع المليون الأول','book4.pdf'),
          'book5': ('شهوات','book5.pdf'), 'book6': ('دليل السمو','book6.pdf'),
          'book7': ('إلى كل بنت','book7.pdf'), 'book8': ('أصنام','book8.pdf'),
-         'book9': ('تأثير الكوبرا','book9.pdf')}
-PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999}
+         'book9': ('تأثير الكوبرا','book9.pdf'),
+         'book10': ('دليل التحرر من العادة السرية','book10.pdf')}
+PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099}
 PAYMOB_BASE = 'https://accept.paymob.com'
 FONT = os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
 
@@ -58,7 +59,6 @@ POST_LIMITS = {
     '/api/buyer': (12, 600),
     '/api/admin/confirm-payment': (10, 600),
     '/api/paymob/webhook': (180, 60),
-    '/api/private/upload-book': (3, 3600),
 }
 GET_LIMITS = {
     '/api/order-status': (120, 600),
@@ -250,7 +250,7 @@ class Handler(BaseHTTPRequestHandler):
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
         bucket=route
-        if method=='GET' and re.fullmatch(r'/api/download/book[1-9]',route):
+        if method=='GET' and re.fullmatch(r'/api/download/book[1-9][0-9]*',route):
             bucket='/api/download'
         limits=lookup.get(bucket)
         if not limits: return True
@@ -308,26 +308,6 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
-            if route=='/api/private/upload-book':
-                supplied=self.headers.get('X-Upload-Token','')
-                supplied_digest=hashlib.sha256(supplied.encode()).hexdigest()
-                if not hmac.compare_digest('6126b317921e01785df1b45adcaa6c86b7a75bdbee00205d9107f585b304de94',supplied_digest):
-                    return self.respond(403,{'ok':False,'error':'Forbidden'})
-                if self.headers.get_content_type()!='application/pdf':
-                    return self.respond(415,{'ok':False,'error':'PDF required'})
-                try:
-                    size=int(self.headers.get('Content-Length','0'))
-                except (TypeError,ValueError):
-                    size=0
-                if size<5 or size>20*1024*1024:
-                    return self.respond(413,{'ok':False,'error':'Invalid file size'})
-                payload=self.rfile.read(size)
-                if len(payload)!=size or not payload.startswith(b'%PDF-'):
-                    return self.respond(400,{'ok':False,'error':'Invalid PDF'})
-                if not store.ready():
-                    return self.respond(503,{'ok':False,'error':'Storage unavailable'})
-                store.upload_original('book10.pdf',payload)
-                return self.respond(201,{'ok':True,'name':'book10.pdf','size':size})
             if route in ('/api/ratings','/api/orders','/api/buyer') and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
@@ -451,10 +431,11 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/': return self.html('index.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
-        if re.fullmatch(r'/books/book[1-9]',route) or route=='/book.html': return self.html('book.html')
-        if route=='/book7-cover.jpg': return self.asset('book7-cover.jpg','image/jpeg')
-        if route=='/book8-cover.jpg': return self.asset('book8-cover.jpg','image/jpeg')
-        if route=='/book9-cover.jpg': return self.asset('book9-cover.jpg','image/jpeg')
+        detail_match=re.fullmatch(r'/books/(book[1-9][0-9]*)',route)
+        if (detail_match and detail_match.group(1) in BOOKS) or route=='/book.html': return self.html('book.html')
+        cover_match=re.fullmatch(r'/(book[1-9][0-9]*)-cover\.jpg',route)
+        if cover_match and cover_match.group(1) in BOOKS and (ROOT/(cover_match.group(1)+'-cover.jpg')).is_file():
+            return self.asset(cover_match.group(1)+'-cover.jpg','image/jpeg')
         if route in ('/about','/contact','/privacy','/refund','/delivery'): return self.html('info.html')
         if route=='/health': return self.respond(200,{'ok':True})
         if route=='/api/config': return self.respond(200,{'checkoutEnabled':checkout_ready()})
@@ -486,11 +467,11 @@ class Handler(BaseHTTPRequestHandler):
             if not order: return self.respond(403,{'ok':False,'error':'رابط غير صالح أو الدفع غير مؤكد.'})
             return self.respond(200,{'ok':True,'needsBuyer':not bool(order['buyer']),
               'books':([{'id':i['id'],'name':i['name'],'url':'/api/download/'+i['id']+'?token='+quote(token)} for i in order['items']] if order['buyer'] else [])})
-        match=re.fullmatch(r'/api/download/(book[1-9])',route)
+        match=re.fullmatch(r'/api/download/(book[1-9][0-9]*)',route)
         if match:
             order=store.find('download_token',token) if store.ready() and re.fullmatch(r'[0-9a-f]{64}',token) else None
             book_id=match.group(1)
-            if not order or not order['buyer'] or book_id not in [i['id'] for i in order['items']]:
+            if book_id not in BOOKS or not order or not order['buyer'] or book_id not in [i['id'] for i in order['items']]:
                 return self.respond(403,{'ok':False,'error':'تحميل غير مصرح.'})
             try: payload,page_count=watermarked(store.original(BOOKS[book_id][1]),order)
             except Exception: return self.respond(500,{'ok':False,'error':'تعذر تجهيز الكتاب. تواصل مع الدعم.'})

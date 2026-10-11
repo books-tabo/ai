@@ -2391,7 +2391,7 @@ const WHATSAPP_NUMBER =
 
 const BACKEND_URL = location.origin;
 let lastOrderId = localStorage.getItem("taboLastOrderId") || "";
-const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9"};
+const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9", "دليل التحرر من العادة السرية":"book10"};
 let currentLanguage = localStorage.getItem("taboLanguage") ||
     ((navigator.language || "ar").toLowerCase().startsWith("en") ? "en" : "ar");
 let storeConfig = {
@@ -2400,7 +2400,7 @@ let storeConfig = {
     checkoutEnabled:false,
     checkoutSupported:true,
     countries:[],
-    prices:{"1":199,"2":299,"3":399,"4":499,"5":599,"6":699,"7":799,"8":899,"9":999},
+    prices:{"1":199,"2":299,"3":399,"4":499,"5":599,"6":699,"7":799,"8":899,"9":999,"10":1099},
     compareAtPrice:299
 };
 
@@ -2737,6 +2737,30 @@ const BOOKS = [
         idea:
         `ليس الذكاء أن تطارد الكوبرا كلما ظهرت؛ الذكاء أن تكتشف لماذا يستمر نظامك في إنتاجها.`
 
+    },
+
+    {
+
+        name:"دليل التحرر من العادة السرية",
+
+        price:199,
+
+        image:"/book10-cover.jpg",
+
+        shortDescription:
+        "دليل عملي وواقعي لفهم الحلقة السلوكية للعادة السرية، وإدارة المحفزات والرغبة، وكسر الانتكاس دون جلد للذات أو وعود وهمية.",
+
+        about:
+        `«دليل التحرر من العادة السرية» لا يتعامل مع الرغبة بوصفها عيبًا، ولا يبني التغيير على الخوف والعار. يبدأ من فهم الحلقة السلوكية: المحفز، والرغبة، والسلوك، والمكافأة؛ ثم يكشف دور الهاتف والوحدة والملل والضغط والهروب العاطفي في تكرارها.
+
+ينتقل الكتاب من فهم الفخ وثمنه الخفي إلى خطة عملية لكسر الدائرة: التعرف إلى المحفزات، وتعديل البيئة الرقمية، والتعامل مع لحظة الرغبة، وبناء البدائل، والتعامل الصحي مع التعثر حتى يستعيد القارئ قدرته على الاختيار.`,
+
+        adds:
+        `يساعدك على اكتشاف نمطك الشخصي، وإغلاق الطرق التي تعيدك إلى السلوك، ووضع خطة للأيام الصعبة، وتحويل التعثر من سبب للاستسلام إلى معلومة تُحسّن بها خطتك.`,
+
+        idea:
+        `التحرر لا يعني ألا تشعر بالرغبة؛ بل أن تستعيد حقك في الاختيار.`
+
     }
 
 
@@ -2754,7 +2778,8 @@ const BOOK_TRANSLATIONS = {
     book6:{name:"Guide to Elevation",shortDescription:"A practical journey of inner and outer growth through thought, discipline, health, money, relationships and purpose.",about:"Guide to Elevation treats growth as rising above your previous self rather than competing with others. It turns broad self-development ideas into questions, exercises and practical steps.",adds:"It helps you focus on what you can control, influence what you can change, and build progress through small consistent actions.",idea:"Elevation is not becoming better than others; it is raising yourself."},
     book7:{name:"To Every Girl",shortDescription:"A psychological and social journey into self-worth, boundaries, love, attachment and choosing your life without losing yourself.",about:"To Every Girl begins with the question that comes before love, marriage and other people's expectations: have you chosen yourself? It explores self-worth, body image, comparison, social pressure, boundaries, attachment and how to choose a mature life partner without abandoning your identity or dreams.",adds:"It helps you understand what you truly want, build healthy boundaries, distinguish love from attachment and control, and recognize a relationship that supports growth rather than self-erasure.",idea:"Before you choose your life, learn how to choose yourself."},
     book8:{name:"Idols",shortDescription:"A journey through awareness and willpower that exposes modern idols and helps you use money, technology and desire without being ruled by them.",about:"Idols begins with a simple truth: idols did not disappear; they changed form. A phone, money, desire, appearances or the approval of others can define your value and make choices for you. Across four parts and twenty-two chapters, the book moves from recognizing modern servitude to rebuilding attention, restraint, responsibility and conscious choice.",adds:"It helps you identify what consumes your attention and will, understand your relationship with technology, money, desire, status, approval, fear and anger, then turn faith, discipline and responsibility into practical tools for freedom.",idea:"The question is not what you own, but what owns you."},
-    book9:{name:"Cobra Effect",shortDescription:"A behavioral-economics journey into how poorly designed incentives can turn sensible solutions into larger problems.",about:"Cobra Effect examines decisions that begin with good intentions and end in unintended consequences. Starting from the famous cobra-bounty story, it explores what happens when people optimize a metric instead of the real goal, exploit loopholes, or game the system. It then moves into companies and institutions, where KPIs, rewards and rules can succeed numerically while failing in reality, and offers a practical framework for testing incentives and second-order effects before they become crises.",adds:"It helps you anticipate consequences, detect bad incentives and loopholes early, and distinguish a successful metric from a genuinely successful outcome.",idea:"Intelligence is not chasing every cobra; it is discovering why the system keeps producing them."}
+    book9:{name:"Cobra Effect",shortDescription:"A behavioral-economics journey into how poorly designed incentives can turn sensible solutions into larger problems.",about:"Cobra Effect examines decisions that begin with good intentions and end in unintended consequences. Starting from the famous cobra-bounty story, it explores what happens when people optimize a metric instead of the real goal, exploit loopholes, or game the system. It then moves into companies and institutions, where KPIs, rewards and rules can succeed numerically while failing in reality, and offers a practical framework for testing incentives and second-order effects before they become crises.",adds:"It helps you anticipate consequences, detect bad incentives and loopholes early, and distinguish a successful metric from a genuinely successful outcome.",idea:"Intelligence is not chasing every cobra; it is discovering why the system keeps producing them."},
+    book10:{name:"A Guide to Freedom from Masturbation",shortDescription:"A practical, realistic guide to understanding the habit loop, managing triggers and urges, and recovering from setbacks without shame or false promises.",about:"A Guide to Freedom from Masturbation does not treat desire as a defect or build change on fear and shame. It explains the behavioral loop of trigger, urge, action and reward, then explores how phones, isolation, boredom, stress and emotional escape can reinforce it. The book moves from understanding the hidden trap to a practical plan for changing the digital environment, handling urges, building alternatives and responding to setbacks until conscious choice returns.",adds:"It helps you identify your personal pattern, close the paths that lead back to the behavior, prepare for difficult days, and turn a setback into information that strengthens your plan.",idea:"Freedom does not mean never feeling an urge; it means reclaiming your right to choose."}
 };
 
 BOOKS.forEach((book,index)=>{ book.id=`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
@@ -2804,7 +2829,9 @@ let PRICING_LADDER = {
 
     8:899,
 
-    9:999
+    9:999,
+
+    10:1099
 
 };
 
