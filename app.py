@@ -667,6 +667,8 @@ class Handler(BaseHTTPRequestHandler):
         cover_match=re.fullmatch(r'/(book[1-9][0-9]*)-cover\.jpg',route)
         if cover_match and cover_match.group(1) in BOOKS and (ROOT/(cover_match.group(1)+'-cover.jpg')).is_file():
             return self.asset(cover_match.group(1)+'-cover.jpg','image/jpeg')
+        if route=='/tabo-books-logo.webp' and (ROOT/'tabo-books-logo.webp').is_file():
+            return self.asset('tabo-books-logo.webp','image/webp')
         if route in ('/about','/contact','/privacy','/refund','/delivery'): return self.html('info.html')
         if route=='/health': return self.respond(200,{'ok':True})
         if route=='/api/config': return self.respond(200,{

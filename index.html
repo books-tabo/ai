@@ -50,6 +50,19 @@ body{
    PROMO BAR
 ========================================================= */
 
+.store-toolbar{
+    position:sticky;
+    top:0;
+    z-index:1000;
+    display:grid;
+    grid-template-columns:56px minmax(0,1fr) 56px;
+    direction:ltr;
+    min-height:50px;
+    background:#050505;
+    border-bottom:1px solid #c9a227;
+    box-shadow:0 5px 18px rgba(0,0,0,.12);
+}
+
 .promo-bar{
 
     background:#050505;
@@ -60,8 +73,83 @@ body{
 
     white-space:nowrap;
 
-    border-bottom:1px solid #c9a227;
+    grid-column:2;
 
+}
+
+html[dir="rtl"] .promo-bar{
+    direction:rtl;
+}
+
+html[dir="ltr"] .promo-bar{
+    direction:ltr;
+}
+
+.toolbar-button{
+    position:relative;
+    width:56px;
+    min-height:50px;
+    border:0;
+    background:#050505;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .2s ease,color .2s ease;
+}
+
+.toolbar-button:hover,
+.toolbar-button:focus-visible{
+    background:#171717;
+    color:#e1bc42;
+    outline:none;
+}
+
+.toolbar-menu{
+    grid-column:3;
+    grid-row:1;
+    border-left:1px solid #262626;
+}
+
+.toolbar-cart{
+    grid-column:1;
+    grid-row:1;
+    border-right:1px solid #262626;
+}
+
+.hamburger-icon{
+    width:23px;
+    display:grid;
+    gap:5px;
+}
+
+.hamburger-icon span{
+    display:block;
+    height:2px;
+    border-radius:2px;
+    background:currentColor;
+}
+
+.toolbar-cart svg{
+    width:24px;
+    height:24px;
+}
+
+.mini-cart-badge{
+    position:absolute;
+    top:4px;
+    right:4px;
+    min-width:19px;
+    height:19px;
+    padding:0 4px;
+    border-radius:10px;
+    background:#c9a227;
+    color:#111;
+    font-size:10px;
+    font-weight:900;
+    line-height:19px;
+    text-align:center;
 }
 
 .promo-track{
@@ -104,6 +192,159 @@ body{
         transform:translateX(50%);
     }
 
+}
+
+
+/* =========================================================
+   STORE NAVIGATION DRAWER
+========================================================= */
+
+body.drawer-open{
+    overflow:hidden;
+}
+
+.drawer-overlay{
+    position:fixed;
+    inset:0;
+    z-index:2600;
+    background:rgba(0,0,0,.62);
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .25s ease,visibility .25s ease;
+}
+
+.drawer-overlay.active{
+    opacity:1;
+    visibility:visible;
+}
+
+.nav-drawer{
+    position:absolute;
+    top:0;
+    right:0;
+    width:min(88vw,390px);
+    height:100%;
+    overflow-y:auto;
+    background:#fff;
+    color:#111;
+    box-shadow:-20px 0 55px rgba(0,0,0,.24);
+    transform:translateX(105%);
+    transition:transform .28s ease;
+}
+
+.drawer-overlay.active .nav-drawer{
+    transform:translateX(0);
+}
+
+.drawer-header{
+    min-height:76px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:18px 20px;
+    border-bottom:1px solid #eee9da;
+}
+
+.drawer-header h2{
+    font-size:22px;
+    letter-spacing:.5px;
+}
+
+.drawer-close{
+    width:40px;
+    height:40px;
+    border:0;
+    border-radius:50%;
+    background:#f2efe7;
+    color:#111;
+    font-size:25px;
+    line-height:1;
+    cursor:pointer;
+}
+
+.drawer-tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-bottom:1px solid #eee9da;
+}
+
+.drawer-tab{
+    border:0;
+    border-bottom:3px solid transparent;
+    background:#fff;
+    color:#777;
+    padding:18px 10px 15px;
+    font:inherit;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.drawer-tab.active{
+    color:#111;
+    border-bottom-color:#c9a227;
+}
+
+.drawer-panel{
+    padding:24px 20px 34px;
+}
+
+.drawer-panel[hidden]{
+    display:none;
+}
+
+.drawer-card{
+    width:100%;
+    border:1px solid #e2dccb;
+    border-radius:16px;
+    background:#fff;
+    color:#111;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:15px;
+    text-align:start;
+    font:inherit;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.055);
+    transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+
+.drawer-card:hover,
+.drawer-card:focus-visible{
+    transform:translateY(-2px);
+    border-color:#c9a227;
+    box-shadow:0 12px 28px rgba(0,0,0,.09);
+    outline:none;
+}
+
+.drawer-card-icon{
+    flex:0 0 52px;
+    width:52px;
+    height:52px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#111;
+    color:#d9b83f;
+    font-size:24px;
+    font-weight:900;
+}
+
+.drawer-card strong,
+.drawer-card small{
+    display:block;
+}
+
+.drawer-card strong{
+    margin-bottom:2px;
+    font-size:18px;
+}
+
+.drawer-card small{
+    color:#777;
+    line-height:1.55;
 }
 
 
@@ -751,6 +992,14 @@ footer .language-switch button.active{
 
 }
 
+.footer-logo{
+    display:block;
+    width:min(220px,58vw);
+    height:auto;
+    margin:24px auto 0;
+    border-radius:10px;
+}
+
 
 /* =========================================================
    FLOATING CART
@@ -1361,6 +1610,18 @@ html[dir="ltr"] .info-highlight{
 
 @media(max-width:600px){
 
+    .store-toolbar{
+        grid-template-columns:50px minmax(0,1fr) 50px;
+    }
+
+    .toolbar-button{
+        width:50px;
+    }
+
+    .promo-track{
+        gap:34px;
+    }
+
     .site-controls{
         flex-wrap:wrap;
         gap:7px;
@@ -1506,6 +1767,10 @@ html[dir="ltr"] .info-highlight{
 
     }
 
+    .footer-logo{
+        width:min(190px,56vw);
+    }
+
 }
 
 
@@ -1555,10 +1820,64 @@ html[dir="ltr"] .info-highlight{
      PROMO BAR
 ========================================================= -->
 
-<div class="promo-bar">
+<div class="store-toolbar" id="offersBar">
 
-    <div class="promo-track" id="promoTrack"></div>
+    <button
+        type="button"
+        class="toolbar-button toolbar-menu"
+        id="menuButton"
+        aria-label="القائمة"
+        aria-controls="navDrawer"
+        aria-expanded="false"
+    >
+        <span class="hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
 
+    <div class="promo-bar">
+        <div class="promo-track" id="promoTrack"></div>
+    </div>
+
+    <button
+        type="button"
+        class="toolbar-button toolbar-cart"
+        id="miniCartButton"
+        aria-label="السلة"
+    >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M3 4h2l2.1 9.1a2 2 0 0 0 2 1.5h7.7a2 2 0 0 0 1.9-1.4L20 8H6.1"/>
+            <circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>
+        </svg>
+        <span class="mini-cart-badge" data-cart-count>0</span>
+    </button>
+
+</div>
+
+<div class="drawer-overlay" id="navDrawer" aria-hidden="true">
+    <aside class="nav-drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+        <div class="drawer-header">
+            <h2 id="drawerTitle">القائمة</h2>
+            <button type="button" class="drawer-close" id="drawerCloseButton" aria-label="إغلاق">×</button>
+        </div>
+
+        <div class="drawer-tabs" role="tablist">
+            <button type="button" class="drawer-tab active" id="categoriesTab" role="tab" aria-selected="true" aria-controls="categoriesPanel" data-drawer-tab="categories">الأقسام</button>
+            <button type="button" class="drawer-tab" id="authorsTab" role="tab" aria-selected="false" aria-controls="authorsPanel" data-drawer-tab="authors">المؤلفين</button>
+        </div>
+
+        <div class="drawer-panel" id="categoriesPanel" role="tabpanel" aria-labelledby="categoriesTab">
+            <button type="button" class="drawer-card" id="offersDrawerLink">
+                <span class="drawer-card-icon" aria-hidden="true">%</span>
+                <span><strong id="offersDrawerTitle">العروض</strong><small id="offersDrawerHint">باقات الكتب والأسعار الخاصة</small></span>
+            </button>
+        </div>
+
+        <div class="drawer-panel" id="authorsPanel" role="tabpanel" aria-labelledby="authorsTab" hidden>
+            <button type="button" class="drawer-card" id="authorDrawerLink">
+                <span class="drawer-card-icon" aria-hidden="true">T</span>
+                <span><strong id="drawerAuthorName">تابو نور</strong><small id="drawerAuthorHint">تعرّف على المؤلف وكتبه</small></span>
+            </button>
+        </div>
+    </aside>
 </div>
 
 <!-- =========================================================
@@ -1589,7 +1908,7 @@ html[dir="ltr"] .info-highlight{
      BOOKS
 ========================================================= -->
 
-<section class="books-section">
+<section class="books-section" id="booksSection">
 
     <div
         class="books-grid"
@@ -1605,7 +1924,7 @@ html[dir="ltr"] .info-highlight{
      AUTHOR
 ========================================================= -->
 
-<section class="author-section">
+<section class="author-section" id="authorSection">
 
     <div class="author-label">
         AUTHOR
@@ -1680,6 +1999,8 @@ html[dir="ltr"] .info-highlight{
 
     </div>
 
+    <img class="footer-logo" src="/tabo-books-logo.webp" alt="TABO BOOKS" loading="lazy" decoding="async">
+
 
 </footer>
 
@@ -1699,6 +2020,7 @@ html[dir="ltr"] .info-highlight{
     <span
         class="cart-badge"
         id="cartBadge"
+        data-cart-count
     >
         0
     </span>
@@ -2417,7 +2739,9 @@ const TIMEZONE_COUNTRIES = {
 
 const UI_COPY = {
     ar:{
-        countryLabel:"الدولة", language:"اللغة",
+        countryLabel:"الدولة", language:"اللغة", menu:"القائمة", close:"إغلاق", cartLabel:"السلة",
+        categories:"الأقسام", authors:"المؤلفين", offers:"العروض", offersHint:"باقات الكتب والأسعار الخاصة",
+        drawerAuthorHint:"تعرّف على المؤلف وكتبه",
         heroTitle:"كتب تغيّر طريقة تفكيرك",
         heroDescription:"مكتبة تابو الرقمية — كتب في الوعي، تطوير الذات، المال، الطموح وفهم الإنسان لنفسه والعالم من حوله.",
         paymentTitle:"الدفع الإلكتروني", paymentDescription:"أضف الكتب للسلة، ثم اضغط «متابعة الدفع» للانتقال إلى رابط دفع آمن بقيمة طلبك.",
@@ -2441,7 +2765,9 @@ const UI_COPY = {
         ,aboutTitle:"من نحن",contactTitle:"تواصل معنا",privacyTitle:"سياسة الخصوصية",refundTitle:"سياسة الاسترداد والإلغاء",deliveryTitle:"سياسة التوصيل والتسليم"
     },
     en:{
-        countryLabel:"Country", language:"Language",
+        countryLabel:"Country", language:"Language", menu:"Menu", close:"Close", cartLabel:"Cart",
+        categories:"Categories", authors:"Authors", offers:"Offers", offersHint:"Book bundles and special prices",
+        drawerAuthorHint:"Meet the author and explore his books",
         heroTitle:"Books that change how you think",
         heroDescription:"TABO BOOKS is a digital library about awareness, personal growth, money, ambition, and understanding yourself and the world around you.",
         paymentTitle:"Secure online payment", paymentDescription:"Add books to your cart, then continue to a secure checkout for the displayed amount.",
@@ -2918,12 +3244,22 @@ function applyStaticCopy(){
         paymentTitle:"paymentTitle",paymentDescription:"paymentDescription",authorName:"authorName",authorDescription:"authorDescription",
         about:"footerAbout",contact:"footerContact",privacy:"footerPrivacy",refund:"footerRefund",delivery:"footerDelivery",footerCopy:"footerCopy",
         cartTitle:"cartTitle",original:"originalPriceLabel",final:"finalPriceLabel",checkoutFields:"checkoutFieldsLabel",
-        continueShopping:"continueShoppingBtn",checkout:"checkoutBtn",aboutBook:"detailsAboutTitle",adds:"detailsAddsTitle"};
+        continueShopping:"continueShoppingBtn",checkout:"checkoutBtn",aboutBook:"detailsAboutTitle",adds:"detailsAddsTitle",
+        menu:"drawerTitle",categories:"categoriesTab",authors:"authorsTab",offers:"offersDrawerTitle",offersHint:"offersDrawerHint",
+        drawerAuthorHint:"drawerAuthorHint"};
     Object.entries(ids).forEach(([key,id])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
+    const drawerAuthorName=document.getElementById("drawerAuthorName");
+    if(drawerAuthorName) drawerAuthorName.textContent=t("authorName");
     const name=document.getElementById("checkoutName"), email=document.getElementById("checkoutEmail"), phone=document.getElementById("checkoutPhone");
     if(name) name.placeholder=t("fullName"); if(email) email.placeholder=t("email"); if(phone) phone.placeholder=t("phone");
     const languageToggle=document.getElementById("languageToggle");
     if(languageToggle) languageToggle.textContent=t("language");
+    const menuButton=document.getElementById("menuButton"), miniCartButton=document.getElementById("miniCartButton"),
+        floatingCartButton=document.getElementById("floatingCartBtn"), drawerCloseButton=document.getElementById("drawerCloseButton");
+    if(menuButton) menuButton.setAttribute("aria-label",t("menu"));
+    if(miniCartButton) miniCartButton.setAttribute("aria-label",t("cartLabel"));
+    if(floatingCartButton) floatingCartButton.setAttribute("aria-label",t("cartLabel"));
+    if(drawerCloseButton) drawerCloseButton.setAttribute("aria-label",t("close"));
     const modalTitles={aboutModalTitle:"aboutTitle",contactModalTitle:"contactTitle",privacyModalTitle:"privacyTitle",refundModalTitle:"refundTitle",deliveryModalTitle:"deliveryTitle"};
     Object.entries(modalTitles).forEach(([id,key])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
     Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) el.innerHTML=currentLanguage==="en"?INFO_EN[id]:(INFO_AR[id]||el.innerHTML);});
@@ -2938,6 +3274,43 @@ function setLanguage(language){
 
 function toggleLanguage(){
     setLanguage(currentLanguage==="ar"?"en":"ar");
+}
+
+function setDrawerTab(tab){
+    const selected=tab==="authors"?"authors":"categories";
+    document.querySelectorAll("[data-drawer-tab]").forEach(button=>{
+        const active=button.dataset.drawerTab===selected;
+        button.classList.toggle("active",active);
+        button.setAttribute("aria-selected",String(active));
+    });
+    const categories=document.getElementById("categoriesPanel"), authors=document.getElementById("authorsPanel");
+    if(categories) categories.hidden=selected!=="categories";
+    if(authors) authors.hidden=selected!=="authors";
+}
+
+function openNavigation(){
+    const drawer=document.getElementById("navDrawer"), menuButton=document.getElementById("menuButton");
+    if(!drawer) return;
+    drawer.classList.add("active");
+    drawer.setAttribute("aria-hidden","false");
+    menuButton?.setAttribute("aria-expanded","true");
+    document.body.classList.add("drawer-open");
+    setDrawerTab("categories");
+    window.setTimeout(()=>document.getElementById("drawerCloseButton")?.focus(),180);
+}
+
+function closeNavigation(){
+    const drawer=document.getElementById("navDrawer"), menuButton=document.getElementById("menuButton");
+    if(!drawer) return;
+    drawer.classList.remove("active");
+    drawer.setAttribute("aria-hidden","true");
+    menuButton?.setAttribute("aria-expanded","false");
+    document.body.classList.remove("drawer-open");
+}
+
+function goToStoreSection(id){
+    closeNavigation();
+    window.setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}),220);
 }
 
 async function loadStoreConfig(country=browserCountryHint()){
@@ -3343,18 +3716,9 @@ function updateBookButtons(){
 
 function updateCart(){
 
-    const badge =
-        document.getElementById(
-            "cartBadge"
-        );
-
-
-    if(badge){
-
-        badge.textContent =
-            cart.length;
-
-    }
+    document.querySelectorAll("[data-cart-count]").forEach(badge=>{
+        badge.textContent=cart.length;
+    });
 
 
     renderCart();
@@ -3888,6 +4252,8 @@ document.addEventListener(
         document.body.style.overflow =
             "";
 
+        closeNavigation();
+
     }
 );
 
@@ -3903,6 +4269,17 @@ document.addEventListener(
         applyStaticCopy();
         document.getElementById("languageToggle")?.addEventListener("click",toggleLanguage);
         document.getElementById("floatingCartBtn")?.addEventListener("click",openCart);
+        document.getElementById("miniCartButton")?.addEventListener("click",openCart);
+        document.getElementById("menuButton")?.addEventListener("click",openNavigation);
+        document.getElementById("drawerCloseButton")?.addEventListener("click",closeNavigation);
+        document.getElementById("navDrawer")?.addEventListener("click",event=>{
+            if(event.target.id==="navDrawer") closeNavigation();
+        });
+        document.querySelectorAll("[data-drawer-tab]").forEach(button=>{
+            button.addEventListener("click",()=>setDrawerTab(button.dataset.drawerTab));
+        });
+        document.getElementById("offersDrawerLink")?.addEventListener("click",()=>goToStoreSection("booksSection"));
+        document.getElementById("authorDrawerLink")?.addEventListener("click",()=>goToStoreSection("authorSection"));
         document.getElementById("closeBookDetailsBtn")?.addEventListener("click",()=>closeBookDetails());
         document.getElementById("bookDetailsModal")?.addEventListener("click",event=>closeBookDetails(event));
         document.getElementById("closeCartBtn")?.addEventListener("click",()=>closeCart());
