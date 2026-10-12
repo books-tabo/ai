@@ -6,6 +6,7 @@ from decimal import Decimal, InvalidOperation
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, quote, urlencode
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen.canvas import Canvas
@@ -162,6 +163,31 @@ def read_payment_response(response):
         raise ValueError('Invalid payment response')
     return reply
 
+def log_payment_gateway_error(provider, exc):
+    """Log only a bounded provider error code/message; never credentials or buyer data."""
+    status=getattr(exc,'code',None)
+    code=''; message=''
+    if isinstance(exc,HTTPError):
+        try:
+            raw=exc.read(8192)
+            payload=json.loads(raw.decode('utf-8','replace'))
+            if isinstance(payload,dict):
+                for key in ('code','errorCode','reasonCode','statusCode'):
+                    value=payload.get(key)
+                    if isinstance(value,(str,int,float)):
+                        code=str(value)[:80];break
+                for key in ('message','error','description','reason'):
+                    value=payload.get(key)
+                    if isinstance(value,str):
+                        message=re.sub(r'[^A-Za-z0-9 _.,:;()/-]','?',value)[:240];break
+        except Exception:
+            pass
+    elif isinstance(exc,URLError):
+        message='network_error'
+    elif isinstance(exc,(ValueError,TimeoutError)):
+        message=type(exc).__name__
+    print(f'{provider} checkout error status={status or "none"} code={code or "none"} message={message or "none"}',flush=True)
+
 def kashier_allowed_methods():
     """Allow only hosted-checkout methods documented by Kashier."""
     raw=os.environ.get('KASHIER_ALLOWED_METHODS','card,wallet').strip().lower()
@@ -185,8 +211,9 @@ def kashier_checkout(order, customer):
     if order['currency'] not in kashier_currencies():
         raise ValueError('Kashier is not configured for '+order['currency'])
     payload={
-        'expireAt':(datetime.now(timezone.utc)+timedelta(minutes=30)).isoformat(),
+        'expireAt':(datetime.now(timezone.utc)+timedelta(minutes=30)).isoformat(timespec='milliseconds').replace('+00:00','Z'),
         'maxFailureAttempts':3,
+        'paymentType':'credit',
         'amount':f"{Decimal(str(order['total'])):.2f}",
         'currency':order['currency'],
         'order':order['id'],
@@ -194,13 +221,15 @@ def kashier_checkout(order, customer):
         'display':order.get('displayLanguage','ar'),
         'type':'one-time',
         'allowedMethods':kashier_allowed_methods(),
+        'redirectMethod':'get',
+        'iframeBackgroundColor':'#FFFFFF',
         'merchantId':merchant,
         'failureRedirect':False,
         'brandColor':'#b88a18',
         'defaultMethod':'card',
         'description':'TABO BOOKS order '+order['id'],
         'manualCapture':False,
-        'customer':{'email':customer['email']},
+        'customer':{'email':customer['email'],'reference':order['id']},
         'interactionSource':'ECOMMERCE',
         'enable3DS':True,
         'serverWebhook':site+'/api/kashier/webhook',
@@ -519,7 +548,8 @@ class Handler(BaseHTTPRequestHandler):
                        'token':None,'buyer':None,'transactionId':None,'statusKey':secrets.token_hex(32)}
                 store.insert(order)
                 try: link,provider_order_id=payment_checkout(order,customer)
-                except Exception:
+                except Exception as exc:
+                    log_payment_gateway_error(payment_provider(),exc)
                     return self.respond(503,{'ok':False,'error':'تعذر إنشاء صفحة الدفع الآن. حاول مرة أخرى بعد قليل.'})
                 store.patch(order['id'],{'paymob_order_id':provider_order_id},{'status':'eq.PENDING'})
                 return self.respond(201,{'ok':True,'order':public(order),'payment_url':link,
