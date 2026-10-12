@@ -89,6 +89,9 @@ class KashierTests(unittest.TestCase):
         self.assertEqual(payload['amount'],'199.00')
         self.assertEqual(payload['serverWebhook'],'https://tabobooks.com/api/kashier/webhook')
         self.assertEqual(payload['allowedMethods'],'card,wallet')
+        self.assertEqual(payload['paymentType'],'credit')
+        self.assertEqual(payload['redirectMethod'],'get')
+        self.assertEqual(payload['customer']['reference'],'TABO-0123456789ABCDEF')
         self.assertNotIn('KASHIER_SECRET_KEY',json.dumps(payload))
 
     def test_session_rejects_untrusted_redirect_host(self):
