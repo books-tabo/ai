@@ -77,25 +77,6 @@ def original(book_name):
         raise RuntimeError('Original file is not a PDF')
     return payload
 
-def upload_original(book_name, payload):
-    """Upload one original to the private bucket with the server secret."""
-    if not isinstance(payload, (bytes, bytearray)) or not payload.startswith(b'%PDF-'):
-        raise ValueError('Original file is not a PDF')
-    if len(payload) > ORIGINAL_PDF_LIMIT:
-        raise ValueError('Original PDF exceeded the safe size limit')
-    base = os.environ['SUPABASE_URL'].rstrip('/')
-    key = os.environ['SUPABASE_SECRET_KEY']
-    req = Request(base + '/storage/v1/object/tabo-originals/' + quote(book_name, safe=''),
-                  data=bytes(payload),
-                  headers={'apikey': key, 'Authorization': 'Bearer ' + key,
-                           'Content-Type': 'application/pdf', 'Cache-Control': 'no-cache'},
-                  method='POST')
-    try:
-        with urlopen(req, timeout=90) as response:
-            response.read()
-    except HTTPError as exc:
-        raise RuntimeError('Storage upload failed: HTTP ' + str(exc.code)) from exc
-
 def book_stats():
     """Return only public-safe aggregate book metadata."""
     rows=request('/rest/v1/book_stats', params={
