@@ -27,7 +27,7 @@ Open `http://127.0.0.1:3000`. `GET /api/config` reports `checkoutEnabled: false`
 - Prices no longer depend on an exchange-rate feed: Egypt is always EGP and all other supported countries are always USD.
 - Checkout remains unavailable for a currency until the selected payment provider is configured for it.
 - Each book has a dedicated `/books/book1` through `/books/book13` page. Legal and support content uses standalone `/about`, `/contact`, `/privacy`, `/refund` and `/delivery` routes.
-- `public.book_stats` stores real file sizes and starts review/download counts at zero. A successful authorized PDF download increments its book counter and records the page count without exposing the private original.
+- `public.book_stats` stores real file sizes and starts review/download counts at zero. `public.order_downloads` enforces an atomic maximum of two downloads per purchased book and increments the public counter only after a protected attempt is claimed.
 
 ## Before accepting orders
 
@@ -41,7 +41,10 @@ Never put original books, payment secrets or buyer details in a public repositor
 
 - The server adds a nonce-based Content Security Policy, HSTS, clickjacking, MIME-sniffing, referrer and browser-permission protections to every response.
 - Browser write endpoints accept JSON only, reject cross-site submissions and use per-route rate limits. Render or a CDN/WAF remains responsible for network-level DDoS protection and globally shared limits if the service is scaled beyond one instance.
-- Download/status tokens are random 256-bit values. Paid PDFs are read from the private `tabo-originals` bucket, size/type checked, watermarked per buyer and returned with private no-store/no-index headers.
-- `public.orders`, `public.book_stats` and `public.book_ratings` use RLS and have no `anon` or `authenticated` grants. Public-schema default privileges are locked down; grant access explicitly for every new table, sequence or function.
+- New purchases never expose a reusable download bearer token in the URL. The checkout browser receives an HttpOnly, Secure, SameSite cookie; payment confirmation exchanges it once for a device-bound download session and the visible success URL contains only a non-secret order ID. Sharing that URL does not share access.
+- Each purchased book is downloadable at most twice. The limit is enforced atomically in PostgreSQL, so concurrent requests cannot race past it. Downloading uses same-origin POST requests; old direct GET download URLs are rejected.
+- Legacy token links require the exact existing buyer name and phone, are exchanged once, and then become invalid. Legacy paid rows without verifiable buyer data are revoked rather than silently transferred to whoever has the link.
+- Paid PDFs are read from the private `tabo-originals` bucket, size/type checked, watermarked per buyer and returned with private no-store/no-index headers.
+- `public.orders`, `public.order_downloads`, `public.book_stats` and `public.book_ratings` use RLS and have no `anon` or `authenticated` grants. The download-claim RPC is executable only by `service_role`. Public-schema default privileges are locked down; grant access explicitly for every new table, sequence or function.
 - Keep `SUPABASE_SECRET_KEY`, all Kashier/Paymob credentials and `TABO_ADMIN_KEY` only in Render. Rotate a credential immediately if it is pasted into chat, a ticket, a log or any other non-secret channel, then update Render and redeploy.
 - Keep pinned dependencies current and rerun the syntax, API-abuse and PDF-watermark tests before each production release.

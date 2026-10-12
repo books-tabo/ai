@@ -3,6 +3,7 @@ import io, json, os, re, secrets, hmac, hashlib, ipaddress, threading, time
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
+from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, quote, urlencode
@@ -32,6 +33,8 @@ KASHIER_API_BASES = {
     'live': 'https://api.kashier.io',
 }
 FONT = os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
+DOWNLOAD_LIMIT = 2
+DOWNLOAD_SESSION_DAYS = 30
 
 
 class SlidingWindowLimiter:
@@ -65,7 +68,8 @@ RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
     '/api/ratings': (12, 600),
     '/api/orders': (6, 600),
-    '/api/buyer': (12, 600),
+    '/api/download-session': (12, 600),
+    '/api/download': (6, 3600),
     '/api/admin/confirm-payment': (10, 600),
     '/api/paymob/webhook': (180, 60),
     '/api/kashier/webhook': (180, 60),
@@ -73,7 +77,6 @@ POST_LIMITS = {
 GET_LIMITS = {
     '/api/order-status': (120, 600),
     '/api/downloads': (60, 600),
-    '/api/download': (12, 3600),
 }
 
 
@@ -152,6 +155,37 @@ def checkout_ready():
     return all(checkout_readiness().values())
 
 def now(): return datetime.now(timezone.utc).isoformat()
+
+def hash_secret(value):
+    """Hash a random bearer secret before durable storage."""
+    return hashlib.sha256(str(value).encode()).hexdigest()
+
+def normalized_name(value):
+    return ' '.join(str(value or '').split()).casefold()
+
+def order_cookie_suffix(order_id):
+    match=re.fullmatch(r'TABO-([A-F0-9]{16})',str(order_id or ''))
+    if not match: raise ValueError('Invalid order id')
+    return match.group(1)
+
+def checkout_cookie_name(order_id):
+    return '__Host-tabo_checkout_'+order_cookie_suffix(order_id)
+
+def download_cookie_name(order_id):
+    return '__Host-tabo_download_'+order_cookie_suffix(order_id)
+
+def secure_cookie(name, value, max_age):
+    return (f'{name}={value}; Path=/; Max-Age={int(max_age)}; HttpOnly; Secure; '
+            'SameSite=Strict; Priority=High')
+
+def timestamp(value):
+    if not value: return None
+    try:
+        parsed=datetime.fromisoformat(str(value).replace('Z','+00:00'))
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    except (TypeError,ValueError):
+        return None
+
 def public(order):
     keys=('id','status','items','total','currency','paymentMethod','country')
     return {k:order[k] for k in keys if k in order}
@@ -412,7 +446,8 @@ class Handler(BaseHTTPRequestHandler):
         body=json.dumps(obj,ensure_ascii=False).encode()
         self.send_response(code); self.send_header('Content-Type','application/json; charset=utf-8')
         self.send_header('Cache-Control','no-store'); self.send_header('Content-Length',str(len(body)))
-        for name,value in (extra_headers or {}).items(): self.send_header(name,value)
+        headers=(extra_headers or {}).items() if isinstance(extra_headers,dict) else (extra_headers or [])
+        for name,value in headers: self.send_header(name,value)
         self.end_headers(); self.wfile.write(body)
 
     def client_id(self):
@@ -426,6 +461,39 @@ class Handler(BaseHTTPRequestHandler):
             try: return ipaddress.ip_address(candidate).compressed
             except ValueError: continue
         return 'unknown'
+
+    def cookie(self, name):
+        try:
+            parsed=SimpleCookie(); parsed.load(self.headers.get('Cookie',''))
+            morsel=parsed.get(name)
+            return morsel.value if morsel else None
+        except CookieError:
+            return None
+
+    def device_hash(self):
+        """Bind a download session to the browser without storing its user agent."""
+        secret=os.environ.get('SUPABASE_SECRET_KEY','')
+        user_agent=self.headers.get('User-Agent','')[:512]
+        if not secret or not user_agent: return None
+        return hmac.new(secret.encode(),user_agent.encode(),hashlib.sha256).hexdigest()
+
+    def authorized_download_order(self, order_id):
+        if not isinstance(order_id,str) or not re.fullmatch(r'TABO-[A-F0-9]{16}',order_id):
+            return None
+        order=store.find('id',order_id) if store.ready() else None
+        if not order or order['status']!='PAID' or not order['buyer']:
+            return None
+        raw=self.cookie(download_cookie_name(order_id))
+        device=self.device_hash()
+        expiry=timestamp(order.get('downloadSessionExpiresAt'))
+        if (not raw or not device or not expiry or expiry<=datetime.now(timezone.utc) or
+                not order.get('downloadSessionHash') or not order.get('downloadDeviceHash')):
+            return None
+        if not hmac.compare_digest(hash_secret(raw),order['downloadSessionHash']):
+            return None
+        if not hmac.compare_digest(device,order['downloadDeviceHash']):
+            return None
+        return order
 
     def geo_client_ip(self):
         if self.headers.get('CF-Ray') and self.headers.get('CF-Connecting-IP'):
@@ -448,6 +516,8 @@ class Handler(BaseHTTPRequestHandler):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
         bucket=route
         if method=='GET' and re.fullmatch(r'/api/download/book[1-9][0-9]*',route):
+            bucket='/api/download'
+        if method=='POST' and re.fullmatch(r'/api/download/book[1-9][0-9]*',route):
             bucket='/api/download'
         limits=lookup.get(bucket)
         if not limits: return True
@@ -505,7 +575,8 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
-            if route in ('/api/ratings','/api/orders','/api/buyer') and not self.same_origin_browser_request():
+            if (route in ('/api/ratings','/api/orders','/api/download-session') or
+                    re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
             if route=='/api/ratings':
@@ -542,20 +613,25 @@ class Handler(BaseHTTPRequestHandler):
                 customer=data.get('customer')
                 if not isinstance(customer,dict) or not isinstance(customer.get('name'),str) or not 2<=len(customer['name'].strip())<=100 or not isinstance(customer.get('phone'),str) or not re.fullmatch(r'\+?[0-9]{8,15}',customer['phone']) or not isinstance(customer.get('email'),str) or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',customer['email']):
                     return self.respond(400,{'ok':False,'error':'الاسم والبريد الإلكتروني ورقم الهاتف مطلوبة للدفع.'})
+                checkout_secret=secrets.token_urlsafe(32)
                 order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':BOOKS[i][0]} for i in ids],
                        'total':total,'currency':currency,'country':country,
                        'paymobMethodId':paymob_method_id,
                        'paymentMethod':'Kashier' if payment_provider()=='kashier' else 'Paymob',
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
-                       'token':None,'buyer':None,'transactionId':None,'statusKey':secrets.token_hex(32)}
+                       'token':None,'buyer':{'name':customer['name'].strip(),'phone':customer['phone']},
+                       'transactionId':None,'statusKey':secrets.token_hex(32),
+                       'checkoutSessionHash':hash_secret(checkout_secret)}
                 store.insert(order)
                 try: link,provider_order_id=payment_checkout(order,customer)
                 except Exception as exc:
                     log_payment_gateway_error(payment_provider(),exc)
                     return self.respond(503,{'ok':False,'error':'تعذر إنشاء صفحة الدفع الآن. حاول مرة أخرى بعد قليل.'})
                 store.patch(order['id'],{'paymob_order_id':provider_order_id},{'status':'eq.PENDING'})
+                cookie=secure_cookie(checkout_cookie_name(order['id']),checkout_secret,3600)
                 return self.respond(201,{'ok':True,'order':public(order),'payment_url':link,
-                                         'tracking_url':'/pending.html?key='+order['statusKey']})
+                                         'tracking_url':'/pending.html?key='+order['statusKey']},
+                                    {'Set-Cookie':cookie})
             if route=='/api/kashier/webhook':
                 event=data.get('event'); transaction_data=data.get('data')
                 signature=self.headers.get('x-kashier-signature','')
@@ -578,7 +654,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(200,{'ok':True,'paid':False})
                 try:
                     paid=store.patch(reference,{'status':'PAID','transaction_id':transaction,
-                               'paid_at':now(),'download_token':secrets.token_hex(32)},
+                               'paid_at':now()},
                                {'status':'eq.PENDING'})
                 except RuntimeError:
                     return self.respond(409,{'ok':False,'error':'Duplicate transaction'})
@@ -607,7 +683,7 @@ class Handler(BaseHTTPRequestHandler):
                 if order['status']=='PENDING':
                     try:
                         paid=store.patch(reference,{'status':'PAID','transaction_id':transaction,
-                                   'paid_at':now(),'download_token':secrets.token_hex(32)},
+                                   'paid_at':now()},
                                    {'status':'eq.PENDING'})
                     except RuntimeError:
                         return self.respond(409,{'ok':False,'error':'Duplicate transaction'})
@@ -632,27 +708,90 @@ class Handler(BaseHTTPRequestHandler):
                 if order['status']!='PAID':
                     try:
                         order=store.patch(oid,{'status':'PAID','transaction_id':tid,
-                                    'paid_at':now(),'download_token':secrets.token_hex(32)},
+                                    'paid_at':now()},
                                     {'status':'eq.PENDING'})
                     except RuntimeError: return self.respond(409,{'ok':False,'error':'Transaction already used'})
                     if not order: return self.respond(409,{'ok':False,'error':'Order already paid'})
-                return self.respond(200,{'ok':True,'order_id':oid,'success_url':'/success.html?token='+order['token']})
-            if route=='/api/buyer':
-                token=data.get('token',''); name=data.get('name',''); phone=data.get('phone','')
-                if not isinstance(name,str) or not 2<=len(name.strip())<=100 or any(ord(c)<32 for c in name):
-                    return self.respond(400,{'ok':False,'error':'اكتب الاسم الصحيح (من حرفين إلى 100).'})
-                if not isinstance(phone,str) or not re.fullmatch(r'\+?[0-9]{8,15}',phone):
-                    return self.respond(400,{'ok':False,'error':'اكتب رقم هاتف صحيح بالأرقام الإنجليزية.'})
-                order=store.find('download_token',token) if store.ready() and isinstance(token,str) and re.fullmatch(r'[0-9a-f]{64}',token) else None
-                if not order or order['status']!='PAID': return self.respond(403,{'ok':False,'error':'رابط غير صالح.'})
-                if order['buyer'] and order['buyer']!={'name':name.strip(),'phone':phone}:
-                    return self.respond(409,{'ok':False,'error':'تم تسجيل بيانات المشتري مسبقًا. تواصل مع الدعم لتصحيحها.'})
-                if not order['buyer']:
-                    updated=store.patch(order['id'],{'buyer':{'name':name.strip(),'phone':phone}},
-                                        {'status':'eq.PAID','buyer':'is.null'})
-                    if not updated and store.find('id',order['id'])['buyer']!={'name':name.strip(),'phone':phone}:
-                        return self.respond(409,{'ok':False,'error':'تم تسجيل بيانات المشتري مسبقًا.'})
-                return self.respond(200,{'ok':True})
+                return self.respond(200,{'ok':True,'order_id':oid,'tracking_url':'/pending.html?key='+order['statusKey']})
+            if route=='/api/download-session':
+                if not store.ready(): return self.respond(503,{'ok':False,'error':'الخدمة غير متاحة الآن.'})
+                key=data.get('key'); legacy_token=data.get('token')
+                order=None; claim_field=None; claim_value=None
+                if isinstance(key,str) and re.fullmatch(r'[0-9a-f]{64}',key):
+                    order=store.find('status_key',key)
+                    if not order or order['status']!='PAID':
+                        return self.respond(403,{'ok':False,'error':'الدفع غير مؤكد أو رابط المتابعة غير صالح.'})
+                    existing=self.authorized_download_order(order['id'])
+                    if existing:
+                        return self.respond(200,{'ok':True,'order_id':order['id'],
+                                                'success_url':'/success.html?order='+order['id']})
+                    raw=self.cookie(checkout_cookie_name(order['id']))
+                    expected=order.get('checkoutSessionHash')
+                    if not raw or not expected or not hmac.compare_digest(hash_secret(raw),expected):
+                        return self.respond(403,{'ok':False,'error':'تم ربط الطلب بجهاز الشراء. افتح صفحة المتابعة الأصلية على الجهاز نفسه.'})
+                    claim_field='checkout_session_hash'; claim_value=expected
+                elif isinstance(legacy_token,str) and re.fullmatch(r'[0-9a-f]{64}',legacy_token):
+                    order=store.find('download_token',legacy_token)
+                    if not order or order['status']!='PAID' or order.get('downloadTokenUsedAt'):
+                        return self.respond(403,{'ok':False,'error':'رابط التحميل منتهي أو تم استخدامه.'})
+                    expiry=timestamp(order.get('downloadTokenExpiresAt'))
+                    if expiry and expiry<=datetime.now(timezone.utc):
+                        return self.respond(403,{'ok':False,'error':'رابط التفعيل انتهت صلاحيته.'})
+                    name=data.get('name'); phone=data.get('phone')
+                    buyer=order.get('buyer')
+                    if (not buyer or not isinstance(name,str) or not isinstance(phone,str) or
+                            not hmac.compare_digest(normalized_name(name),normalized_name(buyer.get('name'))) or
+                            not hmac.compare_digest(phone.strip(),str(buyer.get('phone') or '').strip())):
+                        return self.respond(403,{'ok':False,'error':'بيانات المشتري غير مطابقة للطلب.'})
+                    claim_field='download_token'; claim_value=legacy_token
+                else:
+                    return self.respond(400,{'ok':False,'error':'بيانات التفعيل غير صالحة.'})
+                device=self.device_hash()
+                if not device:
+                    return self.respond(403,{'ok':False,'error':'تعذر تأمين هذا المتصفح.'})
+                session_secret=secrets.token_urlsafe(32)
+                expires=(datetime.now(timezone.utc)+timedelta(days=DOWNLOAD_SESSION_DAYS)).isoformat()
+                conditions={'status':'eq.PAID',claim_field:'eq.'+claim_value,'download_session_hash':'is.null'}
+                updated=store.patch(order['id'],{
+                    'checkout_session_hash':None,'download_token':None,'download_token_used_at':now(),
+                    'download_session_hash':hash_secret(session_secret),'download_device_hash':device,
+                    'download_session_expires_at':expires},conditions)
+                if not updated:
+                    return self.respond(403,{'ok':False,'error':'تم استخدام رابط التفعيل بالفعل على جهاز آخر.'})
+                cookie=secure_cookie(download_cookie_name(order['id']),session_secret,
+                                     DOWNLOAD_SESSION_DAYS*86400)
+                return self.respond(200,{'ok':True,'order_id':order['id'],
+                    'success_url':'/success.html?order='+order['id']},{'Set-Cookie':cookie})
+            download_match=re.fullmatch(r'/api/download/(book[1-9][0-9]*)',route)
+            if download_match:
+                order_id=data.get('order_id'); book_id=download_match.group(1)
+                order=self.authorized_download_order(order_id)
+                if (book_id not in BOOKS or not order or
+                        book_id not in [item.get('id') for item in order['items'] if isinstance(item,dict)]):
+                    return self.respond(403,{'ok':False,'error':'تحميل غير مصرح.'})
+                try:
+                    usage=store.download_usage(order_id).get(book_id,0)
+                except Exception:
+                    return self.respond(503,{'ok':False,'error':'تعذر التحقق من حد التحميل الآن.'})
+                if usage>=DOWNLOAD_LIMIT:
+                    return self.respond(403,{'ok':False,'error':'تم استهلاك محاولتي التحميل لهذا الكتاب.'})
+                try: payload,page_count=watermarked(store.original(BOOKS[book_id][1]),order)
+                except Exception: return self.respond(500,{'ok':False,'error':'تعذر تجهيز الكتاب. تواصل مع الدعم.'})
+                try:
+                    claimed=store.claim_download(order_id,book_id,order['downloadSessionHash'],
+                                                 order['downloadDeviceHash'],page_count)
+                except Exception:
+                    return self.respond(503,{'ok':False,'error':'تعذر تسجيل محاولة التحميل بأمان.'})
+                if not claimed.get('allowed'):
+                    message=('تم استهلاك محاولتي التحميل لهذا الكتاب.'
+                             if claimed.get('reason')=='limit_reached' else 'جلسة التحميل غير صالحة.')
+                    return self.respond(403,{'ok':False,'error':message})
+                self.send_response(200);self.send_header('Content-Type','application/pdf')
+                self.send_header('Content-Disposition',f'attachment; filename="TABO-{book_id}-{order["id"]}.pdf"')
+                self.send_header('Cache-Control','private, no-store');self.send_header('X-Robots-Tag','noindex, noarchive')
+                self.send_header('X-Downloads-Remaining',str(claimed.get('remaining',0)))
+                self.send_header('Content-Length',str(len(payload)))
+                self.end_headers();return self.wfile.write(payload)
             return self.respond(404,{'ok':False,'error':'Not found'})
         except (ValueError,json.JSONDecodeError,TypeError) as e:
             return self.respond(400,{'ok':False,'error':str(e)})
@@ -697,28 +836,21 @@ class Handler(BaseHTTPRequestHandler):
             if not order: return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
             return self.respond(200,{'ok':True,'status':order['status'],'order_id':order['id'],
               'books':[i['name'] for i in order['items']],
-              'success_url':('/success.html?token='+order['token']) if order['status']=='PAID' else None})
+              'ready':order['status']=='PAID'})
         if route=='/api/downloads':
-            order=store.find('download_token',token) if store.ready() and re.fullmatch(r'[0-9a-f]{64}',token) else None
-            if order and order['status']!='PAID': order=None
-            if not order: return self.respond(403,{'ok':False,'error':'رابط غير صالح أو الدفع غير مؤكد.'})
-            return self.respond(200,{'ok':True,'needsBuyer':not bool(order['buyer']),
-              'books':([{'id':i['id'],'name':i['name'],'url':'/api/download/'+i['id']+'?token='+quote(token)} for i in order['items']] if order['buyer'] else [])})
+            order_id=parse_qs(parsed.query).get('order',[''])[0]
+            order=self.authorized_download_order(order_id)
+            if not order: return self.respond(403,{'ok':False,'error':'هذه الصفحة مرتبطة بجهاز المشتري ولا تعمل من رابط مشترك.'})
+            try: usage=store.download_usage(order_id)
+            except Exception: return self.respond(503,{'ok':False,'error':'تعذر قراءة حد التحميل الآن.'})
+            books=[]
+            for item in order['items']:
+                used=max(0,min(DOWNLOAD_LIMIT,int(usage.get(item['id'],0))))
+                books.append({'id':item['id'],'name':item['name'],'remaining':DOWNLOAD_LIMIT-used})
+            return self.respond(200,{'ok':True,'downloadLimit':DOWNLOAD_LIMIT,'books':books})
         match=re.fullmatch(r'/api/download/(book[1-9][0-9]*)',route)
         if match:
-            order=store.find('download_token',token) if store.ready() and re.fullmatch(r'[0-9a-f]{64}',token) else None
-            book_id=match.group(1)
-            if book_id not in BOOKS or not order or not order['buyer'] or book_id not in [i['id'] for i in order['items']]:
-                return self.respond(403,{'ok':False,'error':'تحميل غير مصرح.'})
-            try: payload,page_count=watermarked(store.original(BOOKS[book_id][1]),order)
-            except Exception: return self.respond(500,{'ok':False,'error':'تعذر تجهيز الكتاب. تواصل مع الدعم.'})
-            try: store.record_download(book_id,page_count)
-            except Exception: pass
-            self.send_response(200);self.send_header('Content-Type','application/pdf')
-            self.send_header('Content-Disposition',f'attachment; filename="TABO-{book_id}-{order["id"]}.pdf"')
-            self.send_header('Cache-Control','private, no-store');self.send_header('X-Robots-Tag','noindex, noarchive')
-            self.send_header('Content-Length',str(len(payload)))
-            self.end_headers();return self.wfile.write(payload)
+            return self.respond(405,{'ok':False,'error':'استخدم زر التحميل الآمن من صفحة الطلب.'},{'Allow':'POST'})
         return self.respond(404,{'ok':False,'error':'Not found'})
 
 if __name__=='__main__':

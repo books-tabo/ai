@@ -39,6 +39,12 @@ def order(row):
         'transactionId': row['transaction_id'], 'paymobOrderId': row['paymob_order_id'],
         'country': row.get('country') or 'EG',
         'paymobMethodId': row.get('paymob_method_id'),
+        'checkoutSessionHash': row.get('checkout_session_hash'),
+        'downloadSessionHash': row.get('download_session_hash'),
+        'downloadDeviceHash': row.get('download_device_hash'),
+        'downloadSessionExpiresAt': row.get('download_session_expires_at'),
+        'downloadTokenExpiresAt': row.get('download_token_expires_at'),
+        'downloadTokenUsedAt': row.get('download_token_used_at'),
     }
 
 def find(field, value):
@@ -50,7 +56,8 @@ def insert(o):
         'id': o['id'], 'status': 'PENDING', 'items': o['items'], 'total': o['total'],
         'currency': o['currency'], 'payment_method': o['paymentMethod'],
         'status_key': o['statusKey'], 'country': o.get('country','EG'),
-        'paymob_method_id': o.get('paymobMethodId')
+        'paymob_method_id': o.get('paymobMethodId'), 'buyer': o.get('buyer'),
+        'checkout_session_hash': o.get('checkoutSessionHash')
     }, headers={'Prefer': 'return=minimal'})
 
 def patch(oid, changes, conditions=None):
@@ -101,6 +108,21 @@ def record_download(book_id, page_count):
         'p_book_id':book_id,
         'p_page_count':int(page_count)
     })
+
+def download_usage(order_id):
+    rows=request('/rest/v1/order_downloads',params={
+        'order_id':'eq.'+order_id,'select':'book_id,download_count'
+    })
+    return {row['book_id']:int(row.get('download_count') or 0) for row in rows or []}
+
+def claim_download(order_id, book_id, session_hash, device_hash, page_count):
+    result=request('/rest/v1/rpc/claim_order_download','POST',{
+        'p_order_id':order_id,'p_book_id':book_id,
+        'p_session_hash':session_hash,'p_device_hash':device_hash,
+        'p_page_count':int(page_count)
+    })
+    if not isinstance(result,dict): raise RuntimeError('Invalid download claim response')
+    return result
 
 def submit_rating(book_id, voter_hash, rating):
     """Create or update one browser's rating and return the fresh aggregate."""
