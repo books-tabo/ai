@@ -22,8 +22,9 @@ BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','boo
          'book7': ('إلى كل بنت','book7.pdf'), 'book8': ('أصنام','book8.pdf'),
          'book9': ('تأثير الكوبرا','book9.pdf'),
          'book10': ('دليل التحرر من العادة السرية','book10.pdf'),
-         'book11': ('الأفعى والمنشار','book11.pdf')}
-PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199}
+         'book11': ('الأفعى والمنشار','book11.pdf'),
+         'book12': ('جسد','book12.pdf')}
+PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299}
 PAYMOB_BASE = 'https://accept.paymob.com'
 KASHIER_API_BASES = {
     'test': 'https://test-api.kashier.io',
@@ -67,7 +68,6 @@ POST_LIMITS = {
     '/api/admin/confirm-payment': (10, 600),
     '/api/paymob/webhook': (180, 60),
     '/api/kashier/webhook': (180, 60),
-    '/api/private/upload-book': (3, 3600),
 }
 GET_LIMITS = {
     '/api/order-status': (120, 600),
@@ -504,26 +504,6 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
-            if route=='/api/private/upload-book':
-                supplied=self.headers.get('X-Upload-Token','')
-                supplied_digest=hashlib.sha256(supplied.encode()).hexdigest()
-                if not hmac.compare_digest('65e78de423bffa12b122c5693f70e6dba39eeedde35be842cbee52a706b39265',supplied_digest):
-                    return self.respond(403,{'ok':False,'error':'Forbidden'})
-                if self.headers.get_content_type()!='application/pdf':
-                    return self.respond(415,{'ok':False,'error':'PDF required'})
-                try:
-                    size=int(self.headers.get('Content-Length','0'))
-                except (TypeError,ValueError):
-                    size=0
-                if size<5 or size>20*1024*1024:
-                    return self.respond(413,{'ok':False,'error':'Invalid file size'})
-                payload=self.rfile.read(size)
-                if len(payload)!=size or not payload.startswith(b'%PDF-'):
-                    return self.respond(400,{'ok':False,'error':'Invalid PDF'})
-                if not store.ready():
-                    return self.respond(503,{'ok':False,'error':'Storage unavailable'})
-                store.upload_original('book12.pdf',payload)
-                return self.respond(201,{'ok':True,'name':'book12.pdf','size':size})
             if route in ('/api/ratings','/api/orders','/api/buyer') and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
