@@ -577,6 +577,25 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
+            if route=='/api/private/upload-book15':
+                if time.time()>1791928594:
+                    return self.respond(404,{'ok':False,'error':'Not found'})
+                supplied=self.headers.get('X-Upload-Token','')
+                if not hmac.compare_digest(hash_secret(supplied),'e9d70146a90de6fd5d33bf5c515502464df6b8d62c1df89d0c04919851960e33'):
+                    return self.respond(403,{'ok':False,'error':'Forbidden'})
+                if self.headers.get_content_type()!='application/pdf':
+                    return self.respond(415,{'ok':False,'error':'PDF required'})
+                size=int(self.headers.get('Content-Length','0'))
+                if size!=9894067:
+                    return self.respond(413,{'ok':False,'error':'Invalid file size'})
+                payload=self.rfile.read(size)
+                if len(payload)!=size or hashlib.sha256(payload).hexdigest()!='7a5b422c5b6e68ffbd409fc9c5941df82e3bf9b64db6777bcb44e695f280ae29':
+                    return self.respond(400,{'ok':False,'error':'File mismatch'})
+                store.upload_book15(payload)
+                verified=hashlib.sha256(store.original('book15.pdf')).hexdigest()
+                if verified!='7a5b422c5b6e68ffbd409fc9c5941df82e3bf9b64db6777bcb44e695f280ae29':
+                    return self.respond(500,{'ok':False,'error':'Verification failed'})
+                return self.respond(201,{'ok':True,'size':size,'sha256':verified})
 
             if (route in ('/api/ratings','/api/orders','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
