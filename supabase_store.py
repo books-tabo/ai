@@ -84,18 +84,6 @@ def original(book_name):
         raise RuntimeError('Original file is not a PDF')
     return payload
 
-def upload_book14(payload):
-    """Temporary create-only upload of the owner's exact book14 PDF."""
-    bucket=request('/storage/v1/bucket/tabo-originals')
-    if not isinstance(bucket,dict) or bucket.get('public') is not False:
-        raise RuntimeError('Private storage required')
-    base=os.environ['SUPABASE_URL'].rstrip('/')
-    key=os.environ['SUPABASE_SECRET_KEY']
-    req=Request(base+'/storage/v1/object/tabo-originals/book14.pdf',data=payload,
-                headers={'apikey':key,'Authorization':'Bearer '+key,
-                         'Content-Type':'application/pdf','x-upsert':'false'},method='POST')
-    with urlopen(req,timeout=90) as response:
-        response.read(4096)
 
 def book_stats():
     """Return only public-safe aggregate book metadata."""
