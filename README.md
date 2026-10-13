@@ -23,15 +23,15 @@ Open `http://127.0.0.1:3000`. `GET /api/config` reports `checkoutEnabled: false`
 
 - The storefront supports Arabic and English and remembers the visitor's choice in the browser.
 - It detects an Arab country from the request locale/browser region or time zone, with a manual selector for all 22 Arab League countries.
-- Egypt uses the fixed EGP bundle ladder from 199 EGP for one book to 1,499 EGP for 13 books. Every other supported Arab country uses the fixed USD ladder from $9.99 for one book to $79.99 for 13 books.
+- Egypt uses the fixed EGP bundle ladder from 199 EGP for one book to 1,599 EGP for 15 books. Every other supported Arab country uses the fixed USD ladder from $9.99 for one book to $84.99 for 15 books.
 - Prices no longer depend on an exchange-rate feed: Egypt is always EGP and all other supported countries are always USD.
 - Checkout remains unavailable for a currency until the selected payment provider is configured for it.
-- Each book has a dedicated `/books/book1` through `/books/book14` page. Legal and support content uses standalone `/about`, `/contact`, `/privacy`, `/refund` and `/delivery` routes.
+- Each book has a dedicated `/books/book1` through `/books/book15` page. Legal and support content uses standalone `/about`, `/contact`, `/privacy`, `/refund` and `/delivery` routes.
 - `public.book_stats` stores real file sizes and starts review/download counts at zero. `public.order_downloads` enforces an atomic maximum of two downloads per purchased book and increments the public counter only after a protected attempt is claimed.
 
 ## Before accepting orders
 
-Original PDFs must remain outside GitHub. Upload `book1.pdf` through `book14.pdf` to a **private** Supabase Storage bucket named `tabo-originals` using the Storage API or dashboard. The private database table `public.orders` in project `kiglrbfgvjpauugkjuoi` stores orders; its RLS is enabled, with no client policies and no anon/authenticated table grants. Set `SUPABASE_URL` and the `SUPABASE_SECRET_KEY` only on the Render backend. Test database and each private original before setting `TABO_ORIGINALS_VERIFIED=1` and `TABO_PERSISTENT_STORAGE_READY=1`.
+Original PDFs must remain outside GitHub. Upload `book1.pdf` through `book15.pdf` to a **private** Supabase Storage bucket named `tabo-originals` using the Storage API or dashboard. The private database table `public.orders` in project `kiglrbfgvjpauugkjuoi` stores orders; its RLS is enabled, with no client policies and no anon/authenticated table grants. Set `SUPABASE_URL` and the `SUPABASE_SECRET_KEY` only on the Render backend. Test database and each private original before setting `TABO_ORIGINALS_VERIFIED=1` and `TABO_PERSISTENT_STORAGE_READY=1`.
 
 Choose `TABO_PAYMENT_PROVIDER=kashier` or `paymob` and set `TABO_PUBLIC_URL` in private server configuration. For Kashier, keep the live Merchant ID, Payment API Key and Secret Key in Render only; `/api/kashier/webhook` verifies every event with the Payment API Key before matching the order amount and currency. Hosted checkout enables the documented card and wallet methods. InstaPay uses Kashier's separate Direct API QR/R2P flow and must not be advertised until that method is confirmed on the live merchant account and tested end to end. `KASHIER_CURRENCIES` defaults to `EGP`; add `USD` only after it is enabled for the account. Paymob remains available as a fallback provider through its existing signed `/api/paymob/webhook` flow. Only set `TABO_CHECKOUT_ENABLED=1` after a real low-value payment, webhook, and protected download test succeeds.
 
