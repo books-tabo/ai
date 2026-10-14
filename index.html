@@ -1809,6 +1809,7 @@ html[dir="ltr"] .info-highlight{
 
 }
 
+.book-panorama{background:#050505;padding:42px 0}.panorama-track{display:flex;gap:18px;overflow-x:auto;padding:8px 24px 20px;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}.panorama-item{flex:0 0 190px;scroll-snap-align:start;text-decoration:none;color:#ddd}.panorama-cover{position:relative}.panorama-cover img{display:block;width:100%;height:285px;object-fit:cover;border-radius:10px}.panorama-pdf{position:absolute;bottom:10px;right:10px;background:#d2a500;color:#050505;padding:5px 9px;border-radius:7px;font-weight:bold}.panorama-item .book-rating{justify-content:center;font-size:13px;margin:14px 0 0;flex-wrap:wrap}@media(min-width:800px){.panorama-item{flex-basis:220px}.panorama-cover img{height:330px}}
 </style>
 
 </head>
@@ -1925,29 +1926,7 @@ html[dir="ltr"] .info-highlight{
      AUTHOR
 ========================================================= -->
 
-<section class="author-section" id="authorSection">
-
-    <div class="author-label">
-        AUTHOR
-    </div>
-
-    <div class="author-name" id="authorName">
-        تابو نور
-    </div>
-
-    <div class="author-en">
-        TABONOOR
-    </div>
-
-    <p class="author-description" id="authorDescription">
-
-        كاتب ومؤلف يهتم بموضوعات الوعي،
-        تطوير الذات، المال، الطموح،
-        وفهم الإنسان لنفسه والعالم من حوله.
-
-    </p>
-
-</section>
+<section class="book-panorama" aria-label="الكتب"><div class="panorama-track" id="panoramaTrack" tabindex="0"></div></section>
 
 
 <!-- =========================================================
@@ -1967,6 +1946,7 @@ html[dir="ltr"] .info-highlight{
 
     <div class="footer-links">
 
+        <a id="footerAuthors" href="/authors">المؤلفين</a>
         <a id="footerAbout" href="/about">
             من نحن
         </a>
@@ -3330,7 +3310,7 @@ function applyStaticCopy(){
     document.documentElement.dir=currentLanguage==="ar"?"rtl":"ltr";
     const ids={countryLabel:"countryLabel",heroTitle:"heroTitle",heroDescription:"heroDescription",
         paymentTitle:"paymentTitle",paymentDescription:"paymentDescription",authorName:"authorName",authorDescription:"authorDescription",
-        about:"footerAbout",contact:"footerContact",privacy:"footerPrivacy",refund:"footerRefund",delivery:"footerDelivery",footerCopy:"footerCopy",
+        authors:"footerAuthors",about:"footerAbout",contact:"footerContact",privacy:"footerPrivacy",refund:"footerRefund",delivery:"footerDelivery",footerCopy:"footerCopy",
         cartTitle:"cartTitle",original:"originalPriceLabel",final:"finalPriceLabel",checkoutFields:"checkoutFieldsLabel",
         continueShopping:"continueShoppingBtn",checkout:"checkoutBtn",aboutBook:"detailsAboutTitle",adds:"detailsAddsTitle",
         menu:"drawerTitle",categories:"categoriesTab",authors:"authorsTab",offers:"offersDrawerTitle",offersHint:"offersDrawerHint",
@@ -3529,7 +3509,12 @@ function calculatePricing(){
    RENDER BOOKS
 ========================================================= */
 
+function renderPanorama(){
+ const track=document.getElementById("panoramaTrack");if(!track)return;
+ track.innerHTML=BOOKS.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${localizedBook(book).name}"><div class="panorama-cover"><img src="${book.image}" alt="${localizedBook(book).name}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
+}
 function renderBooks(){
+    renderPanorama();
 
     const container =
         document.getElementById(
@@ -4367,7 +4352,7 @@ document.addEventListener(
             button.addEventListener("click",()=>setDrawerTab(button.dataset.drawerTab));
         });
         document.getElementById("offersDrawerLink")?.addEventListener("click",()=>goToStoreSection("booksSection"));
-        document.getElementById("authorDrawerLink")?.addEventListener("click",()=>goToStoreSection("authorSection"));
+        document.getElementById("authorDrawerLink")?.addEventListener("click",()=>{location.href="/authors"});
         document.getElementById("closeBookDetailsBtn")?.addEventListener("click",()=>closeBookDetails());
         document.getElementById("bookDetailsModal")?.addEventListener("click",event=>closeBookDetails(event));
         document.getElementById("closeCartBtn")?.addEventListener("click",()=>closeCart());
