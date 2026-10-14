@@ -16,6 +16,7 @@
 >
 
 <style>
+@font-face{font-family:"Tabo Kufi";src:url('/noto-kufi-arabic-bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
 
 /* =========================================================
    RESET
@@ -1810,6 +1811,9 @@ html[dir="ltr"] .info-highlight{
 }
 
 .book-panorama{background:#050505;padding:42px 0}.panorama-track{display:flex;gap:18px;overflow-x:auto;padding:8px 24px 20px;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}.panorama-item{flex:0 0 190px;scroll-snap-align:start;text-decoration:none;color:#ddd}.panorama-cover{position:relative}.panorama-cover img{display:block;width:100%;height:285px;object-fit:cover;border-radius:10px}.panorama-pdf{position:absolute;bottom:10px;right:10px;background:#d2a500;color:#050505;padding:5px 9px;border-radius:7px;font-weight:bold}.panorama-item .book-rating{justify-content:center;font-size:13px;margin:14px 0 0;flex-wrap:wrap}@media(min-width:800px){.panorama-item{flex-basis:220px}.panorama-cover img{height:330px}}
+html[lang="ar"] #heroTitle{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(26px,6.5vw,48px);line-height:1.8;color:#111;margin-bottom:18px}
+html[lang="ar"] #heroDescription{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(13px,3.55vw,22px);line-height:2.3;color:#625631;letter-spacing:0;white-space:pre-line;max-width:900px;margin-inline:auto}
+html[lang="en"] #heroDescription{white-space:pre-line}
 </style>
 
 </head>
@@ -1895,12 +1899,13 @@ html[dir="ltr"] .info-highlight{
     <div class="brand-line"></div>
 
     <h1 id="heroTitle">
-        كتب تغيّر طريقة تفكيرك
+        مكتبة تابو الرقمية
     </h1>
 
     <p id="heroDescription">
-        مكتبة تابو الرقمية — كتب في الوعي، تطوير الذات،
-        المال، الطموح وفهم الإنسان لنفسه والعالم من حوله.
+        كتب في الوعي، تطوير الذات
+المال، ريادة الأعمال، الطموح
+وفهم الإنسان لنفسه والعالم من حوله
     </p>
 
 </header>
@@ -2724,8 +2729,8 @@ const UI_COPY = {
         countryLabel:"الدولة", language:"اللغة", menu:"القائمة", close:"إغلاق", cartLabel:"السلة",
         categories:"الأقسام", authors:"المؤلفين", offers:"العروض", offersHint:"باقات الكتب والأسعار الخاصة",
         drawerAuthorHint:"تعرّف على المؤلف وكتبه",
-        heroTitle:"كتب تغيّر طريقة تفكيرك",
-        heroDescription:"مكتبة تابو الرقمية — كتب في الوعي، تطوير الذات، المال، الطموح وفهم الإنسان لنفسه والعالم من حوله.",
+        heroTitle:"مكتبة تابو الرقمية",
+        heroDescription:"كتب في الوعي، تطوير الذات\nالمال، ريادة الأعمال، الطموح\nوفهم الإنسان لنفسه والعالم من حوله",
         paymentTitle:"الدفع الإلكتروني", paymentDescription:"أضف الكتب للسلة، ثم اضغط «متابعة الدفع» للانتقال إلى رابط دفع آمن بقيمة طلبك.",
         authorName:"تابو نور", authorDescription:"كاتب ومؤلف يهتم بموضوعات الوعي، تطوير الذات، المال، الطموح، وفهم الإنسان لنفسه والعالم من حوله.",
         about:"من نحن", contact:"تواصل معنا", privacy:"سياسة الخصوصية", refund:"الاسترداد والإلغاء", delivery:"التوصيل والتسليم",
@@ -2750,8 +2755,8 @@ const UI_COPY = {
         countryLabel:"Country", language:"Language", menu:"Menu", close:"Close", cartLabel:"Cart",
         categories:"Categories", authors:"Authors", offers:"Offers", offersHint:"Book bundles and special prices",
         drawerAuthorHint:"Meet the author and explore his books",
-        heroTitle:"Books that change how you think",
-        heroDescription:"TABO BOOKS is a digital library about awareness, personal growth, money, ambition, and understanding yourself and the world around you.",
+        heroTitle:"TABO Digital Library",
+        heroDescription:"Books on awareness and personal growth\nMoney, entrepreneurship and ambition\nUnderstanding yourself and the world around you",
         paymentTitle:"Secure online payment", paymentDescription:"Add books to your cart, then continue to a secure checkout for the displayed amount.",
         authorName:"TABO NOOR", authorDescription:"An author focused on awareness, personal growth, money, ambition, and understanding human nature and the world around us.",
         about:"About us", contact:"Contact us", privacy:"Privacy policy", refund:"Refunds & cancellation", delivery:"Digital delivery",

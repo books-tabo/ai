@@ -807,6 +807,8 @@ class Handler(BaseHTTPRequestHandler):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if not self.enforce_rate_limit(route,'GET'): return
         if route=='/': return self.html('index.html')
+        if route=='/noto-kufi-arabic-bold.ttf':
+            return self.asset('noto-kufi-arabic-bold.ttf','font/ttf')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
         detail_match=re.fullmatch(r'/books/(book[1-9][0-9]*)',route)
