@@ -29,8 +29,9 @@ BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','boo
          'book14': ('أنت','book14.pdf'),
          'book15': ('شفرة الحياة','book15.pdf'),
          'book16': ('شفرة قلب الأنثى','book16.pdf'),
-         'book17': ('عجلة الفئران','book17.pdf')}
-PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299,13:1399,14:1499,15:1599,16:1699,17:1799}
+         'book17': ('عجلة الفئران','book17.pdf'),
+         'book18': ('كيف تغير حياتك','book18.pdf')}
+PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299,13:1399,14:1499,15:1599,16:1699,17:1799,18:1899}
 PAYMOB_BASE = 'https://accept.paymob.com'
 KASHIER_API_BASES = {
     'test': 'https://test-api.kashier.io',
@@ -77,7 +78,6 @@ POST_LIMITS = {
     '/api/admin/confirm-payment': (10, 600),
     '/api/paymob/webhook': (180, 60),
     '/api/kashier/webhook': (180, 60),
-    '/api/private/upload-book18': (3, 3600),
 }
 GET_LIMITS = {
     '/api/order-status': (120, 600),
@@ -580,25 +580,6 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
-            if route=='/api/private/upload-book18':
-                if time.time()>1791999868:
-                    return self.respond(404,{'ok':False,'error':'Not found'})
-                supplied=self.headers.get('X-Upload-Token','')
-                if not hmac.compare_digest(hash_secret(supplied),'d42df964f65283322028e97b88bc27497bad6d5c7f6bb3c25615f9c756eaeaef'):
-                    return self.respond(403,{'ok':False,'error':'Forbidden'})
-                if self.headers.get_content_type()!='application/pdf':
-                    return self.respond(415,{'ok':False,'error':'PDF required'})
-                size=int(self.headers.get('Content-Length','0'))
-                if size!=10078612:
-                    return self.respond(413,{'ok':False,'error':'Invalid file size'})
-                payload=self.rfile.read(size)
-                if len(payload)!=size or hashlib.sha256(payload).hexdigest()!='2a6142b1389a1a4885a364483e045f2c4ef1703b715e26cd8d45858f2ef4f8d6':
-                    return self.respond(400,{'ok':False,'error':'File mismatch'})
-                store.upload_book18(payload)
-                verified=hashlib.sha256(store.original('book18.pdf')).hexdigest()
-                if verified!='2a6142b1389a1a4885a364483e045f2c4ef1703b715e26cd8d45858f2ef4f8d6':
-                    return self.respond(500,{'ok':False,'error':'Verification failed'})
-                return self.respond(201,{'ok':True,'size':size,'sha256':verified})
             if (route in ('/api/ratings','/api/orders','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
