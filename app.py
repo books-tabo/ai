@@ -27,8 +27,9 @@ BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','boo
          'book12': ('جسد','book12.pdf'),
          'book13': ('بنت تخطت الثلاثين','book13.pdf'),
          'book14': ('أنت','book14.pdf'),
-         'book15': ('شفرة الحياة','book15.pdf')}
-PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299,13:1399,14:1499,15:1599}
+         'book15': ('شفرة الحياة','book15.pdf'),
+         'book16': ('شفرة قلب الأنثى','book16.pdf')}
+PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299,13:1399,14:1499,15:1599,16:1699}
 PAYMOB_BASE = 'https://accept.paymob.com'
 KASHIER_API_BASES = {
     'test': 'https://test-api.kashier.io',
@@ -578,25 +579,6 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
-            if route=='/api/private/upload-book16':
-                if time.time()>1791945253:
-                    return self.respond(404,{'ok':False,'error':'Not found'})
-                supplied=self.headers.get('X-Upload-Token','')
-                if not hmac.compare_digest(hash_secret(supplied),'22f72f2fd37c08f7234218d566c1ddda47186cf441e2dc98ec6c6e32babac26e'):
-                    return self.respond(403,{'ok':False,'error':'Forbidden'})
-                if self.headers.get_content_type()!='application/pdf':
-                    return self.respond(415,{'ok':False,'error':'PDF required'})
-                size=int(self.headers.get('Content-Length','0'))
-                if size!=8954181:
-                    return self.respond(413,{'ok':False,'error':'Invalid file size'})
-                payload=self.rfile.read(size)
-                if len(payload)!=size or hashlib.sha256(payload).hexdigest()!='f4748c5135c1ff8b6df534ce9cc7b97bab81cc35353a733ddb3776ce5f37729f':
-                    return self.respond(400,{'ok':False,'error':'File mismatch'})
-                store.upload_book16(payload)
-                verified=hashlib.sha256(store.original('book16.pdf')).hexdigest()
-                if verified!='f4748c5135c1ff8b6df534ce9cc7b97bab81cc35353a733ddb3776ce5f37729f':
-                    return self.respond(500,{'ok':False,'error':'Verification failed'})
-                return self.respond(201,{'ok':True,'size':size,'sha256':verified})
 
             if (route in ('/api/ratings','/api/orders','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():

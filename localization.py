@@ -51,6 +51,7 @@ USD_PRICES = {
     '13': 74.99,
     '14': 79.99,
     '15': 84.99,
+    '16': 89.99,
 }
 
 _GEO_CACHE = {}
@@ -72,39 +73,12 @@ def country_from_proxy_headers(headers):
 
 
 def country_from_ip(value):
-    """Resolve a public client IP only when the edge did not provide a country."""
-    try:
-        address = ipaddress.ip_address(str(value or '').strip())
-    except ValueError:
-        return None
-    if not address.is_global:
-        return None
-    key = address.compressed
-    current = time.monotonic()
-    with _GEO_CACHE_LOCK:
-        cached = _GEO_CACHE.get(key)
-        if cached and current - cached[0] < _GEO_CACHE_TTL:
-            return cached[1]
-    code = None
-    try:
-        request = Request(
-            'https://ipwho.is/' + quote(key, safe='') + '?fields=success,country_code',
-            headers={'Accept': 'application/json', 'User-Agent': 'TABO-BOOKS/1.0'},
-        )
-        with urlopen(request, timeout=2.5) as response:
-            raw = response.read(4097)
-        if len(raw) <= 4096:
-            payload = json.loads(raw)
-            candidate = str(payload.get('country_code', '')).upper().strip()
-            if payload.get('success') is True and len(candidate) == 2 and candidate.isalpha():
-                code = candidate
-    except Exception:
-        code = None
-    with _GEO_CACHE_LOCK:
-        if len(_GEO_CACHE) >= 10000:
-            _GEO_CACHE.clear()
-        _GEO_CACHE[key] = (current, code)
-    return code
+    """Do not disclose visitor IPs to external geolocation services.
+
+    Trusted edge country headers remain the source of country verification.
+    Missing edge data fails closed to international pricing.
+    """
+    return None
 
 
 def pricing_country(requested, detected):
