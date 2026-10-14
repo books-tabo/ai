@@ -4,6 +4,8 @@ import json
 import os
 import threading
 import time
+from pathlib import Path
+from bisect import bisect_right
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -58,6 +60,19 @@ _GEO_CACHE = {}
 _GEO_CACHE_LOCK = threading.Lock()
 _GEO_CACHE_TTL = 6 * 60 * 60
 
+# DB-IP Country Lite 2026-10, CC BY 4.0. Only Egyptian ranges are retained.
+_EGYPT_RANGES = {4: [], 6: []}
+try:
+    _range_data = json.loads(Path(__file__).with_name('egypt-ip-ranges.json').read_text())
+    for _version, _start, _end in _range_data['ranges']:
+        _EGYPT_RANGES[_version].append((_start, _end))
+    for _version in _EGYPT_RANGES:
+        _EGYPT_RANGES[_version].sort()
+except (OSError, ValueError, KeyError, TypeError):
+    _EGYPT_RANGES = {4: [], 6: []}
+_EGYPT_STARTS = {version: [start for start, end in ranges]
+                 for version, ranges in _EGYPT_RANGES.items()}
+
 
 def normalize_country(value):
     code = str(value or '').upper().strip()
@@ -73,11 +88,19 @@ def country_from_proxy_headers(headers):
 
 
 def country_from_ip(value):
-    """Do not disclose visitor IPs to external geolocation services.
-
-    Trusted edge country headers remain the source of country verification.
-    Missing edge data fails closed to international pricing.
-    """
+    """Check Egyptian ranges locally; no visitor IP leaves the server."""
+    try:
+        address = ipaddress.ip_address(str(value).strip())
+        if not address.is_global:
+            return None
+        if address.version == 6 and address.ipv4_mapped:
+            address = address.ipv4_mapped
+        ranges = _EGYPT_RANGES.get(address.version, [])
+        index = bisect_right(_EGYPT_STARTS.get(address.version, []), int(address)) - 1
+        if index >= 0 and int(address) <= ranges[index][1]:
+            return 'EG'
+    except ValueError:
+        pass
     return None
 
 

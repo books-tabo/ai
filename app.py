@@ -511,7 +511,7 @@ class Handler(BaseHTTPRequestHandler):
         selected=localization.normalize_country(requested)
         if selected!='EG': return selected
         edge_country=localization.country_from_proxy_headers(self.headers)
-        if edge_country and edge_country!='EG':
+        if edge_country:
             return localization.pricing_country(selected,edge_country)
         verified_country=localization.country_from_ip(self.geo_client_ip())
         return localization.pricing_country(selected,verified_country)
