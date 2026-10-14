@@ -806,6 +806,22 @@ class Handler(BaseHTTPRequestHandler):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if not self.enforce_rate_limit(route,'GET'): return
         if route=='/': return self.html('index.html')
+        if route=='/sitemap.xml':
+            from xml.etree.ElementTree import Element, SubElement, tostring
+            namespace='http://www.sitemaps.org/schemas/sitemap/0.9'
+            root=Element('urlset', xmlns=namespace)
+            paths=['/']+['/books/'+book_id for book_id in BOOKS]+[
+                '/authors','/about','/contact','/privacy','/refund','/delivery']
+            for path in paths:
+                SubElement(SubElement(root,'url'),'loc').text='https://tabobooks.com'+path
+            payload=tostring(root,encoding='utf-8',xml_declaration=True)
+            self.send_response(200)
+            self.send_header('Content-Type','application/xml; charset=utf-8')
+            self.send_header('Cache-Control','public, max-age=300')
+            self.send_header('Content-Length',str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
         if route=='/noto-kufi-arabic-bold.ttf':
             return self.asset('noto-kufi-arabic-bold.ttf','font/ttf')
         if route=='/pending.html': return self.html('pending.html')
