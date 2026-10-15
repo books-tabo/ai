@@ -1,0 +1,11 @@
+# Never publish original books, buyer data, or credentials.
+*.pdf
+private-data/
+demo-books/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.venv/
+orders.json
