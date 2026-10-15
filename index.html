@@ -1814,6 +1814,17 @@ html[dir="ltr"] .info-highlight{
 html[lang="ar"] #heroTitle{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(26px,6.5vw,48px);line-height:1.8;color:#111;margin-bottom:18px}
 html[lang="ar"] #heroDescription{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(13px,3.55vw,22px);line-height:2.3;color:#625631;letter-spacing:0;white-space:pre-line;max-width:900px;margin-inline:auto}
 html[lang="en"] #heroDescription{white-space:pre-line}
+.book-finder{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,260px);gap:14px;margin:0 0 24px}
+.book-finder label{display:block;font-size:14px;font-weight:700;margin-bottom:7px}
+.book-finder input,.book-finder select{width:100%;min-width:0;padding:13px 14px;border:1px solid #ddd2b1;border-radius:10px;background:#fff;color:#111;font:inherit}
+.book-finder input:focus,.book-finder select:focus{outline:2px solid #c9a227;outline-offset:2px}
+.finder-count{grid-column:1/-1;color:#777;font-size:13px;margin-top:-4px}
+.finder-empty{text-align:center;padding:34px 15px;color:#666}
+.finder-empty[hidden]{display:none}
+.finder-reset{display:block;margin:16px auto 0;padding:10px 18px;border:1px solid #c9a227;border-radius:8px;background:#fff;color:#111;font:inherit;cursor:pointer}
+.book-sample-link{display:block;text-align:center;color:#846410;border:1px solid #c9a227;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;padding:9px 6px;margin:0 0 15px}
+.book-sample-link:hover{background:#fbf7e9}
+@media(max-width:600px){.book-finder{grid-template-columns:1fr;gap:12px}.book-finder input,.book-finder select{font-size:16px}.book-sample-link{font-size:11px;padding:8px 4px}}
 </style>
 
 </head>
@@ -1917,10 +1928,18 @@ html[lang="en"] #heroDescription{white-space:pre-line}
 
 <section class="books-section" id="booksSection">
 
+    <div class="book-finder" role="search" aria-label="البحث في الكتب" id="bookFinder">
+        <div><label for="bookSearch" id="bookSearchLabel">ابحث عن كتاب</label><input id="bookSearch" type="search" placeholder="اسم الكتاب أو الموضوع…" autocomplete="off"></div>
+        <div><label for="bookCategory" id="bookCategoryLabel">التصنيف</label><select id="bookCategory"><option value="all">كل الكتب</option></select></div>
+        <p class="finder-count" id="bookResultsCount" role="status" aria-live="polite"></p>
+    </div>
+
     <div
         class="books-grid"
         id="booksGrid"
     ></div>
+
+    <div class="finder-empty" id="bookSearchEmpty" hidden><p id="bookSearchEmptyText"></p><button type="button" class="finder-reset" id="bookSearchReset">عرض كل الكتب</button></div>
 
 </section>
 
@@ -3523,6 +3542,43 @@ function calculatePricing(){
    RENDER BOOKS
 ========================================================= */
 
+const BOOK_CATEGORIES={
+    book1:['awareness','growth'],book2:['growth'],book3:['awareness','growth'],
+    book4:['money'],book5:['awareness','relationships'],book6:['growth'],
+    book7:['relationships'],book8:['awareness'],book9:['awareness','money'],
+    book10:['growth'],book11:['relationships','growth'],book12:['relationships'],
+    book13:['relationships'],book14:['growth','awareness'],book15:['growth','money'],
+    book16:['relationships'],book17:['money'],book18:['growth','awareness']
+};
+const FINDER_COPY={
+    ar:{label:'ابحث عن كتاب',placeholder:'اسم الكتاب أو الموضوع…',category:'التصنيف',all:'كل الكتب',awareness:'الوعي وفهم النفس',growth:'تطوير الذات',money:'المال والأعمال',relationships:'العلاقات والمجتمع',empty:'لا توجد كتب تطابق بحثك. جرّب كلمة أخرى أو تصنيفًا مختلفًا.',reset:'عرض كل الكتب',sample:'اقرأ عينة مجانية',count:(n,total)=>`${n} من ${total} كتابًا`},
+    en:{label:'Find a book',placeholder:'Book title or topic…',category:'Category',all:'All books',awareness:'Awareness & psychology',growth:'Personal growth',money:'Money & business',relationships:'Relationships & society',empty:'No books match your search. Try another word or category.',reset:'Show all books',sample:'Read a free sample',count:(n,total)=>`${n} of ${total} books`}
+};
+let bookSearchQuery='',selectedBookCategory='all';
+function normalizeBookSearch(value){
+    return String(value||'').normalize('NFKC').toLowerCase().replace(/[\u064b-\u065f\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+}
+function matchesBookSearch(book,query,category){
+    const categories=BOOK_CATEGORIES[book.id]||[];
+    if(category!=='all'&&!categories.includes(category))return false;
+    const terms=normalizeBookSearch(query).split(/\s+/).filter(Boolean);
+    const topics=categories.flatMap(key=>[FINDER_COPY.ar[key],FINDER_COPY.en[key]]);
+    const haystack=normalizeBookSearch([book.name,book.cardName,book.shortDescription,book.en?.name,book.en?.shortDescription,'تابو نور TABO NOOR',...topics].join(' '));
+    return terms.every(term=>haystack.includes(term));
+}
+function renderBookFinder(count){
+    const c=FINDER_COPY[currentLanguage],select=document.getElementById('bookCategory');
+    document.getElementById('bookFinder').setAttribute('aria-label',c.label);
+    document.getElementById('bookSearchLabel').textContent=c.label;
+    document.getElementById('bookSearch').placeholder=c.placeholder;
+    document.getElementById('bookCategoryLabel').textContent=c.category;
+    select.innerHTML=['all','awareness','growth','money','relationships'].map(key=>`<option value="${key}">${c[key]}</option>`).join('');
+    select.value=selectedBookCategory;
+    document.getElementById('bookResultsCount').textContent=c.count(count,BOOKS.length);
+    document.getElementById('bookSearchEmpty').hidden=count!==0;
+    document.getElementById('bookSearchEmptyText').textContent=c.empty;
+    document.getElementById('bookSearchReset').textContent=c.reset;
+}
 function renderPanorama(){
  const track=document.getElementById("panoramaTrack");if(!track)return;
  track.innerHTML=BOOKS.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${localizedBook(book).name}"><div class="panorama-cover"><img src="${book.image}" alt="${localizedBook(book).name}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
@@ -3539,9 +3595,14 @@ function renderBooks(){
     container.innerHTML =
         "";
 
+    let visibleBookCount=0;
+
 
     BOOKS.forEach(
         (book,index) => {
+
+            if(!matchesBookSearch(book,bookSearchQuery,selectedBookCategory))return;
+            visibleBookCount++;
 
             const displayBook=localizedBook(book);
             const cardName=displayBook.cardName||displayBook.name;
@@ -3592,6 +3653,8 @@ function renderBooks(){
 
                     <div class="book-bottom">
 
+                        <a class="book-sample-link" href="/previews/${book.id}.pdf" target="_blank" rel="noopener">${FINDER_COPY[currentLanguage].sample}</a>
+
                         <div class="book-price">
                             ${formatMoney(PRICING_LADDER[1])}
                         </div>
@@ -3627,6 +3690,7 @@ function renderBooks(){
     );
 
 
+    renderBookFinder(visibleBookCount);
     updateBookButtons();
 
 }
@@ -4354,6 +4418,9 @@ document.addEventListener(
     function(){
         Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) INFO_AR[id]=el.innerHTML;});
         applyStaticCopy();
+        document.getElementById('bookSearch').addEventListener('input',event=>{bookSearchQuery=event.target.value;renderBooks();});
+        document.getElementById('bookCategory').addEventListener('change',event=>{selectedBookCategory=event.target.value;renderBooks();});
+        document.getElementById('bookSearchReset').addEventListener('click',()=>{bookSearchQuery='';selectedBookCategory='all';document.getElementById('bookSearch').value='';renderBooks();document.getElementById('bookSearch').focus();});
         document.getElementById("languageToggle")?.addEventListener("click",toggleLanguage);
         document.getElementById("floatingCartBtn")?.addEventListener("click",openCart);
         document.getElementById("miniCartButton")?.addEventListener("click",openCart);

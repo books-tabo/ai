@@ -15,6 +15,7 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image, ImageDraw, ImageFont
 import supabase_store as store
 import localization
+import book_previews
 
 ROOT = Path(__file__).resolve().parent
 BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','book2.pdf'),
@@ -80,6 +81,7 @@ POST_LIMITS = {
     '/api/kashier/webhook': (180, 60),
 }
 GET_LIMITS = {
+    '/previews': (30, 600),
     '/api/order-status': (120, 600),
     '/api/downloads': (60, 600),
 }
@@ -520,6 +522,8 @@ class Handler(BaseHTTPRequestHandler):
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
         bucket=route
+        if method=='GET' and re.fullmatch(r'/previews/book[1-9][0-9]*\.pdf',route):
+            bucket='/previews'
         if method=='GET' and re.fullmatch(r'/api/download/book[1-9][0-9]*',route):
             bucket='/api/download'
         if method=='POST' and re.fullmatch(r'/api/download/book[1-9][0-9]*',route):
@@ -805,6 +809,25 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if not self.enforce_rate_limit(route,'GET'): return
+        preview_match=re.fullmatch(r'/previews/(book[1-9][0-9]*)\.pdf',route)
+        if preview_match:
+            book_id=preview_match.group(1)
+            if book_id not in BOOKS:
+                return self.respond(404,{'ok':False,'error':'Sample not found'})
+            try:
+                payload, page_count=book_previews.get_sample(book_id,BOOKS,store.original)
+            except Exception:
+                return self.respond(503,{'ok':False,'error':'تعذر تجهيز العينة الآن. حاول مرة أخرى بعد قليل.'})
+            self.send_response(200)
+            self.send_header('Content-Type','application/pdf')
+            self.send_header('Content-Disposition','inline; filename="'+book_id+'-sample.pdf"')
+            self.send_header('Content-Length',str(len(payload)))
+            self.send_header('Cache-Control','public, max-age=3600')
+            self.send_header('X-Robots-Tag','noindex, nofollow')
+            self.send_header('X-Preview-Pages',str(page_count))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
         if route=='/': return self.html('index.html')
         if route=='/sitemap.xml':
             from xml.etree.ElementTree import Element, SubElement, tostring
