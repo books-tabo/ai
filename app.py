@@ -15,6 +15,7 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image, ImageDraw, ImageFont
 import supabase_store as store
 import localization
+import book_previews
 
 ROOT = Path(__file__).resolve().parent
 BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','book2.pdf'),
@@ -80,6 +81,8 @@ POST_LIMITS = {
     '/api/kashier/webhook': (180, 60),
 }
 GET_LIMITS = {
+    '/previews/view': (30, 600),
+    '/previews/read': (180, 600),
     '/api/order-status': (120, 600),
     '/api/downloads': (60, 600),
 }
@@ -520,6 +523,10 @@ class Handler(BaseHTTPRequestHandler):
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
         bucket=route
+        if method=='GET' and re.fullmatch(r'/previews/book[1-9][0-9]*',route):
+            bucket='/previews/view'
+        if method=='GET' and re.fullmatch(r'/previews/book[1-9][0-9]*/(?:info|page/[1-9][0-9]*)',route):
+            bucket='/previews/read'
         if method=='GET' and re.fullmatch(r'/api/download/book[1-9][0-9]*',route):
             bucket='/api/download'
         if method=='POST' and re.fullmatch(r'/api/download/book[1-9][0-9]*',route):
@@ -549,7 +556,7 @@ class Handler(BaseHTTPRequestHandler):
         data=json.loads(self.rfile.read(size))
         if not isinstance(data,dict): raise ValueError('Invalid JSON object')
         return data
-    def html(self, filename):
+    def html(self, filename, extra_headers=None):
         nonce=secrets.token_urlsafe(24)
         source=(ROOT/filename).read_text(encoding='utf-8')
         source=re.sub(r'<(script|style)(\b[^>]*)>',
@@ -557,7 +564,9 @@ class Handler(BaseHTTPRequestHandler):
         payload=source.encode('utf-8'); self._csp_nonce=nonce; self.send_response(200)
         self.send_header('Content-Type','text/html; charset=utf-8')
         self.send_header('Cache-Control','no-store')
-        if filename in ('pending.html','success.html'):
+        for name,value in (extra_headers or {}).items():
+            self.send_header(name,value)
+        if filename in ('pending.html','success.html','preview.html'):
             self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
 
@@ -805,9 +814,45 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if not self.enforce_rate_limit(route,'GET'): return
-        # Free samples are disabled: never expose PDF bytes without a paid order.
+        viewer=re.fullmatch(r'/previews/(book[1-9][0-9]*)',route)
+        if viewer and viewer.group(1) in BOOKS:
+            book_id=viewer.group(1)
+            session=book_previews.issue_session(book_id,self.headers.get('User-Agent',''))
+            cookie=(f'__Secure-tabo_preview_{book_id}={session}; Path=/previews/{book_id}/; '
+                    f'Max-Age={book_previews.SESSION_SECONDS}; HttpOnly; Secure; SameSite=Strict')
+            return self.html('preview.html',{'Set-Cookie':cookie})
+        preview_resource=re.fullmatch(r'/previews/(book[1-9][0-9]*)/(info|page/([1-9][0-9]*))',route)
+        if preview_resource:
+            book_id=preview_resource.group(1)
+            if book_id not in BOOKS:
+                return self.respond(404,{'ok':False,'error':'Not found'})
+            # Images are issued only to same-origin viewer fetches in a short browser session.
+            if (self.headers.get('X-Tabo-Preview')!='1' or
+                    self.headers.get('Sec-Fetch-Dest','empty')!='empty' or
+                    not self.same_origin_browser_request() or
+                    not book_previews.valid_session(self.cookie('__Secure-tabo_preview_'+book_id),
+                                                    book_id,self.headers.get('User-Agent',''))):
+                return self.respond(403,{'ok':False,'error':'افتح المعاينة من صفحة الكتاب.'})
+            try:
+                if preview_resource.group(2)=='info':
+                    _,count=book_previews.get_sample(book_id,BOOKS,store.original)
+                    return self.respond(200,{'pages':count,'title':BOOKS[book_id][0]})
+                payload=book_previews.render_page(book_id,int(preview_resource.group(3)),BOOKS,store.original)
+            except IndexError:
+                return self.respond(404,{'ok':False,'error':'Page not found'})
+            except Exception:
+                return self.respond(503,{'ok':False,'error':'تعذر عرض العينة الآن. حاول مرة أخرى.'})
+            self.send_response(200)
+            self.send_header('Content-Type','image/jpeg')
+            self.send_header('Content-Length',str(len(payload)))
+            self.send_header('Cache-Control','private, no-store')
+            self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+        # Keep every previous PDF URL closed. No public PDF bytes are sent by the viewer.
         if route=='/previews' or route.startswith('/previews/'):
-            return self.respond(410,{'ok':False,'error':'المعاينة المجانية غير متاحة.'})
+            return self.respond(410,{'ok':False,'error':'رابط ملف العينة غير متاح.'})
         if route=='/': return self.html('index.html')
         if route=='/sitemap.xml':
             from xml.etree.ElementTree import Element, SubElement, tostring
@@ -885,3 +930,4 @@ if __name__=='__main__':
     missing=[name for name,ready in checkout_readiness().items() if not ready]
     print('Checkout readiness: '+('ready' if not missing else 'blocked: '+','.join(missing)),flush=True)
     ThreadingHTTPServer((host,port),Handler).serve_forever()
+

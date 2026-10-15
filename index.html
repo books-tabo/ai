@@ -1814,6 +1814,10 @@ html[dir="ltr"] .info-highlight{
 html[lang="ar"] #heroTitle{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(26px,6.5vw,48px);line-height:1.8;color:#111;margin-bottom:18px}
 html[lang="ar"] #heroDescription{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(13px,3.55vw,22px);line-height:2.3;color:#625631;letter-spacing:0;white-space:pre-line;max-width:900px;margin-inline:auto}
 html[lang="en"] #heroDescription{white-space:pre-line}
+
+.book-sample-link{display:block;text-align:center;color:#846410;border:1px solid #c9a227;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;padding:9px 6px;margin:0 0 15px}
+.book-sample-link:hover{background:#fbf7e9}
+@media(max-width:600px){.book-sample-link{font-size:11px;padding:8px 4px}}
 </style>
 
 </head>
@@ -3586,6 +3590,8 @@ function renderBooks(){
                     </a>
 
                     <div class="book-bottom">
+
+                        <a class="book-sample-link" href="/previews/${book.id}" target="_blank" rel="noopener">${currentLanguage==="ar"?"اقرأ عينة مجانية":"Read a free sample"}</a>
                         <div class="book-price">
                             ${formatMoney(PRICING_LADDER[1])}
                         </div>
@@ -4398,3 +4404,4 @@ document.addEventListener(
 </body>
 
 </html>
+

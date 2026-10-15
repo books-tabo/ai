@@ -3,7 +3,7 @@ import time
 import unittest
 import threading
 from urllib.error import HTTPError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from unittest.mock import Mock, patch
 
 from pypdf import PdfReader, PdfWriter
@@ -60,7 +60,7 @@ class BookPreviewTests(unittest.TestCase):
             book_previews.get_sample('book1', books, fetch)
         self.assertEqual(fetch.call_count, 2)
 
-    def test_public_route_only_serves_sample_without_download_claim(self):
+    def test_reader_never_serves_pdf_and_requires_browser_session(self):
         server = app.ThreadingHTTPServer(('127.0.0.1', 0), app.Handler)
         threading.Thread(target=server.serve_forever, daemon=True).start()
         self.addCleanup(server.server_close)
@@ -68,17 +68,54 @@ class BookPreviewTests(unittest.TestCase):
         with patch.object(app.store, 'original', return_value=fixture(200)) as fetch, \
              patch.object(app.store, 'claim_download') as claim:
             base = 'http://127.0.0.1:' + str(server.server_port)
-            with urlopen(base + '/previews/book1.pdf?pages=all', timeout=3) as response:
-                self.assertEqual(response.headers['Content-Type'], 'application/pdf')
-                self.assertEqual(response.headers['X-Preview-Pages'], '16')
+            agent = 'TaboPreviewTest'
+            with urlopen(Request(base + '/previews/book1', headers={'User-Agent':agent}), timeout=3) as response:
+                self.assertIn('text/html', response.headers['Content-Type'])
                 self.assertIn('noindex', response.headers['X-Robots-Tag'])
-                self.assertEqual(len(PdfReader(io.BytesIO(response.read())).pages), 16)
-            with self.assertRaises(HTTPError) as caught:
-                urlopen(base + '/previews/book999.pdf', timeout=3)
-            self.assertEqual(caught.exception.code, 404)
+                cookie = response.headers['Set-Cookie']
+                for value in ('HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/previews/book1/'):
+                    self.assertIn(value,cookie)
+                cookie = cookie.split(';',1)[0]
+            headers={'Cookie':cookie,'User-Agent':agent,'X-Tabo-Preview':'1','Sec-Fetch-Dest':'empty','Sec-Fetch-Site':'same-origin'}
+            with urlopen(Request(base+'/previews/book1/info',headers=headers),timeout=3) as response:
+                self.assertIn(b'"pages": 16',response.read())
+            with urlopen(Request(base+'/previews/book1/page/1',headers=headers),timeout=3) as response:
+                self.assertEqual(response.headers['Content-Type'],'image/jpeg')
+                self.assertEqual(response.headers['Cache-Control'],'private, no-store')
+                self.assertTrue(response.read().startswith(b'\xff\xd8'))
+                self.assertIsNone(response.headers.get('Content-Disposition'))
+            for change in ({'Cookie':''},{'X-Tabo-Preview':''},{'User-Agent':'other browser'},
+                           {'Sec-Fetch-Dest':'document'},{'Sec-Fetch-Site':'cross-site'}):
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(Request(base+'/previews/book1/page/1',headers={**headers,**change}),timeout=3)
+                self.assertEqual(caught.exception.code,403)
+            for path,status in [('/previews/book1/page/17',404),('/previews/book1.pdf',410),
+                                ('/previews/book1.pdf?pages=all',410),('/previews/book999.pdf',410)]:
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(Request(base+path,headers=headers),timeout=3)
+                self.assertEqual(caught.exception.code,status)
+                self.assertEqual(caught.exception.headers['Cache-Control'],'no-store')
             fetch.assert_called_once_with('book1.pdf')
             claim.assert_not_called()
+
+    def test_session_is_expiring_and_bound_to_book_and_browser(self):
+        token=book_previews.issue_session('book1','browser')
+        self.assertTrue(book_previews.valid_session(token,'book1','browser'))
+        self.assertFalse(book_previews.valid_session(token,'book2','browser'))
+        self.assertFalse(book_previews.valid_session(token,'book1','other'))
+        self.assertFalse(book_previews.valid_session(token[:-1]+'x','book1','browser'))
+        self.assertFalse(book_previews.valid_session(None,'book1','browser'))
+        with patch.object(book_previews.time,'time',return_value=time.time()+1801):
+            self.assertFalse(book_previews.valid_session(token,'book1','browser'))
+
+    def test_render_rejects_pages_outside_sample_before_fetch(self):
+        fetch=Mock(return_value=fixture(200))
+        for number in (0,17,-1,True):
+            with self.assertRaises(IndexError):
+                book_previews.render_page('book1',number,{'book1':('Title','book1.pdf')},fetch)
+        fetch.assert_not_called()
 
 
 if __name__ == '__main__':
     unittest.main()
+
