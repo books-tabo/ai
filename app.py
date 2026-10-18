@@ -383,8 +383,8 @@ def verify_kashier(data, signature):
     if not payment_key or not isinstance(data,dict) or not re.fullmatch(r'[0-9a-fA-F]{64}',str(signature or '')):
         return False
     keys=data.get('signatureKeys')
-    if (not isinstance(keys,list) or not 1<=len(keys)<=64 or len(keys)!=len(set(keys)) or
-            any(not isinstance(key,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}',key) for key in keys)):
+    if (not isinstance(keys,list) or not 1<=len(keys)<=64 or
+            any(not isinstance(key,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}',key) for key in keys) or len(keys)!=len(set(keys))):
         return False
     required={'amount','currency','kashierOrderId','merchantOrderId','orderReference','status','transactionId','transactionResponseCode'}
     if not required.issubset(keys):return False
@@ -725,7 +725,8 @@ class Handler(BaseHTTPRequestHandler):
                 order=store.find('paymob_order_id',provider_id) if re.fullmatch(r'[0-9]{1,30}',provider_id) else None
                 if (not order or order['paymentMethod']!='Paymob' or order.get('paymentMode')!='test' or
                         obj.get('integration_id')!=order.get('paymobMethodId') or obj.get('currency')!=order['currency'] or
-                        obj.get('amount_cents')!=localization.amount_to_minor(order['total'],order['currency'])):
+                        not isinstance(obj.get('amount_cents'),int) or isinstance(obj.get('amount_cents'),bool) or
+                        not 0<obj['amount_cents']<=localization.amount_to_minor(order['total'],order['currency'])):
                     return self.respond(400,{'ok':False,'error':'Payment mismatch'})
                 claimed_reference=(obj.get('order') or {}).get('merchant_order_id')
                 if claimed_reference is not None and claimed_reference!=order['id']:
@@ -734,16 +735,22 @@ class Handler(BaseHTTPRequestHandler):
                 if not re.fullmatch(r'[0-9]{1,30}',transaction):return self.respond(400,{'ok':False,'error':'Invalid transaction'})
                 if obj.get('success') is not True or obj.get('pending') is not False or obj.get('error_occured') is not False:
                     return self.respond(200,{'ok':True,'paid':False})
-                # Only signed parent-transaction flags can revoke. Child callbacks need reconciliation.
-                if obj.get('is_voided') is True or obj.get('is_refunded') is True:
+                # Child-operation type and cumulative refunded amount are not signed.
+                # A signed successful child or parent refund notice safely suspends access;
+                # do not infer which books or how much was refunded from unsigned fields.
+                if obj.get('has_parent_transaction') is True and obj.get('is_auth') is False:
+                    kind='review_notice'
+                elif obj.get('is_voided') is True or obj.get('is_refunded') is True:
                     if order.get('transactionId') and order['transactionId']!=transaction:
                         return self.respond(400,{'ok':False,'error':'Parent transaction mismatch'})
-                    kind='void' if obj.get('is_voided') else 'refund'
+                    kind='void' if obj.get('is_voided') else 'review_notice'
                 elif obj.get('is_auth') is False and obj.get('has_parent_transaction') is False and obj.get('is_standalone_payment') is True:
+                    if obj['amount_cents']!=localization.amount_to_minor(order['total'],order['currency']):
+                        return self.respond(400,{'ok':False,'error':'Payment mismatch'})
                     kind='paid'
                 else:
                     return self.respond(200,{'ok':True,'paid':False})
-                code,result=apply_verified_event(order,'paymob',transaction,kind,order['total'],signature)
+                code,result=apply_verified_event(order,'paymob',transaction,kind,Decimal(obj['amount_cents'])/100,signature)
                 return self.respond(code,result)
             if route=='/api/admin/confirm-payment':
                 secret=os.environ.get('TABO_ADMIN_KEY','')

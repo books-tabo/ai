@@ -14,7 +14,7 @@ CREATE TABLE public.payment_events (
  provider text NOT NULL CHECK(provider IN ('kashier','paymob')),
  mode text NOT NULL CHECK(mode IN ('test','live')),
  transaction_id text NOT NULL CHECK(transaction_id ~ '^[A-Za-z0-9_.:-]{1,128}$'),
- kind text NOT NULL CHECK(kind IN ('paid','refund','void','reversal','partial_refund')),
+ kind text NOT NULL CHECK(kind IN ('paid','refund','void','reversal','partial_refund','review_notice')),
  order_id text NOT NULL REFERENCES public.orders(id),
  amount numeric NOT NULL CHECK(amount>0), currency text NOT NULL,
  provider_order_id text NOT NULL, event_digest text NOT NULL CHECK(event_digest ~ '^[0-9a-f]{64}$'),
@@ -32,7 +32,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE o public.orders%ROWTYPE; target text; existing_order text;
 BEGIN
  IF p_order_id IS NULL OR p_provider IS NULL OR p_mode IS NULL OR p_kind IS NULL OR p_currency IS NULL OR p_provider_order_id IS NULL OR p_provider NOT IN ('kashier','paymob') OR p_mode NOT IN ('test','live')
-  OR p_kind NOT IN ('paid','refund','void','reversal','partial_refund') OR p_transaction_id IS NULL
+  OR p_kind NOT IN ('paid','refund','void','reversal','partial_refund','review_notice') OR p_transaction_id IS NULL
   OR p_transaction_id !~ '^[A-Za-z0-9_.:-]{1,128}$' OR p_digest IS NULL OR p_digest !~ '^[0-9a-f]{64}$'
   OR p_amount IS NULL OR p_amount<=0 OR p_amount='NaN'::numeric THEN
   RETURN jsonb_build_object('ok',false,'reason','invalid');
@@ -68,7 +68,7 @@ BEGIN
    target='PAID';
   ELSE target=o.status; END IF; -- Terminal revocation wins over delayed/replayed payment.
  ELSE
-  target=CASE p_kind WHEN 'void' THEN 'VOIDED' WHEN 'reversal' THEN 'REVERSED' WHEN 'partial_refund' THEN 'REVIEW' ELSE 'REFUNDED' END;
+  target=CASE p_kind WHEN 'void' THEN 'VOIDED' WHEN 'reversal' THEN 'REVERSED' WHEN 'partial_refund' THEN 'REVIEW' WHEN 'review_notice' THEN 'REVIEW' ELSE 'REFUNDED' END;
   -- A partial refund cannot be mapped to individual books. Suspend the entire entitlement for review.
   IF o.status IN ('REFUNDED','VOIDED','REVERSED','REVIEW') THEN target=o.status; END IF;
   UPDATE public.orders SET status=target,download_session_hash=NULL,download_device_hash=NULL,

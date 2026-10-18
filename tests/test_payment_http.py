@@ -69,7 +69,7 @@ class WebhookHTTPTests(HTTPCase):
         p,body=paymob_payload(o);self.assertEqual(self.post(p,body)[0],200)
         p,body=paymob_payload(o,is_refunded=True);self.assertEqual(self.post(p,body)[0],200)
         p,body=paymob_payload(o);self.assertFalse(self.post(p,body)[1]['paid'])
-        self.assertEqual(self.db.orders[o['id']]['status'],'REFUNDED')
+        self.assertEqual(self.db.orders[o['id']]['status'],'REVIEW')
 
     def test_paymob_invalid_signature_concurrency_and_void(self):
         o=order('Paymob');self.install(o);path,b=paymob_payload(o)
@@ -82,3 +82,23 @@ class WebhookHTTPTests(HTTPCase):
     def test_checkout_remains_disabled(self):
         self.install(order())
         self.assertEqual(self.post('/api/orders',{'items':[{'id':'book1'}]})[0],503)
+
+    def test_paymob_signed_partial_child_notice_suspends_without_guessing_scope(self):
+        o=order('Paymob');self.install(o);path,b=paymob_payload(o)
+        self.assertEqual(self.post(path,b)[0],200)
+        path,b=paymob_payload(o,has_parent_transaction=True,id=8002,amount_cents=9900)
+        b['obj']['is_refund']=False # unsigned hint must not hide a signed child notice
+        self.assertEqual(self.post(path,b)[0],200)
+        self.assertEqual(self.db.orders[o['id']]['status'],'REVIEW')
+        path,b=paymob_payload(o);self.assertFalse(self.post(path,b)[1]['paid'])
+
+    def test_lost_response_after_commit_can_be_retried_without_new_entitlement(self):
+        o=order();self.install(o);b,h=kashier_payload(o);committed=self.db.event;first=[True]
+        def save(*args):
+            result=committed(*args)
+            if first[0]:first[0]=False;raise app.store.StoreUnavailable(503)
+            return result
+        with patch.object(app,'reconcile_kashier',return_value='paid'),patch.object(app.store,'apply_payment_event',side_effect=save):
+            self.assertEqual(self.post('/api/kashier/webhook',b,h)[0],503)
+            self.assertEqual(self.post('/api/kashier/webhook',b,h)[0],200)
+        self.assertEqual(len(self.db.events),1)

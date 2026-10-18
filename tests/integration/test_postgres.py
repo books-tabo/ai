@@ -50,7 +50,7 @@ class PostgresTests(unittest.TestCase):
             self.assertEqual(c.execute('SELECT download_count FROM public.order_downloads').fetchone()[0],2)
             self.assertEqual(c.execute("SELECT download_count FROM public.book_stats WHERE book_id='book1'").fetchone()[0],2)
         self.assertFalse(self.claim()['allowed'])
-        # A brand new application process still observes the durable counter.
+        # A separate database client also observes the committed counter.
         script="import os,psycopg; c=psycopg.connect(os.environ['TABO_TEST_DATABASE_URL']); print(c.execute(\"SELECT download_count FROM public.order_downloads WHERE book_id='book1'\").fetchone()[0]);c.close()"
         self.assertEqual(subprocess.check_output([sys.executable,'-c',script],text=True).strip(),'2')
 
@@ -91,12 +91,43 @@ class PostgresTests(unittest.TestCase):
         self.assertFalse(self.claim()['allowed'])
 
     def test_revocation_before_payment_and_partial_refund_suspension(self):
-        for kind,status in [('void','VOIDED'),('reversal','REVERSED'),('partial_refund','REVIEW')]:
+        for kind,status in [('void','VOIDED'),('reversal','REVERSED'),('partial_refund','REVIEW'),('review_notice','REVIEW')]:
             self.setUp()
             with self.connect() as c:c.execute("UPDATE public.orders SET status='PENDING',paid_at=NULL,transaction_id=NULL,download_session_hash=NULL")
             self.assertEqual(self.event(kind)['status'],status)
             self.assertEqual(self.event()['status'],status)
             self.assertFalse(self.claim()['allowed'])
+
+    def test_http_download_counter_survives_application_process_restarts(self):
+        import hashlib,hmac
+        from urllib.request import Request,build_opener,ProxyHandler
+        from urllib.error import HTTPError
+        binding='synthetic-restart-binding-key-32-bytes'
+        agent='SyntheticRestart/1';raw='synthetic-restart-session'
+        with self.connect() as c:
+            c.execute('UPDATE public.orders SET download_session_hash=%s,download_device_hash=%s',
+                (hashlib.sha256(raw.encode()).hexdigest(),hmac.new(binding.encode(),agent.encode(),hashlib.sha256).hexdigest()))
+        env={**os.environ,'TABO_CHECKOUT_ENABLED':'0','TABO_SESSION_BINDING_KEY':binding,'TABO_TRUSTED_PROXY_CIDRS':''}
+        opener=build_opener(ProxyHandler({}))
+        fixture=Path(__file__).with_name('restart_server.py')
+        for expected in (200,200,403):
+            process=subprocess.Popen([sys.executable,'-u',str(fixture)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+            try:
+                port=int(process.stdout.readline().strip())
+                request=Request(f'http://127.0.0.1:{port}/api/download/book1',
+                    data=json.dumps({'order_id':'TABO-0000000000000001'}).encode(),
+                    headers={'Content-Type':'application/json','User-Agent':agent,'Cookie':'__Host-tabo_download_0000000000000001='+raw},method='POST')
+                try:response=opener.open(request,timeout=15)
+                except HTTPError as error:response=error
+                with response:
+                    self.assertEqual(response.status,expected)
+                    if expected==200:self.assertTrue(response.read().startswith(b'%PDF-'))
+            finally:
+                process.terminate()
+                process.communicate(timeout=10)
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT download_count FROM public.order_downloads').fetchone()[0],2)
+            self.assertEqual(c.execute("SELECT download_count FROM public.book_stats WHERE book_id='book1'").fetchone()[0],2)
 
     def test_browser_roles_cannot_execute_or_read_sensitive_objects(self):
         for role in ('anon','authenticated'):

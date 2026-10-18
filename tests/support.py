@@ -58,7 +58,7 @@ class MemoryStore:
             if kind=='paid':
                 if o['status']=='PENDING':o.update(status='PAID',transactionId=transaction)
             else:
-                o.update(status={'refund':'REFUNDED','void':'VOIDED','reversal':'REVERSED','partial_refund':'REVIEW'}[kind],downloadSessionHash=None,checkoutSessionHash=None,token=None)
+                o.update(status={'refund':'REFUNDED','void':'VOIDED','reversal':'REVERSED','partial_refund':'REVIEW','review_notice':'REVIEW'}[kind],downloadSessionHash=None,checkoutSessionHash=None,token=None)
             return {'ok':True,'status':o['status'],'duplicate':False}
     def download_usage(self,oid):
         return {b:n for (o,b),n in self.usage.items() if o==oid}
