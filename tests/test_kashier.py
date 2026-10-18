@@ -21,6 +21,16 @@ class FakeResponse:
 
 
 class KashierTests(unittest.TestCase):
+    def test_reconciliation_binds_operation_and_session_from_provider(self):
+        from support import ENV,order,kashier_payload
+        o=order();body,_=kashier_payload(o);d=body['data']
+        row={'merchantOrderId':o['id'],'sessionId':o['paymobOrderId'],'orderId':d['kashierOrderId'],
+             'order':{'amount':199,'currency':'EGP'},'transactions':[{**d,'operation':'refund'}]}
+        with patch.dict(os.environ,ENV,clear=True),patch.object(app,'urlopen',side_effect=lambda *_a,**_k:FakeResponse({'data':[row]})):
+            self.assertEqual(app.reconcile_kashier(o,d),'refund')
+            row['sessionId']='different-session'
+            with self.assertRaises(app.store.StoreUnavailable):app.reconcile_kashier(o,d)
+
     def test_official_webhook_signature_vector(self):
         data={
             'amount':1,
@@ -59,17 +69,17 @@ class KashierTests(unittest.TestCase):
         self.assertFalse(app.kashier_payment_matches(order,{**data,'currency':'USD'}))
         self.assertFalse(app.kashier_payment_matches(order,{**data,'status':'PENDING'}))
 
-    def test_live_session_uses_server_credentials_and_safe_destination(self):
+    def test_test_session_uses_server_credentials_and_safe_destination(self):
         environment={
-            'KASHIER_MODE':'live',
-            'KASHIER_MERCHANT_ID':'MID-51370-903',
+            'KASHIER_MODE':'test',
+            'KASHIER_MERCHANT_ID':'MID-TEST-000',
             'KASHIER_PAYMENT_API_KEY':'payment-key-at-least-16',
             'KASHIER_SECRET_KEY':'secret-key-at-least-16',
-            'KASHIER_CURRENCIES':'EGP',
+            'KASHIER_CURRENCIES':'EGP','KASHIER_VERIFIED_CURRENCIES':'EGP','KASHIER_VERIFIED_METHODS':'card,wallet','KASHIER_ALLOWED_METHODS':'card,wallet',
             'TABO_PUBLIC_URL':'https://tabobooks.com',
         }
         reply={'_id':'67adc07584f10c00121f6739',
-               'sessionUrl':'https://payments.kashier.io/session/67adc07584f10c00121f6739?mode=live'}
+               'sessionUrl':'https://payments.kashier.io/session/67adc07584f10c00121f6739?mode=test'}
         captured=[]
 
         def fake_urlopen(request,timeout):
@@ -83,7 +93,7 @@ class KashierTests(unittest.TestCase):
         self.assertEqual(url,reply['sessionUrl'])
         self.assertEqual(session_id,reply['_id'])
         request,timeout=captured[0]
-        self.assertEqual(request.full_url,'https://api.kashier.io/v3/payment/sessions')
+        self.assertEqual(request.full_url,'https://test-api.kashier.io/v3/payment/sessions')
         self.assertEqual(timeout,15)
         payload=json.loads(request.data)
         self.assertEqual(payload['amount'],'199.00')
@@ -96,11 +106,11 @@ class KashierTests(unittest.TestCase):
 
     def test_session_rejects_untrusted_redirect_host(self):
         environment={
-            'KASHIER_MODE':'live',
-            'KASHIER_MERCHANT_ID':'MID-51370-903',
+            'KASHIER_MODE':'test',
+            'KASHIER_MERCHANT_ID':'MID-TEST-000',
             'KASHIER_PAYMENT_API_KEY':'payment-key-at-least-16',
             'KASHIER_SECRET_KEY':'secret-key-at-least-16',
-            'KASHIER_CURRENCIES':'EGP',
+            'KASHIER_CURRENCIES':'EGP','KASHIER_VERIFIED_CURRENCIES':'EGP','KASHIER_VERIFIED_METHODS':'card,wallet','KASHIER_ALLOWED_METHODS':'card,wallet',
             'TABO_PUBLIC_URL':'https://tabobooks.com',
         }
         reply={'_id':'67adc07584f10c00121f6739',

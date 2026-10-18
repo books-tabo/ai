@@ -1,5 +1,5 @@
 """TABO BOOKS backend. Python 3.11+, pypdf, reportlab, Pillow."""
-import io, json, os, re, secrets, hmac, hashlib, ipaddress, threading, time
+import io, json, os, re, secrets, hmac, hashlib, ipaddress, threading, time, unicodedata
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -15,7 +15,9 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image, ImageDraw, ImageFont
 import supabase_store as store
 import localization
+import proxy_identity
 import book_previews
+import pdf_limits
 
 ROOT = Path(__file__).resolve().parent
 BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','book2.pdf'),
@@ -53,6 +55,8 @@ class SlidingWindowLimiter:
         current = time.monotonic()
         cutoff = current - window_seconds
         with self._lock:
+            if key not in self._events and len(self._events)>=10000:
+                return False,60
             events = self._events.setdefault(key, deque())
             while events and events[0] <= cutoff:
                 events.popleft()
@@ -75,7 +79,9 @@ POST_LIMITS = {
     '/api/ratings': (12, 600),
     '/api/orders': (6, 600),
     '/api/download-session': (12, 600),
-    '/api/download': (6, 3600),
+    # Admission guard for 20 full 18-book bundles behind one NAT per minute.
+    # Per-session work limits and durable per-book entitlements are separate below.
+    '/api/download': (len(BOOKS)*DOWNLOAD_LIMIT*20, 60),
     '/api/admin/confirm-payment': (10, 600),
     '/api/paymob/webhook': (180, 60),
     '/api/kashier/webhook': (180, 60),
@@ -84,7 +90,7 @@ GET_LIMITS = {
     '/previews/view': (30, 600),
     '/previews/read': (180, 600),
     '/api/order-status': (120, 600),
-    '/api/downloads': (60, 600),
+    '/api/downloads': (len(BOOKS)*DOWNLOAD_LIMIT*20, 60),
 }
 
 
@@ -110,7 +116,7 @@ def payment_provider():
     return provider if provider in ('paymob','kashier') else ''
 
 def kashier_mode():
-    mode=os.environ.get('KASHIER_MODE','live').strip().lower()
+    mode=os.environ.get('KASHIER_MODE','test').strip().lower()
     return mode if mode in KASHIER_API_BASES else ''
 
 def valid_kashier_mid(value):
@@ -120,16 +126,38 @@ def valid_kashier_credential(value):
     value=str(value or '').strip()
     return 16 <= len(value) <= 512 and not any(character.isspace() for character in value)
 
+def kashier_key(name):
+    mode=kashier_mode()
+    key=os.environ.get('KASHIER_'+mode.upper()+'_'+name,'') if mode else ''
+    # Generic credentials are accepted only for the explicitly test-only legacy setup.
+    return key or (os.environ.get('KASHIER_'+name,'') if mode=='test' else '')
+
+def paymob_mode():
+    # Live Paymob is intentionally unsupported until a separate certified integration.
+    return 'test' if os.environ.get('PAYMOB_MODE','test')=='test' else ''
+
+def paymob_key(name):
+    if not paymob_mode():return ''
+    return os.environ.get('PAYMOB_TEST_'+name,'') or os.environ.get('PAYMOB_'+name,'')
+
+def payment_mode():
+    return kashier_mode() if payment_provider()=='kashier' else paymob_mode()
+
+def confirmed_currencies(provider):
+    declared=set(os.environ.get(provider+'_CURRENCIES','EGP').upper().split(','))
+    verified=set(os.environ.get(provider+'_VERIFIED_CURRENCIES','').upper().split(','))
+    result=declared & verified & {'EGP','USD'}
+    if os.environ.get('TABO_USD_CAPABILITY_VERIFIED')!='1':result.discard('USD')
+    return result
+
 def kashier_currencies():
-    raw=os.environ.get('KASHIER_CURRENCIES','EGP')
-    currencies={item.strip().upper() for item in raw.split(',')}
-    return currencies.intersection({'EGP','USD','GBP','EUR'})
+    return confirmed_currencies('KASHIER')
 
 def payment_currency_supported(currency):
     currency=str(currency or '').upper()
-    provider=payment_provider()
-    if provider=='kashier': return currency in kashier_currencies()
-    if provider=='paymob': return localization.payment_method_for(currency) is not None
+    if payment_provider()=='kashier': return currency in kashier_currencies()
+    if payment_provider()=='paymob':
+        return bool(paymob_mode() and currency in confirmed_currencies('PAYMOB') and localization.payment_method_for(currency))
     return False
 
 def checkout_readiness():
@@ -140,21 +168,24 @@ def checkout_readiness():
         'supabase_configured': store.ready(),
         'originals_verified': os.environ.get('TABO_ORIGINALS_VERIFIED') == '1',
         'payment_provider_valid': bool(payment_provider()),
+        'session_binding_key_configured':len(os.environ.get('TABO_SESSION_BINDING_KEY',''))>=32,
         'public_url_valid': bool(valid_https_base(os.environ.get('TABO_PUBLIC_URL'))),
     }
     if payment_provider()=='kashier':
         checks.update({
             'kashier_mode_valid': bool(kashier_mode()),
             'kashier_merchant_id_valid': valid_kashier_mid(os.environ.get('KASHIER_MERCHANT_ID')),
-            'kashier_payment_key_configured': valid_kashier_credential(os.environ.get('KASHIER_PAYMENT_API_KEY')),
-            'kashier_secret_key_configured': valid_kashier_credential(os.environ.get('KASHIER_SECRET_KEY')),
+            'kashier_payment_key_configured': valid_kashier_credential(kashier_key('PAYMENT_API_KEY')),
+            'kashier_secret_key_configured': valid_kashier_credential(kashier_key('SECRET_KEY')),
             'kashier_currency_configured': bool(kashier_currencies()),
         })
     elif payment_provider()=='paymob':
         checks.update({
+            'paymob_test_mode':bool(paymob_mode()),
             'paymob_secret_test': valid_paymob_test_secret(os.environ.get('PAYMOB_SECRET_KEY')),
             'paymob_public_test': valid_paymob_test_public(os.environ.get('PAYMOB_PUBLIC_KEY')),
-            'paymob_hmac_configured': len(os.environ.get('PAYMOB_HMAC_SECRET','')) >= 32,
+            'paymob_currency_verified':bool(confirmed_currencies('PAYMOB')),
+            'paymob_hmac_configured': len(paymob_key('HMAC_SECRET')) >= 32,
         })
     return checks
 
@@ -169,7 +200,7 @@ def hash_secret(value):
     return hashlib.sha256(str(value).encode()).hexdigest()
 
 def normalized_name(value):
-    return ' '.join(str(value or '').split()).casefold()
+    return ' '.join(unicodedata.normalize('NFC',str(value or '')).split()).casefold()
 
 def order_cookie_suffix(order_id):
     match=re.fullmatch(r'TABO-([A-F0-9]{16})',str(order_id or ''))
@@ -208,45 +239,28 @@ def read_payment_response(response):
     return reply
 
 def log_payment_gateway_error(provider, exc):
-    """Log only a bounded provider error code/message; never credentials or buyer data."""
+    # Gateway messages may contain customer details. Log only a bounded status/type.
     status=getattr(exc,'code',None)
-    code=''; message=''
-    if isinstance(exc,HTTPError):
-        try:
-            raw=exc.read(8192)
-            payload=json.loads(raw.decode('utf-8','replace'))
-            if isinstance(payload,dict):
-                for key in ('code','errorCode','reasonCode','statusCode'):
-                    value=payload.get(key)
-                    if isinstance(value,(str,int,float)):
-                        code=str(value)[:80];break
-                for key in ('message','error','description','reason'):
-                    value=payload.get(key)
-                    if isinstance(value,str):
-                        message=re.sub(r'[^A-Za-z0-9 _.,:;()/-]','?',value)[:240];break
-        except Exception:
-            pass
-    elif isinstance(exc,URLError):
-        message='network_error'
-    elif isinstance(exc,(ValueError,TimeoutError)):
-        message=type(exc).__name__
-    print(f'{provider} checkout error status={status or "none"} code={code or "none"} message={message or "none"}',flush=True)
+    print(f'{provider} checkout failure type={type(exc).__name__} status={status if isinstance(status,int) else "unknown"}',flush=True)
 
 def kashier_allowed_methods():
     """Allow only hosted-checkout methods documented by Kashier."""
-    raw=os.environ.get('KASHIER_ALLOWED_METHODS','card,wallet').strip().lower()
+    raw=os.environ.get('KASHIER_ALLOWED_METHODS','card').strip().lower()
+    verified=set(os.environ.get('KASHIER_VERIFIED_METHODS','').split(','))
     methods=[]
     for item in raw.split(','):
         item=item.strip()
         if re.fullmatch(r'(?:card|wallet|bank_installments|bnpl)(?:\[[a-z0-9_-]+\])?',item):
             methods.append(item)
-    return ','.join(dict.fromkeys(methods)) or 'card,wallet'
+    if not methods or any(item not in verified for item in methods):
+        raise ValueError('Payment methods have not been verified for this merchant')
+    return ','.join(dict.fromkeys(methods))
 
 def kashier_checkout(order, customer):
     mode=kashier_mode()
     merchant=os.environ.get('KASHIER_MERCHANT_ID','').strip()
-    payment_key=os.environ.get('KASHIER_PAYMENT_API_KEY','').strip()
-    secret=os.environ.get('KASHIER_SECRET_KEY','').strip()
+    payment_key=kashier_key('PAYMENT_API_KEY').strip()
+    secret=kashier_key('SECRET_KEY').strip()
     site=valid_https_base(os.environ.get('TABO_PUBLIC_URL'))
     if (not mode or not valid_kashier_mid(merchant) or
             not valid_kashier_credential(payment_key) or
@@ -290,7 +304,8 @@ def kashier_checkout(order, customer):
     if not isinstance(session_id,str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,128}',session_id):
         raise ValueError('Invalid Kashier session response')
     parsed=urlparse(payment_url if isinstance(payment_url,str) else '')
-    if parsed.scheme!='https' or parsed.hostname!='payments.kashier.io' or not parsed.path.startswith('/session/'):
+    returned_mode=parse_qs(parsed.query).get('mode',[mode])[0]
+    if parsed.scheme!='https' or parsed.hostname!='payments.kashier.io' or not parsed.path.startswith('/session/') or returned_mode!=mode:
         raise ValueError('Invalid Kashier payment destination')
     return payment_url,session_id
 
@@ -299,15 +314,15 @@ def payment_checkout(order,customer):
     if payment_provider()=='paymob': return paymob_checkout(order,customer)
     raise ValueError('Payment provider is not configured')
 def paymob_checkout(order, customer):
-    secret=os.environ.get('PAYMOB_SECRET_KEY','')
-    public=os.environ.get('PAYMOB_PUBLIC_KEY','')
+    secret=paymob_key('SECRET_KEY')
+    public=paymob_key('PUBLIC_KEY')
     site=valid_https_base(os.environ.get('TABO_PUBLIC_URL'))
-    if not valid_paymob_test_secret(secret) or not valid_paymob_test_public(public) or not site:
+    if not paymob_mode() or not valid_paymob_test_secret(secret) or not valid_paymob_test_public(public) or not site:
         raise ValueError('Paymob Test keys and public HTTPS URL are not configured')
     first,*rest=customer['name'].strip().split()
     details={key:'NA' for key in ('apartment','floor','street','building','shipping_method','postal_code','city','state')}
     method_id=localization.payment_method_for(order['currency'])
-    if not method_id:
+    if not payment_currency_supported(order['currency']) or not method_id:
         raise ValueError('Paymob is not configured for '+order['currency'])
     amount_minor=localization.amount_to_minor(order['total'],order['currency'])
     details.update(first_name=first,last_name=' '.join(rest) or first,email=customer['email'],phone_number=customer['phone'],country=order['country'])
@@ -338,7 +353,7 @@ HMAC_FIELDS=('amount_cents','created_at','currency','error_occured','has_parent_
              'is_standalone_payment','is_voided','order.id','owner','pending',
              'source_data.pan','source_data.sub_type','source_data.type','success')
 def verify_paymob(obj, signature):
-    secret=os.environ.get('PAYMOB_HMAC_SECRET','')
+    secret=paymob_key('HMAC_SECRET')
     if not secret or not re.fullmatch(r'[0-9a-fA-F]{128}',signature): return False
     values=[]
     try:
@@ -364,13 +379,15 @@ def kashier_signature_value(value):
 
 def verify_kashier(data, signature):
     """Verify Kashier's webhook HMAC exactly over its declared signature keys."""
-    payment_key=os.environ.get('KASHIER_PAYMENT_API_KEY','').strip()
+    payment_key=kashier_key('PAYMENT_API_KEY').strip()
     if not payment_key or not isinstance(data,dict) or not re.fullmatch(r'[0-9a-fA-F]{64}',str(signature or '')):
         return False
     keys=data.get('signatureKeys')
     if (not isinstance(keys,list) or not 1<=len(keys)<=64 or len(keys)!=len(set(keys)) or
             any(not isinstance(key,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}',key) for key in keys)):
         return False
+    required={'amount','currency','kashierOrderId','merchantOrderId','orderReference','status','transactionId','transactionResponseCode'}
+    if not required.issubset(keys):return False
     try:
         payload='&'.join(key+'='+quote(kashier_signature_value(data[key]),safe='')
                          for key in sorted(keys))
@@ -380,11 +397,46 @@ def verify_kashier(data, signature):
     return hmac.compare_digest(expected,str(signature).lower())
 
 def kashier_reference(data):
-    for key in ('merchantOrderId','orderReference'):
-        value=data.get(key)
-        if isinstance(value,str) and re.fullmatch(r'TABO-[A-F0-9]{16}',value):
-            return value
-    return None
+    value=data.get('merchantOrderId')
+    return value if isinstance(value,str) and re.fullmatch(r'TABO-[A-F0-9]{16}',value) else None
+
+
+def reconcile_kashier(order,data):
+    """The unsigned event name is a hint only; confirm operation and session via API."""
+    mode=kashier_mode()
+    request=Request(KASHIER_API_BASES[mode]+'/v3/payment/orders?'+urlencode({'search':order['id'],'limit':20}),
+                    headers={'Authorization':kashier_key('SECRET_KEY'),'Accept':'application/json'})
+    try:
+        with urlopen(request,timeout=10) as response: reply=read_payment_response(response)
+    except (HTTPError,URLError,TimeoutError,ValueError,OSError):
+        raise store.StoreUnavailable() from None
+    rows=reply.get('data')
+    if not isinstance(rows,list):raise store.StoreUnavailable()
+    for row in rows:
+        if not isinstance(row,dict) or row.get('merchantOrderId')!=order['id']:continue
+        if row.get('sessionId')!=order.get('paymobOrderId') or row.get('orderId')!=data.get('kashierOrderId'):continue
+        original=row.get('order') or {}
+        if str(original.get('currency'))!=order['currency'] or Decimal(str(original.get('amount',-1)))!=Decimal(str(order['total'])):continue
+        for transaction in row.get('transactions',[]):
+            if (transaction.get('transactionId')==data['transactionId'] and
+                    transaction.get('status')=='SUCCESS' and
+                    str(transaction.get('transactionResponseCode'))=='00' and
+                    transaction.get('currency')==order['currency'] and
+                    Decimal(str(transaction.get('amount',-1)))==Decimal(str(data['amount']))):
+                kinds={'pay':'paid','capture':'paid','refund':'refund','partial_refund':'partial_refund','void':'void','reversal':'reversal'}
+                return kinds.get(transaction.get('operation'))
+    # Provider state may lag the webhook. Do not acknowledge until it can be reconciled.
+    raise store.StoreUnavailable()
+
+
+def apply_verified_event(order,provider,transaction,kind,amount,signature):
+    result=store.apply_payment_event(order['id'],provider,kashier_mode() if provider=='kashier' else paymob_mode(),transaction,kind,amount,
+                                     order['currency'],str(order['paymobOrderId']),hash_secret(signature))
+    if result.get('ok') is not True:
+        if result.get('reason')=='transaction_conflict':
+            return 409,{'ok':False,'error':'Transaction already durably recorded'}
+        raise store.StoreUnavailable()
+    return 200,{'ok':True,'paid':result.get('status')=='PAID'}
 
 def kashier_payment_matches(order,data):
     try:
@@ -404,8 +456,10 @@ def make_stamp(name, phone, order_id, width):
     buf=io.BytesIO(); canvas.save(buf,format='PNG'); buf.seek(0)
     return buf
 
-def watermarked(src, order):
+def _watermarked(src, order):
+    pdf_limits.check_source(src)
     reader=PdfReader(io.BytesIO(src) if isinstance(src, bytes) else str(src)); writer=PdfWriter()
+    if len(reader.pages)>pdf_limits.MAX_PAGES:raise ValueError('PDF page limit')
     for page in reader.pages:
         width=float(page.mediabox.width); height=float(page.mediabox.height)
         overlay=io.BytesIO(); c=Canvas(overlay,pagesize=(width,height))
@@ -417,7 +471,11 @@ def watermarked(src, order):
         # merge_page creates a combined, uncompressed content stream. Reapply
         # lossless Flate compression so stamping does not inflate the PDF.
         writer.pages[-1].compress_content_streams()
-    out=io.BytesIO(); writer.write(out); return out.getvalue(),len(reader.pages)
+    out=pdf_limits.LimitedBuffer(); writer.write(out); return out.getvalue(),len(reader.pages)
+
+def watermarked(src,order):
+    with pdf_limits.work_slot():
+        return _watermarked(src,order)
 
 class Handler(BaseHTTPRequestHandler):
     server_version = 'TABO'
@@ -459,16 +517,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(body)
 
     def client_id(self):
-        candidates=[]
-        for name in ('CF-Connecting-IP','True-Client-IP'):
-            if self.headers.get(name): candidates.append(self.headers[name].strip())
-        if self.headers.get('X-Forwarded-For'):
-            candidates.append(self.headers['X-Forwarded-For'].split(',',1)[0].strip())
-        candidates.append(self.client_address[0])
-        for candidate in candidates:
-            try: return ipaddress.ip_address(candidate).compressed
-            except ValueError: continue
-        return 'unknown'
+        return proxy_identity.client_ip(self.client_address[0],self.headers)
 
     def cookie(self, name):
         try:
@@ -480,9 +529,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def device_hash(self):
         """Bind a download session to the browser without storing its user agent."""
-        secret=os.environ.get('SUPABASE_SECRET_KEY','')
+        secret=os.environ.get('TABO_SESSION_BINDING_KEY','')
         user_agent=self.headers.get('User-Agent','')[:512]
-        if not secret or not user_agent: return None
+        if len(secret)<32 or not user_agent: return None
         return hmac.new(secret.encode(),user_agent.encode(),hashlib.sha256).hexdigest()
 
     def authorized_download_order(self, order_id):
@@ -504,21 +553,12 @@ class Handler(BaseHTTPRequestHandler):
         return order
 
     def geo_client_ip(self):
-        if self.headers.get('CF-Ray') and self.headers.get('CF-Connecting-IP'):
-            candidate=self.headers['CF-Connecting-IP'].strip()
-            try: return ipaddress.ip_address(candidate).compressed
-            except ValueError: pass
-        try: return ipaddress.ip_address(self.client_address[0]).compressed
-        except ValueError: return 'unknown'
+        return self.client_id()
 
     def pricing_country(self, requested=None):
         selected=localization.normalize_country(requested)
         if selected!='EG': return selected
-        edge_country=localization.country_from_proxy_headers(self.headers)
-        if edge_country:
-            return localization.pricing_country(selected,edge_country)
-        verified_country=localization.country_from_ip(self.geo_client_ip())
-        return localization.pricing_country(selected,verified_country)
+        return localization.pricing_country(selected,localization.country_from_ip(self.client_id()))
 
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
@@ -630,7 +670,7 @@ class Handler(BaseHTTPRequestHandler):
                 checkout_secret=secrets.token_urlsafe(32)
                 order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':BOOKS[i][0]} for i in ids],
                        'total':total,'currency':currency,'country':country,
-                       'paymobMethodId':paymob_method_id,
+                       'paymobMethodId':paymob_method_id,'paymentMode':payment_mode(),
                        'paymentMethod':'Kashier' if payment_provider()=='kashier' else 'Paymob',
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
                        'token':None,'buyer':{'name':customer['name'].strip(),'phone':customer['phone']},
@@ -641,69 +681,70 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as exc:
                     log_payment_gateway_error(payment_provider(),exc)
                     return self.respond(503,{'ok':False,'error':'تعذر إنشاء صفحة الدفع الآن. حاول مرة أخرى بعد قليل.'})
-                store.patch(order['id'],{'paymob_order_id':provider_order_id},{'status':'eq.PENDING'})
+                stored=store.patch(order['id'],{'paymob_order_id':provider_order_id},{'status':'eq.PENDING'})
+                if not stored: raise store.StoreUnavailable()
                 cookie=secure_cookie(checkout_cookie_name(order['id']),checkout_secret,3600)
                 return self.respond(201,{'ok':True,'order':public(order),'payment_url':link,
                                          'tracking_url':'/pending.html?key='+order['statusKey']},
                                     {'Set-Cookie':cookie})
             if route=='/api/kashier/webhook':
-                event=data.get('event'); transaction_data=data.get('data')
+                transaction_data=data.get('data')
                 signature=self.headers.get('x-kashier-signature','')
                 if not isinstance(transaction_data,dict) or not verify_kashier(transaction_data,signature):
                     return self.respond(401,{'ok':False,'error':'Invalid signature'})
-                if event!='pay' or transaction_data.get('status')!='SUCCESS':
+                if transaction_data.get('status')!='SUCCESS':
                     return self.respond(200,{'ok':True,'paid':False})
+                if not store.ready():raise store.StoreUnavailable()
                 reference=kashier_reference(transaction_data)
                 transaction=str(transaction_data.get('transactionId',''))
                 if not reference or not re.fullmatch(r'[A-Za-z0-9_.:-]{6,128}',transaction):
-                    return self.respond(200,{'ok':True,'paid':False})
-                order=store.find('id',reference) if store.ready() else None
-                if not order or not kashier_payment_matches(order,transaction_data):
-                    return self.respond(200,{'ok':True,'paid':False})
-                if order['status']=='PAID':
-                    if order['transactionId']==transaction:
-                        return self.respond(200,{'ok':True,'paid':True})
-                    return self.respond(409,{'ok':False,'error':'Order already paid'})
-                if order['status']!='PENDING':
-                    return self.respond(200,{'ok':True,'paid':False})
-                try:
-                    paid=store.patch(reference,{'status':'PAID','transaction_id':transaction,
-                               'paid_at':now()},
-                               {'status':'eq.PENDING'})
-                except RuntimeError:
-                    return self.respond(409,{'ok':False,'error':'Duplicate transaction'})
-                if not paid:
-                    latest=store.find('id',reference)
-                    if latest and latest['status']=='PAID' and latest['transactionId']==transaction:
-                        return self.respond(200,{'ok':True,'paid':True})
-                    return self.respond(409,{'ok':False,'error':'Order already processed'})
-                return self.respond(200,{'ok':True,'paid':True})
+                    return self.respond(400,{'ok':False,'error':'Invalid payment reference'})
+                order=store.find('id',reference)
+                if not order or order['paymentMethod']!='Kashier' or order.get('paymentMode')!=kashier_mode():
+                    return self.respond(400,{'ok':False,'error':'Payment mode or order mismatch'})
+                amount=Decimal(str(transaction_data['amount']))
+                if (not amount.is_finite() or amount<=0 or amount>Decimal(str(order['total'])) or
+                        transaction_data.get('currency')!=order['currency'] or
+                        transaction_data.get('transactionResponseCode')!='00' or not order.get('paymobOrderId')):
+                    return self.respond(400,{'ok':False,'error':'Payment mismatch'})
+                kind=reconcile_kashier(order,transaction_data)
+                if not kind:return self.respond(200,{'ok':True,'paid':False})
+                if kind=='paid' and amount!=Decimal(str(order['total'])):
+                    return self.respond(400,{'ok':False,'error':'Payment mismatch'})
+                code,result=apply_verified_event(order,'kashier',transaction,kind,amount,signature)
+                return self.respond(code,result)
             if route=='/api/paymob/webhook':
                 signature=parse_qs(urlparse(self.path).query).get('hmac',[''])[0]
                 obj=data.get('obj')
                 if data.get('type')!='TRANSACTION' or not isinstance(obj,dict) or not verify_paymob(obj,signature):
                     return self.respond(401,{'ok':False,'error':'Invalid signature'})
-                if obj.get('success') is not True or obj.get('pending') is not False or obj.get('is_refunded') is True or obj.get('is_voided') is True:
-                    return self.respond(200,{'ok':True,'paid':False})
-                order_obj=obj.get('order') or {}
-                reference=order_obj.get('merchant_order_id')
+                if not paymob_mode():return self.respond(503,{'ok':False,'error':'Paymob live integration is unavailable'})
+                if not store.ready():raise store.StoreUnavailable()
+                # order.id is signed; merchant_order_id is not included in Paymob's HMAC.
+                provider_id=str((obj.get('order') or {}).get('id',''))
+                order=store.find('paymob_order_id',provider_id) if re.fullmatch(r'[0-9]{1,30}',provider_id) else None
+                if (not order or order['paymentMethod']!='Paymob' or order.get('paymentMode')!='test' or
+                        obj.get('integration_id')!=order.get('paymobMethodId') or obj.get('currency')!=order['currency'] or
+                        obj.get('amount_cents')!=localization.amount_to_minor(order['total'],order['currency'])):
+                    return self.respond(400,{'ok':False,'error':'Payment mismatch'})
+                claimed_reference=(obj.get('order') or {}).get('merchant_order_id')
+                if claimed_reference is not None and claimed_reference!=order['id']:
+                    return self.respond(400,{'ok':False,'error':'Payment reference mismatch'})
                 transaction=str(obj.get('id',''))
-                if not isinstance(reference,str) or not transaction:
+                if not re.fullmatch(r'[0-9]{1,30}',transaction):return self.respond(400,{'ok':False,'error':'Invalid transaction'})
+                if obj.get('success') is not True or obj.get('pending') is not False or obj.get('error_occured') is not False:
                     return self.respond(200,{'ok':True,'paid':False})
-                order=store.find('id',reference) if store.ready() and re.fullmatch(r'TABO-[A-F0-9]{16}',reference) else None
-                expected_amount=localization.amount_to_minor(order['total'],order['currency']) if order else None
-                if not order or obj.get('integration_id')!=order.get('paymobMethodId') or obj.get('currency')!=order['currency'] or obj.get('amount_cents')!=expected_amount or str(order_obj.get('id'))!=str(order.get('paymobOrderId')):
+                # Only signed parent-transaction flags can revoke. Child callbacks need reconciliation.
+                if obj.get('is_voided') is True or obj.get('is_refunded') is True:
+                    if order.get('transactionId') and order['transactionId']!=transaction:
+                        return self.respond(400,{'ok':False,'error':'Parent transaction mismatch'})
+                    kind='void' if obj.get('is_voided') else 'refund'
+                elif obj.get('is_auth') is False and obj.get('has_parent_transaction') is False and obj.get('is_standalone_payment') is True:
+                    kind='paid'
+                else:
                     return self.respond(200,{'ok':True,'paid':False})
-                if order['status']=='PENDING':
-                    try:
-                        paid=store.patch(reference,{'status':'PAID','transaction_id':transaction,
-                                   'paid_at':now()},
-                                   {'status':'eq.PENDING'})
-                    except RuntimeError:
-                        return self.respond(409,{'ok':False,'error':'Duplicate transaction'})
-                    if not paid and store.find('id',reference)['transactionId']!=transaction:
-                        return self.respond(409,{'ok':False,'error':'Order already paid'})
-                return self.respond(200,{'ok':True,'paid':True})
+                code,result=apply_verified_event(order,'paymob',transaction,kind,order['total'],signature)
+                return self.respond(code,result)
             if route=='/api/admin/confirm-payment':
                 secret=os.environ.get('TABO_ADMIN_KEY','')
                 supplied=self.headers.get('X-Admin-Key','')
@@ -724,7 +765,7 @@ class Handler(BaseHTTPRequestHandler):
                         order=store.patch(oid,{'status':'PAID','transaction_id':tid,
                                     'paid_at':now()},
                                     {'status':'eq.PENDING'})
-                    except RuntimeError: return self.respond(409,{'ok':False,'error':'Transaction already used'})
+                    except store.UniqueConflict: return self.respond(409,{'ok':False,'error':'Transaction already used'})
                     if not order: return self.respond(409,{'ok':False,'error':'Order already paid'})
                 return self.respond(200,{'ok':True,'order_id':oid,'tracking_url':'/pending.html?key='+order['statusKey']})
             if route=='/api/download-session':
@@ -749,13 +790,13 @@ class Handler(BaseHTTPRequestHandler):
                     if not order or order['status']!='PAID' or order.get('downloadTokenUsedAt'):
                         return self.respond(403,{'ok':False,'error':'رابط التحميل منتهي أو تم استخدامه.'})
                     expiry=timestamp(order.get('downloadTokenExpiresAt'))
-                    if expiry and expiry<=datetime.now(timezone.utc):
+                    if not expiry or expiry<=datetime.now(timezone.utc):
                         return self.respond(403,{'ok':False,'error':'رابط التفعيل انتهت صلاحيته.'})
                     name=data.get('name'); phone=data.get('phone')
                     buyer=order.get('buyer')
-                    if (not buyer or not isinstance(name,str) or not isinstance(phone,str) or
-                            not hmac.compare_digest(normalized_name(name),normalized_name(buyer.get('name'))) or
-                            not hmac.compare_digest(phone.strip(),str(buyer.get('phone') or '').strip())):
+                    if (not isinstance(buyer,dict) or not normalized_name(buyer.get('name')) or not buyer.get('phone') or not isinstance(name,str) or not isinstance(phone,str) or
+                            not hmac.compare_digest(normalized_name(name).encode('utf-8'),normalized_name(buyer.get('name')).encode('utf-8')) or
+                            not hmac.compare_digest(phone.strip().encode('utf-8'),str(buyer.get('phone') or '').strip().encode('utf-8'))):
                         return self.respond(403,{'ok':False,'error':'بيانات المشتري غير مطابقة للطلب.'})
                     claim_field='download_token'; claim_value=legacy_token
                 else:
@@ -766,6 +807,8 @@ class Handler(BaseHTTPRequestHandler):
                 session_secret=secrets.token_urlsafe(32)
                 expires=(datetime.now(timezone.utc)+timedelta(days=DOWNLOAD_SESSION_DAYS)).isoformat()
                 conditions={'status':'eq.PAID',claim_field:'eq.'+claim_value,'download_session_hash':'is.null'}
+                if claim_field=='download_token':
+                    conditions.update(download_token_used_at='is.null',download_token_expires_at='gt.'+now())
                 updated=store.patch(order['id'],{
                     'checkout_session_hash':None,'download_token':None,'download_token_used_at':now(),
                     'download_session_hash':hash_secret(session_secret),'download_device_hash':device,
@@ -783,13 +826,21 @@ class Handler(BaseHTTPRequestHandler):
                 if (book_id not in BOOKS or not order or
                         book_id not in [item.get('id') for item in order['items'] if isinstance(item,dict)]):
                     return self.respond(403,{'ok':False,'error':'تحميل غير مصرح.'})
+                allowed,retry=RATE_LIMITER.allow('download-session:'+order_id+':'+order['downloadSessionHash'],
+                                                len(order['items'])*(DOWNLOAD_LIMIT+1),60)
+                if not allowed:
+                    return self.respond(429,{'ok':False,'error':'طلبات كثيرة جدًا. حاول بعد قليل.'},{'Retry-After':str(retry)})
                 try:
                     usage=store.download_usage(order_id).get(book_id,0)
                 except Exception:
                     return self.respond(503,{'ok':False,'error':'تعذر التحقق من حد التحميل الآن.'})
                 if usage>=DOWNLOAD_LIMIT:
                     return self.respond(403,{'ok':False,'error':'تم استهلاك محاولتي التحميل لهذا الكتاب.'})
-                try: payload,page_count=watermarked(store.original(BOOKS[book_id][1]),order)
+                try:
+                    with pdf_limits.work_slot():
+                        payload,page_count=watermarked(store.original(BOOKS[book_id][1]),order)
+                except pdf_limits.PDFBusy:
+                    return self.respond(503,{'ok':False,'error':'يجري تجهيز كتاب آخر. حاول بعد قليل.'},{'Retry-After':'5'})
                 except Exception: return self.respond(500,{'ok':False,'error':'تعذر تجهيز الكتاب. تواصل مع الدعم.'})
                 try:
                     claimed=store.claim_download(order_id,book_id,order['downloadSessionHash'],
@@ -807,8 +858,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Length',str(len(payload)))
                 self.end_headers();return self.wfile.write(payload)
             return self.respond(404,{'ok':False,'error':'Not found'})
+        except store.StoreError:
+            return self.respond(503,{'ok':False,'error':'Temporary storage failure'},{'Retry-After':'30'})
         except (ValueError,json.JSONDecodeError,TypeError) as e:
-            return self.respond(400,{'ok':False,'error':str(e)})
+            return self.respond(400,{'ok':False,'error':'Invalid request'})
         except Exception:
             self.log_error('Internal error');return self.respond(500,{'ok':False,'error':'Server error'})
     def do_GET(self):
@@ -838,6 +891,8 @@ class Handler(BaseHTTPRequestHandler):
                     _,count=book_previews.get_sample(book_id,BOOKS,store.original)
                     return self.respond(200,{'pages':count,'title':BOOKS[book_id][0]})
                 payload=book_previews.render_page(book_id,int(preview_resource.group(3)),BOOKS,store.original)
+            except pdf_limits.PDFBusy:
+                return self.respond(503,{'ok':False,'error':'يجري تجهيز معاينة أخرى. حاول بعد قليل.'},{'Retry-After':'5'})
             except IndexError:
                 return self.respond(404,{'ok':False,'error':'Page not found'})
             except Exception:
@@ -912,6 +967,8 @@ class Handler(BaseHTTPRequestHandler):
             order_id=parse_qs(parsed.query).get('order',[''])[0]
             order=self.authorized_download_order(order_id)
             if not order: return self.respond(403,{'ok':False,'error':'هذه الصفحة مرتبطة بجهاز المشتري ولا تعمل من رابط مشترك.'})
+            allowed,retry=RATE_LIMITER.allow('download-manifest:'+order_id+':'+order['downloadSessionHash'],120,600)
+            if not allowed:return self.respond(429,{'ok':False,'error':'طلبات كثيرة جدًا.'},{'Retry-After':str(retry)})
             try: usage=store.download_usage(order_id)
             except Exception: return self.respond(503,{'ok':False,'error':'تعذر قراءة حد التحميل الآن.'})
             books=[]

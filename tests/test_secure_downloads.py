@@ -23,12 +23,12 @@ class SecureDownloadTests(unittest.TestCase):
         return handler
 
     def make_order(self, raw_session='browser-session-secret', user_agent='TABO-Test/1'):
-        secret='server-secret-for-tests'
+        secret='synthetic-session-binding-key-32-bytes'
         device=app.hmac.new(secret.encode(),user_agent.encode(),app.hashlib.sha256).hexdigest()
         return {
             'id':'TABO-0123456789ABCDEF','status':'PAID',
             'items':[{'id':'book13','name':'بنت تخطت الثلاثين'}],
-            'buyer':{'name':'تابو نور','phone':'01122965693'},
+            'buyer':{'name':'مشتري اختباري','phone':'01000000000'},
             'downloadSessionHash':app.hash_secret(raw_session),
             'downloadDeviceHash':device,
             'downloadSessionExpiresAt':(
@@ -39,7 +39,7 @@ class SecureDownloadTests(unittest.TestCase):
     def test_download_session_is_cookie_and_device_bound(self):
         order=self.make_order()
         handler=self.make_handler(order)
-        with patch.dict(os.environ,{'SUPABASE_SECRET_KEY':'server-secret-for-tests'}), \
+        with patch.dict(os.environ,{'TABO_SESSION_BINDING_KEY':'synthetic-session-binding-key-32-bytes'}), \
              patch.object(app.store,'ready',return_value=True), \
              patch.object(app.store,'find',return_value=order):
             self.assertEqual(handler.authorized_download_order(order['id']),order)
@@ -52,7 +52,7 @@ class SecureDownloadTests(unittest.TestCase):
             datetime.now(timezone.utc)-timedelta(seconds=1)
         ).isoformat()
         handler=self.make_handler(order)
-        with patch.dict(os.environ,{'SUPABASE_SECRET_KEY':'server-secret-for-tests'}), \
+        with patch.dict(os.environ,{'TABO_SESSION_BINDING_KEY':'synthetic-session-binding-key-32-bytes'}), \
              patch.object(app.store,'ready',return_value=True), \
              patch.object(app.store,'find',return_value=order):
             self.assertIsNone(handler.authorized_download_order(order['id']))
@@ -91,7 +91,7 @@ class SecureDownloadTests(unittest.TestCase):
     def test_shared_success_url_without_cookie_is_denied(self):
         order=self.make_order()
         base=self.run_server()
-        with patch.dict(os.environ,{'SUPABASE_SECRET_KEY':'server-secret-for-tests'}), \
+        with patch.dict(os.environ,{'TABO_SESSION_BINDING_KEY':'synthetic-session-binding-key-32-bytes'}), \
              patch.object(app.store,'ready',return_value=True), \
              patch.object(app.store,'find',return_value=order):
             request=Request(base+'/api/downloads?order='+order['id'],
@@ -104,7 +104,7 @@ class SecureDownloadTests(unittest.TestCase):
         order=self.make_order()
         base=self.run_server()
         cookie=f'{app.download_cookie_name(order["id"])}=browser-session-secret'
-        with patch.dict(os.environ,{'SUPABASE_SECRET_KEY':'server-secret-for-tests'}), \
+        with patch.dict(os.environ,{'TABO_SESSION_BINDING_KEY':'synthetic-session-binding-key-32-bytes'}), \
              patch.object(app.store,'ready',return_value=True), \
              patch.object(app.store,'find',return_value=order), \
              patch.object(app.store,'download_usage',return_value={'book13':1}):
@@ -121,7 +121,7 @@ class SecureDownloadTests(unittest.TestCase):
         base=self.run_server()
         cookie=f'{app.download_cookie_name(order["id"])}=browser-session-secret'
         body=json.dumps({'order_id':order['id']}).encode()
-        with patch.dict(os.environ,{'SUPABASE_SECRET_KEY':'server-secret-for-tests'}), \
+        with patch.dict(os.environ,{'TABO_SESSION_BINDING_KEY':'synthetic-session-binding-key-32-bytes'}), \
              patch.object(app.store,'ready',return_value=True), \
              patch.object(app.store,'find',return_value=order), \
              patch.object(app.store,'download_usage',return_value={'book13':2}), \

@@ -82,11 +82,8 @@ def normalize_country(value):
 
 
 def country_from_proxy_headers(headers):
-    """Read the country assigned by Render's Cloudflare edge, not browser locale."""
-    if not headers.get('CF-Ray') or not headers.get('CF-Connecting-IP'):
-        return None
-    code = str(headers.get('CF-IPCountry', '')).upper().strip()
-    return code if len(code) == 2 and code.isalpha() else None
+    """Deprecated: presence of Cloudflare-looking headers proves nothing."""
+    return None
 
 
 def country_from_ip(value):
@@ -140,19 +137,11 @@ def pricing_for_country(base_prices, country):
 
 
 def payment_methods():
-    methods = {'EGP': int(os.environ.get('PAYMOB_EGP_METHOD_ID', '5932821'))}
-    usd_method = os.environ.get('PAYMOB_USD_METHOD_ID', '').strip()
-    if usd_method:
-        try:
-            methods['USD'] = int(usd_method)
-        except ValueError:
-            pass
-    raw = os.environ.get('PAYMOB_PAYMENT_METHODS_JSON', '').strip()
-    if raw:
-        try:
-            methods.update({str(k).upper(): int(v) for k, v in json.loads(raw).items()})
-        except (TypeError, ValueError, json.JSONDecodeError):
-            pass
+    if os.environ.get('PAYMOB_MODE','test')!='test':return {}
+    methods={}
+    for currency in ('EGP','USD'):
+        value=os.environ.get('PAYMOB_TEST_'+currency+'_METHOD_ID','')
+        if value.isdecimal() and int(value)>0:methods[currency]=int(value)
     return methods
 
 
@@ -162,4 +151,5 @@ def payment_method_for(currency):
 
 def amount_to_minor(amount, currency):
     """Paymob amounts are currently represented in 1/100 currency units."""
-    return int(round(float(amount) * 100))
+    from decimal import Decimal, ROUND_HALF_UP
+    return int((Decimal(str(amount))*100).quantize(Decimal('1'),rounding=ROUND_HALF_UP))

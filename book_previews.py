@@ -12,6 +12,7 @@ import pypdfium2 as pdfium
 from PIL import ImageDraw, ImageFont
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import NameObject
+from pdf_limits import work_slot,check_source,MAX_PAGES,LimitedBuffer
 
 SAMPLE_PAGE_LIMIT = 16
 _CACHE = OrderedDict()
@@ -47,8 +48,10 @@ def valid_session(token, book_id, user_agent):
 
 
 def make_sample(source, title):
+    check_source(source)
     reader = PdfReader(io.BytesIO(source))
     total = len(reader.pages)
+    if total>MAX_PAGES: raise ValueError('PDF page limit')
     if total < 2:
         raise ValueError('A public sample must not contain the complete book')
     count = min(SAMPLE_PAGE_LIMIT, max(1, total // 10), total - 1)
@@ -58,7 +61,7 @@ def make_sample(source, title):
         # Do not carry document actions, file attachments, or external links.
         writer.pages[-1].pop(NameObject('/Annots'), None)
     writer.add_metadata({'/Title': title + ' — عينة مجانية', '/Author': 'TABO NOOR'})
-    output = io.BytesIO()
+    output = LimitedBuffer()
     writer.write(output)
     return output.getvalue(), count
 
@@ -67,7 +70,7 @@ def get_sample(book_id, books, fetch_original):
     """Server-internal PDF subset. Never return these bytes from an HTTP route."""
     if book_id not in books:
         raise KeyError(book_id)
-    with _LOCK:
+    with work_slot(), _LOCK:
         cached = _CACHE.get(book_id)
         if cached and time.monotonic() - cached[0] < _CACHE_TTL:
             _CACHE.move_to_end(book_id)
@@ -87,7 +90,7 @@ def render_page(book_id, page_number, books, fetch_original):
         raise KeyError(book_id)
     if isinstance(page_number, bool) or not isinstance(page_number, int) or not 1 <= page_number <= SAMPLE_PAGE_LIMIT:
         raise IndexError('Page outside sample')
-    with _RENDER_LOCK:
+    with work_slot(), _RENDER_LOCK:
         key = (book_id, page_number)
         cached = _IMAGE_CACHE.get(key)
         if cached and time.monotonic() - cached[0] < _CACHE_TTL:
