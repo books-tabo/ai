@@ -1,50 +1,67 @@
-# TABO BOOKS: Render preview
+# TABO BOOKS backend review
 
-This branch hosts the latest storefront and Python checkout server. It is a **preview**: checkout stays disabled until original books, durable storage and payment credentials are configured. The GitHub Pages site on `main` is unaffected.
+PR #1 remains a draft. **Keep `TABO_CHECKOUT_ENABLED=0`**, including after tests. No merge, production deployment, live payment or live database migration is authorized by this task. This branch is connected to an existing Render service: auto-deploy was off at read-only inspection on 2026-10-18. Updating this PR does not deploy it or change production environment variables.
 
-## Run the preview
+## Run and test
 
-Requires Python 3.11+ and `pip install -r requirements.txt`.
+Python 3.12, `pip install -r requirements-dev.txt`, then:
 
-```bash
-HOST=127.0.0.1 PORT=3000 python3 app.py
+```sh
+TABO_CHECKOUT_ENABLED=0 HOST=127.0.0.1 PORT=3000 python app.py
+python -m unittest discover -s tests -v
+python -m ruff check --select E9,F63,F7,F82 .
 ```
 
-Open `http://127.0.0.1:3000`. `GET /api/config` reports `checkoutEnabled: false`; `POST /api/orders` returns 503. There are no original PDFs, payment credentials or customer orders in this repository.
+`/health` is liveness, not payment readiness. With the example configuration `/api/config` reports false and `/api/orders` returns 503. Python does not auto-load `.env.example`; copy settings into private configuration. No credentials, buyers or original book PDFs belong in GitHub or logs.
 
-## Render preview settings
+## Migrations and real PostgreSQL tests
 
-- Runtime: Python; build: `pip install -r requirements.txt`; start: `python app.py`.
-- Branch: `feature/tobo-books-render-preview`; plan: Free for review only.
-- Environment: `HOST=0.0.0.0`, `TABO_CHECKOUT_ENABLED=0`, `TABO_PERSISTENT_STORAGE_READY=0`.
-- The `/health` endpoint returns 200 for the preview.
+`supabase/migrations` contains a catalog-based baseline and an additive payment-event upgrade: tables, columns, constraints, indexes, RPCs, RLS and grants. Existing tables/orders are preserved; drift must be reviewed before upgrading. **Neither migration was applied to the live project in this task.** The optional bucket insert runs only where Supabase Storage exists, preserves an existing bucket, and fails if it is public. No original files or invented metadata are seeded.
 
-## Countries, languages and pricing
+Browser roles have no table access or sensitive RPC EXECUTE. Download usage is read-only for the server outside its RPC. The claim/event RPCs are SECURITY DEFINER with empty `search_path`, qualified table names and explicit server-only EXECUTE. Defaults are restricted for the migration creator (`postgres`), including the global PUBLIC function default. This does **not** change defaults owned by `supabase_admin` or other creators. Audit those separately; grant/revoke each new object explicitly.
 
-- The storefront supports Arabic and English and remembers the visitor's choice in the browser.
-- It detects an Arab country from the request locale/browser region or time zone, with a manual selector for all 22 Arab League countries.
-- Egypt uses the fixed EGP bundle ladder from 199 EGP for one book to 1,899 EGP for 18 books. Every other supported Arab country uses the fixed USD ladder from $9.99 for one book to $99.99 for 18 books.
-- Prices no longer depend on an exchange-rate feed: Egypt is always EGP and all other supported countries are always USD.
-- Checkout remains unavailable for a currency until the selected payment provider is configured for it.
-- Each book has a dedicated `/books/book1` through `/books/book18` page. Legal and support content uses standalone `/about`, `/contact`, `/privacy`, `/refund` and `/delivery` routes.
-- `public.book_stats` stores real file sizes and starts review/download counts at zero. `public.order_downloads` enforces an atomic maximum of two downloads per purchased book and increments the public counter only after a protected attempt is claimed.
+CI provisions PostgreSQL 17 and rebuilds a fresh schema from migrations. Integration tests use independent native database connections and real row locks: 20 concurrent claims, at most two successes, matching usage/aggregates, all 18 books, unpaid/unpurchased/invalid/expired sessions, one legacy activation winner, payment idempotency, revocation ordering, privileges, and persistence read by a new application process.
 
-## Before accepting orders
+```sh
+export TABO_TEST_DATABASE_URL=postgresql://postgres:synthetic_test_only@127.0.0.1:5432/tabo_test
+export TABO_ALLOW_TEST_DATABASE_RESET=1
+python -m unittest discover -s tests/integration -v
+```
 
-Original PDFs must remain outside GitHub. Upload `book1.pdf` through `book18.pdf` to a **private** Supabase Storage bucket named `tabo-originals` using the Storage API or dashboard. The private database table `public.orders` in project `kiglrbfgvjpauugkjuoi` stores orders; its RLS is enabled, with no client policies and no anon/authenticated table grants. Set `SUPABASE_URL` and the `SUPABASE_SECRET_KEY` only on the Render backend. Test database and each private original before setting `TABO_ORIGINALS_VERIFIED=1` and `TABO_PERSISTENT_STORAGE_READY=1`.
+This suite **resets the isolated test schema** and refuses non-loopback hosts, names outside `tabo_test*`, and missing reset opt-in. Never point it at production. HTTP tests use clearly identified synthetic fixtures and are not proof of SQL atomicity or a gateway payment.
 
-Choose `TABO_PAYMENT_PROVIDER=kashier` or `paymob` and set `TABO_PUBLIC_URL` in private server configuration. For Kashier, keep the live Merchant ID, Payment API Key and Secret Key in Render only; `/api/kashier/webhook` verifies every event with the Payment API Key before matching the order amount and currency. Hosted checkout enables the documented card and wallet methods. InstaPay uses Kashier's separate Direct API QR/R2P flow and must not be advertised until that method is confirmed on the live merchant account and tested end to end. `KASHIER_CURRENCIES` defaults to `EGP`; add `USD` only after it is enabled for the account. Paymob remains available as a fallback provider through its existing signed `/api/paymob/webhook` flow. Only set `TABO_CHECKOUT_ENABLED=1` after a real low-value payment, webhook, and protected download test succeeds.
+## Payment handling
 
-Never put original books, payment secrets or buyer details in a public repository, a web page or a commit.
+Acknowledgement follows the durable atomic event RPC. Supabase errors retain sanitized HTTP/SQLSTATE classification; only 409 + SQLSTATE 23505 is a unique conflict. Network/database failures return 5xx, not a duplicate acknowledgement. A response lost after commit is safe to retry. A provider/mode/transaction/kind ledger plus locked order transitions prevents duplicate entitlement and stale payment reactivation after revocation.
 
-## Security controls
+Kashier requires all entitlement-relevant HMAC fields. Its outer `event` is **unsigned** and cannot decide entitlement. A server-authenticated reconciliation read must match the exact merchant order, persisted session, Kashier order, transaction, amount, currency, success and operation. Missing/inconsistent provider state or lookup failure returns 503. Reconciliation permission and actual payload compatibility must be certified on the sandbox merchant before launch. Confirmed refund/void/reversal clears future access but retains counts/audit. Partial refunds suspend the whole order in `REVIEW`; current data cannot allocate a refund to particular books. No allocation or automatic reopening is guessed.
 
-- The server adds a nonce-based Content Security Policy, HSTS, clickjacking, MIME-sniffing, referrer and browser-permission protections to every response.
-- Browser write endpoints accept JSON only, reject cross-site submissions and use per-route rate limits. Render or a CDN/WAF remains responsible for network-level DDoS protection and globally shared limits if the service is scaled beyond one instance.
-- New purchases never expose a reusable download bearer token in the URL. The checkout browser receives an HttpOnly, Secure, SameSite cookie; payment confirmation exchanges it once for a device-bound download session and the visible success URL contains only a non-secret order ID. Sharing that URL does not share access.
-- Each purchased book is downloadable at most twice. The limit is enforced atomically in PostgreSQL, so concurrent requests cannot race past it. Downloading uses same-origin POST requests; old direct GET download URLs are rejected.
-- Legacy token links require the exact existing buyer name and phone, are exchanged once, and then become invalid. Legacy paid rows without verifiable buyer data are revoked rather than silently transferred to whoever has the link.
-- Paid PDFs are read from the private `tabo-originals` bucket, size/type checked, watermarked per buyer and returned with private no-store/no-index headers.
-- `public.orders`, `public.order_downloads`, `public.book_stats` and `public.book_ratings` use RLS and have no `anon` or `authenticated` grants. The download-claim RPC is executable only by `service_role`. Public-schema default privileges are locked down; grant access explicitly for every new table, sequence or function.
-- Keep `SUPABASE_SECRET_KEY`, all Kashier/Paymob credentials and `TABO_ADMIN_KEY` only in Render. Rotate a credential immediately if it is pasted into chat, a ticket, a log or any other non-secret channel, then update Render and redeploy.
-- Keep pinned dependencies current and rerun the syntax, API-abuse and PDF-watermark tests before each production release.
+`KASHIER_MODE` selects separate TEST/LIVE hosts and `KASHIER_TEST_*` / `KASHIER_LIVE_*` keys. Generic legacy credentials are accepted only in test mode. Opaque keys cannot be classified by their shape; real merchant/mode verification remains required.
+
+Paymob is deliberately **test only** (`PAYMOB_MODE=live` is rejected). Test-prefixed secret/public keys and explicit `PAYMOB_TEST_<CURRENCY>_METHOD_ID` replace the old hardcoded integration. Official HMAC verification is followed by lookup using signed `order.id`, checking provider, stored order, integration, amount and currency. Unsigned `merchant_order_id` cannot redirect an entitlement. Signed `is_refunded`/`is_voided` on the bound parent transaction revoke access. Auth-only and child callbacks do not grant access. Child refund/reversal shapes without signed parent-state confirmation need provider/manual reconciliation: automatic support for every such shape is **not certified** and remains a Paymob release gate.
+
+Configured currencies are intersected with a separately verified-capability allowlist. USD also requires `TABO_USD_CAPABILITY_VERIFIED=1`. Unconfirmed methods/currencies remain disabled. These settings record operator attestations; their presence is not evidence of merchant activation. This task adds/advertises no new payment method.
+
+## Sessions, download limits and proxy trust
+
+Permanent entitlement is **two claimed attempts per book per order**, atomically enforced by PostgreSQL. Pre-auth IP admission accommodates 20 complete 18-book bundles per minute behind one NAT. Authenticated work is limited by order + session to `book_count * (2 downloads + 1 retry/rejected request)` per minute. Those work limits never increase durable entitlement. The bounded in-process abuse guard needs a distributed/edge equivalent before multi-instance scaling.
+
+Watermark/preparation failures do not consume an attempt. After preparation, the RPC rechecks paid state, ownership, session and remaining count, updates usage/aggregate, then bytes are streamed. **Disconnection after reservation consumes the attempt.** There is no automatic decrement/reset path. Support exceptions require an audited process. Refund and claim serialize on the same order; an already reserved stream cannot be recalled, but future claims are denied.
+
+Legacy activation requires nonempty verified buyer name/phone, constant-time UTF-8 comparison after NFC/whitespace normalization, unexpired token and atomic one-time conditions. Missing buyer or expiry is rejected. Cookies remain HttpOnly, Secure, SameSite=Strict, Path=/ without Domain. Load the HTTPS return document before its same-origin cookie exchange; redirects never confirm payment. Actual gateway/browser return certification remains an external test requirement.
+
+Buyer sessions now use an independent `TABO_SESSION_BINDING_KEY`, not the Supabase API key. Supabase key rotation does not invalidate newly issued sessions. User-Agent or binding-key changes still deny access. Old rows using Supabase-key binding require a reviewed transition/reverification plan. No automatic migration or recovery endpoint was added; the order URL alone must never recover access.
+
+Only TCP peers explicitly in `TABO_TRUSTED_PROXY_CIDRS` can supply XFF. Walk right-to-left, stopping at the first untrusted hop. Duplicate/malformed chains fail closed. Default is trust-none. Cloudflare-looking headers and CF-Ray presence prove nothing. Pricing and limiting share the validated address; Egyptian pricing uses the existing local IP ranges. Render documents Cloudflare + load balancers + XFF, but the tools used did not establish exact socket-peer CIDRs/header sanitization. Verify these on **staging**, restrict direct origin access, and configure explicit CIDRs before deployment. Local spoofing tests are not proof of a production bypass.
+
+## Preview and resource limits
+
+The preview button/reader remain. No public route serves original/sample PDF bytes; old links return 410. Only bounded raster pages are available to short signed book/browser sessions, with no-store and existing origin guards. Expired/mismatched sessions and out-of-range pages are denied. Images/canvas cannot absolutely prevent saving pixels, inspection or screenshots.
+
+Preview and watermark work share a non-queueing slot acquired before reading an original; saturation returns retryable 503. Limits: 50 MiB source, 2,000 pages, 100 MiB output, 1,400 x 2,000 preview pixels and 48 + 24 MiB caches. These fix the known concurrent-copy/input/output exposure, not arbitrary native-parser expansion. Isolated OS-limited workers and load tests on verified private assets remain scale-up requirements. Opaque `sb_secret_*` keys use `apikey` only; legacy JWT server keys also use Bearer. Both authentication-header paths have isolated adapter tests; actual private-asset authentication with retrieved live credentials was not exercised here.
+
+## Separate activation decision
+
+`TABO_PERSISTENT_STORAGE_READY` and `TABO_ORIGINALS_VERIFIED` are manual attestations, **not connectivity tests or proof of successful payment**. Keep checkout off. Before activation: review/apply migrations to a backed-up staging copy; verify test merchant modes, capabilities and reversal coverage; complete a provider sandbox cycle over HTTPS with cookies and the configured Storage key type; establish exact proxy trust, legacy-session transition and worker resource limits. No real-money transaction is authorized by this PR task.
+
+References checked 2026-10-18: [Kashier webhooks](https://developers.kashier.io/docs/webhooks), [payloads](https://developers.kashier.io/docs/webhooks/payloads), [reconciliation](https://developers.kashier.io/docs/accept-payments/order-reconciliation), [Paymob HMAC](https://developers.paymob.com/paymob-docs/developers/webhook-callbacks-and-hmac/hmac/hmac-transaction-callback), [callbacks](https://developers.paymob.com/paymob-docs/developers/transaction-callbacks), [Supabase keys](https://supabase.com/docs/guides/getting-started/api-keys), [Render ingress](https://render.com/articles/how-render-handles-ddos-attacks).
