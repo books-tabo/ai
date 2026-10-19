@@ -5,6 +5,7 @@
 
 <meta charset="UTF-8">
 <meta name="google-site-verification" content="2d4_14pt2xn5ViepH0aCpVos6S4uX_K4QUKruuXniP4" />
+<meta name="facebook-domain-verification" content="fzf9a2ww233qpjhtwbo4srsp7bpyts" />
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -3678,6 +3679,8 @@ function addBookToCart(
 
     });
 
+    window.TaboTracking?.track('AddToCart',{content_ids:[book.id],value:Number(storeConfig.prices['1']),currency:storeConfig.currency});
+
 
     saveCart();
 
@@ -4116,6 +4119,8 @@ function openBookDetails(
 
     const displayBook=localizedBook(book);
 
+    window.TaboTracking?.track('ViewContent',{content_ids:[book.id],value:Number(storeConfig.prices['1']),currency:storeConfig.currency});
+
 
     currentDetailsBook =
         book;
@@ -4219,6 +4224,7 @@ async function checkoutWithPaymentLink(){
         });
         const data=await response.json();
         if(!response.ok||!data.ok) throw new Error(data.error||'تعذر إنشاء الطلب.');
+        window.TaboTracking?.track('InitiateCheckout',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency});
         const orderId=data.order.id;
         localStorage.setItem('taboLastOrderId',orderId);
         const key=new URL(data.tracking_url,location.origin).searchParams.get('key');

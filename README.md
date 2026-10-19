@@ -1,6 +1,6 @@
 # TABO BOOKS backend review
 
-PR #1 remains a draft. **Keep `TABO_CHECKOUT_ENABLED=0`**, including after tests. No merge, production deployment, live payment or live database migration is authorized by this task. This branch is connected to an existing Render service: auto-deploy was off at read-only inspection on 2026-10-18. Updating this PR does not deploy it or change production environment variables.
+These notes describe the original PR #1 safety review. That review used **`TABO_CHECKOUT_ENABLED=0`** and did not authorize production operations. Subsequent store/payment activation and the 2026-10-19 Meta tracking installation were separately requested by the owner. The example and CI configurations still keep checkout off; this tracking change does not modify payment environment variables, prices, previews, or book contents. The connected Render branch has auto-deploy off, so a code update alone does not deploy it.
 
 ## Run and test
 
@@ -65,3 +65,15 @@ Preview and watermark work share a non-queueing slot acquired before reading an 
 `TABO_PERSISTENT_STORAGE_READY` and `TABO_ORIGINALS_VERIFIED` are manual attestations, **not connectivity tests or proof of successful payment**. Keep checkout off. Before activation: review/apply migrations to a backed-up staging copy; verify test merchant modes, capabilities and reversal coverage; complete a provider sandbox cycle over HTTPS with cookies and the configured Storage key type; establish exact proxy trust, legacy-session transition and worker resource limits. No real-money transaction is authorized by this PR task.
 
 References checked 2026-10-18: [Kashier webhooks](https://developers.kashier.io/docs/webhooks), [payloads](https://developers.kashier.io/docs/webhooks/payloads), [reconciliation](https://developers.kashier.io/docs/accept-payments/order-reconciliation), [Paymob HMAC](https://developers.paymob.com/paymob-docs/developers/webhook-callbacks-and-hmac/hmac/hmac-transaction-callback), [callbacks](https://developers.paymob.com/paymob-docs/developers/transaction-callbacks), [Supabase keys](https://supabase.com/docs/guides/getting-started/api-keys), [Render ingress](https://render.com/articles/how-render-handles-ddos-attacks).
+
+## Meta domain and browser events (2026-10-19)
+
+The owner supplied public Pixel/Dataset ID `1371060818078535` and the domain-verification tag now in the homepage head. Publishing the tag does **not** prove Meta has verified ownership; confirm the domain's status in Business Settings after publication. Supplying an ID also does not prove the ad account has permission to use it.
+
+The production-host-only browser adapter reports PageView, ViewContent, AddToCart and InitiateCheckout. Purchase comes only from `/api/downloads` **after the existing paid-order + device-bound session authentication**. Its value, currency and book IDs are derived from durable order data, not callback/query parameters. It excludes test/legacy transactions, payments before installation, and payments older than 24 hours. No synthetic purchase is sent to the live Pixel. The receipt strips its query/fragment before loading the external Pixel, retaining the order reference in the browser history entry so refresh still works. Tracking failures must not block purchased-book access.
+
+Purchase has a stable opaque event ID and browser deduplication; a repeated manifest request does not consume a download. Automatic configuration is disabled, no buyer fields are passed, and pending/activation/preview documents load no external tracker. Only storefront/product/receipt CSPs allow the specific required Meta endpoints. Local/staging hostnames never load the external Pixel. `TABO_META_PIXEL_ID` overrides the public default; an explicitly blank value disables the integration.
+
+This is **browser Pixel tracking, not Conversions API**. Blockers, closed tabs, unavailable storage or blocked tracking requests can lose events; local storage and an event ID are not a durable delivery acknowledgement. Confirm event reception in Events Manager/Test Events and certify the actual payment return before advertising. There is no new custom-conversion object or automatic campaign activation in this code change.
+
+Run `node tests/test_meta_tracking.cjs` plus the Python suite. JavaScript tests stub external delivery and exercise the actual receipt script; Python HTTP tests use synthetic authenticated paid/unpaid/revoked/test/old orders. They prove local conditions and payload handling, **not Meta reception, domain verification or a live Kashier payment**. Reference: [Meta's maintained Pixel template](https://github.com/facebook/GoogleTagManager-WebTemplate-For-FacebookPixel/blob/main/template.tpl).

@@ -79,6 +79,7 @@ def order(row):
         'downloadTokenExpiresAt': row.get('download_token_expires_at'),
         'downloadTokenUsedAt': row.get('download_token_used_at'),
         'paymentMode':row.get('payment_mode','legacy'),
+        'paidAt':row.get('paid_at'),
     }
 
 def find(field, value):
