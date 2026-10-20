@@ -80,6 +80,7 @@ def order(row):
         'downloadTokenUsedAt': row.get('download_token_used_at'),
         'paymentMode':row.get('payment_mode','legacy'),
         'paidAt':row.get('paid_at'),
+        'pricingQuote':row.get('pricing_quote'),
     }
 
 def find(field, value):
@@ -93,7 +94,7 @@ def insert(o):
         'status_key': o['statusKey'], 'country': o.get('country','EG'),
         'paymob_method_id': o.get('paymobMethodId'), 'buyer': o.get('buyer'),
         'checkout_session_hash': o.get('checkoutSessionHash')
-        ,'payment_mode':o.get('paymentMode','test')
+        ,'payment_mode':o.get('paymentMode','test'), 'pricing_quote':o.get('pricingQuote')
     }, headers={'Prefer': 'return=minimal'})
 
 def patch(oid, changes, conditions=None):

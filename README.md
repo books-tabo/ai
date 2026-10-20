@@ -40,7 +40,7 @@ Kashier requires all entitlement-relevant HMAC fields. Its outer `event` is **un
 
 Paymob is deliberately **test only** (`PAYMOB_MODE=live` is rejected). Test-prefixed secret/public keys and explicit `PAYMOB_TEST_<CURRENCY>_METHOD_ID` replace the old hardcoded integration. Official HMAC verification is followed by lookup using signed `order.id`, checking provider, stored order, integration, amount and currency. Unsigned `merchant_order_id` cannot redirect an entitlement. Signed `is_voided` on the bound parent transaction revokes access. A signed parent refund flag or successful non-auth child operation suspends the entire order in `REVIEW` and records a `review_notice`. The child-operation name and cumulative refunded amount are unsigned, so they cannot determine refund allocation, final settlement or reopening. Provider/manual reconciliation must resolve this hold; automatic classification of every refund/reversal shape remains **uncertified**, a Paymob release gate.
 
-Configured currencies are intersected with a separately verified-capability allowlist. USD also requires `TABO_USD_CAPABILITY_VERIFIED=1`. Unconfirmed methods/currencies remain disabled. These settings record operator attestations; their presence is not evidence of merchant activation. This task adds/advertises no new payment method.
+Actual charge currencies are intersected with a separately verified-capability allowlist. Direct USD charging still requires `TABO_USD_CAPABILITY_VERIFIED=1`; new Kashier orders now convert USD display prices to EGP as described below. EGP merchant capability remains required. These settings record operator attestations; their presence is not evidence of merchant activation. No new payment method is advertised.
 
 ## Sessions, download limits and proxy trust
 
@@ -77,3 +77,47 @@ Purchase has a stable opaque event ID and browser deduplication; a repeated mani
 This is **browser Pixel tracking, not Conversions API**. Blockers, closed tabs, unavailable storage or blocked tracking requests can lose events; local storage and an event ID are not a durable delivery acknowledgement. Confirm event reception in Events Manager/Test Events and certify the actual payment return before advertising. There is no new custom-conversion object or automatic campaign activation in this code change.
 
 Run `node tests/test_meta_tracking.cjs` plus the Python suite. JavaScript tests stub external delivery and exercise the actual receipt script; Python HTTP tests use synthetic authenticated paid/unpaid/revoked/test/old orders. They prove local conditions and payload handling, **not Meta reception, domain verification or a live Kashier payment**. Reference: [Meta's maintained Pixel template](https://github.com/facebook/GoogleTagManager-WebTemplate-For-FacebookPixel/blob/main/template.tpl).
+
+## USD storefront price, EGP charge — owner-requested 2026-10-20 change
+
+Book/bundle display prices and Egyptian pricing are unchanged. For a new Kashier
+order displayed in USD, the cart requests a same-origin, no-store quote from
+`POST /api/checkout-quote`. A small 13px line immediately below the total states
+the exact EGP amount that will be charged, in Arabic or English. There is no
+claim that the issuer will deduct precisely the displayed dollar amount: the
+card's bank controls its own conversion and fees.
+
+The server reads Kashier's public USD→EGP [exchange-rate endpoint](https://developers.kashier.io/docs/accept-payments/currency-conversion).
+This is a rate lookup, not merchant USD activation. Reads are limited to 8 KiB,
+8 seconds and one refresh at a time (bounded lock wait); the cache lasts 60
+seconds. An invalid, future or older-than-24-hour source timestamp fails closed.
+An unavailable rate stops only the new converted quote, not Egyptian EGP checkout.
+
+A domain-separated HMAC quote uses the existing independent server binding key,
+lasts five minutes and binds the exact book IDs, country, display USD price and
+payment mode. It fixes the EGP amount using decimal ROUND_HALF_UP to two digits.
+The order endpoint accepts that signed quote rather than browser-supplied totals
+or a newly fetched rate. After expiry or a cart change, the customer must review
+a refreshed amount before confirming again. No payment session/order is created
+by the quote endpoint.
+
+Apply the additive `20261020123636_checkout_pricing_quote.sql` migration before
+deploying this version. It adds nullable `orders.pricing_quote` with a constraint
+matching the actual charge, without changing orders, functions, RLS or grants.
+The server persists the quoted USD amount/rate/source date/times alongside the
+existing `total`/`currency`, which now contain the actual EGP charge. Webhooks,
+reconciliation, refunds and Purchase/InitiateCheckout amounts continue to use
+those durable charge fields. Historical USD orders stay USD and can still be
+reconciled; no existing order is converted.
+
+No Render payment flag, key or merchant capability is changed by this release.
+The example and CI still keep `TABO_CHECKOUT_ENABLED=0`; the owner's separately
+authorized live setting is retained. Converting the currency is not proof that
+the earlier hosted `invalid credentials` error is fixed, nor proof of a
+successful card charge or receipt of Purchase by Meta.
+
+Run the Python suite, PostgreSQL integration suite and
+`node tests/test_checkout_quote.cjs` / `node tests/test_meta_tracking.cjs`.
+The quote HTTP tests use synthetic storage/provider responses; the SQL suite
+rebuilds from all migrations and checks quote persistence and charge constraints.
+No real-money payment or real customer download is part of these tests.

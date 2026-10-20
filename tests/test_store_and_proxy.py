@@ -59,7 +59,8 @@ class StoreAndProxyTests(unittest.TestCase):
         with patch.dict(os.environ,{'KASHIER_CURRENCIES':'EGP,USD','KASHIER_VERIFIED_CURRENCIES':'','TABO_PAYMENT_PROVIDER':'kashier'},clear=True):
             self.assertFalse(app.payment_currency_supported('EGP'));self.assertFalse(app.payment_currency_supported('USD'))
             os.environ['KASHIER_VERIFIED_CURRENCIES']='EGP,USD'
-            self.assertTrue(app.payment_currency_supported('EGP'));self.assertFalse(app.payment_currency_supported('USD'))
+            self.assertTrue(app.payment_currency_supported('EGP'));self.assertTrue(app.payment_currency_supported('USD'))
+            self.assertNotIn('USD',app.kashier_currencies()) # Display conversion is not direct USD acceptance.
         with patch.dict(os.environ,{'PAYMOB_MODE':'live','PAYMOB_TEST_EGP_METHOD_ID':'71'},clear=True):
             self.assertFalse(app.paymob_mode());self.assertEqual(localization.payment_methods(),{})
         with patch.dict(os.environ,{'KASHIER_MODE':'live','KASHIER_PAYMENT_API_KEY':'test-key'},clear=True):

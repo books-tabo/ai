@@ -140,3 +140,23 @@ class PostgresTests(unittest.TestCase):
             rows=c.execute("SELECT prosecdef,proconfig FROM pg_proc WHERE oid IN ('public.claim_order_download(text,text,text,text,integer)'::regprocedure,'public.apply_payment_event(text,text,text,text,text,numeric,text,text,text)'::regprocedure)").fetchall()
             self.assertEqual(len(rows),2)
             self.assertTrue(all(row[0] and 'search_path=""' in row[1] for row in rows))
+
+    def test_pricing_quote_persists_and_must_match_actual_charge(self):
+        quote={'displayCurrency':'USD','displayTotal':'9.99','chargeCurrency':'EGP',
+               'chargeTotal':'541.16','rate':'54.16975051','rateDate':'2026-10-20',
+               'quotedAt':1792497600,'expiresAt':1792497900}
+        with self.connect() as c:
+            self.assertIsNone(c.execute('SELECT pricing_quote FROM public.orders').fetchone()[0])
+            c.execute('SET ROLE service_role')
+            c.execute('UPDATE public.orders SET total=541.16,pricing_quote=%s',(json.dumps(quote),))
+        # A new independent connection observes the exact persisted quote.
+        with self.connect() as c:
+            amount,currency,saved=c.execute('SELECT total,currency,pricing_quote FROM public.orders').fetchone()
+            self.assertEqual(str(amount),'541.16')
+            self.assertEqual(currency,'EGP')
+            self.assertEqual(saved,quote)
+        import psycopg
+        for bad in ({**quote,'chargeTotal':'1.00'},{**quote,'chargeCurrency':'USD'},{'displayCurrency':'USD'}):
+            with self.assertRaises(psycopg.errors.CheckViolation):
+                with self.connect() as c:
+                    c.execute('UPDATE public.orders SET pricing_quote=%s',(json.dumps(bad),))

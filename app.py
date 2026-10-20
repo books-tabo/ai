@@ -19,6 +19,7 @@ import proxy_identity
 import book_previews
 import pdf_limits
 import meta_tracking
+import checkout_pricing
 
 ROOT = Path(__file__).resolve().parent
 BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','book2.pdf'),
@@ -79,6 +80,7 @@ RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
     '/api/ratings': (12, 600),
     '/api/orders': (6, 600),
+    '/api/checkout-quote': (120, 600),
     '/api/download-session': (12, 600),
     # Admission guard for 20 full 18-book bundles behind one NAT per minute.
     # Per-session work limits and durable per-book entitlements are separate below.
@@ -156,7 +158,9 @@ def kashier_currencies():
 
 def payment_currency_supported(currency):
     currency=str(currency or '').upper()
-    if payment_provider()=='kashier': return currency in kashier_currencies()
+    if payment_provider()=='kashier':
+        # USD display prices are converted to an actual EGP charge for new orders.
+        return ('EGP' if currency=='USD' else currency) in kashier_currencies()
     if payment_provider()=='paymob':
         return bool(paymob_mode() and currency in confirmed_currencies('PAYMOB') and localization.payment_method_for(currency))
     return False
@@ -638,7 +642,7 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         try:
             if not self.enforce_rate_limit(route,'POST'): return
-            if (route in ('/api/ratings','/api/orders','/api/download-session') or
+            if (route in ('/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
@@ -656,7 +660,7 @@ class Handler(BaseHTTPRequestHandler):
                 stats=store.submit_rating(book_id,voter_hash,rating)
                 headers={'Set-Cookie':f'__Host-tabo_rating_id={rating_id}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Strict; Priority=High'}
                 return self.respond(200,{'ok':True,'rating':rating,'stats':stats},headers)
-            if route=='/api/orders':
+            if route in ('/api/orders','/api/checkout-quote'):
                 if not checkout_ready():
                     return self.respond(503,{'ok':False,'error':'الشراء غير متاح حاليًا. يرجى العودة قريبًا.'})
                 items=data.get('items')
@@ -671,14 +675,25 @@ class Handler(BaseHTTPRequestHandler):
                 currency=price_config['currency']
                 if not payment_currency_supported(currency):
                     return self.respond(503,{'ok':False,'error':'الدفع بهذه العملة غير متاح حاليًا.'})
+                conversion=payment_provider()=='kashier' and currency=='USD'
+                if route=='/api/checkout-quote':
+                    if not conversion:
+                        return self.respond(200,{'ok':True,'quote':None})
+                    quote_data=checkout_pricing.issue(ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
+                    return self.respond(200,{'ok':True,'quote':quote_data})
                 paymob_method_id=(localization.payment_method_for(currency)
                                   if payment_provider()=='paymob' else None)
                 customer=data.get('customer')
                 if not isinstance(customer,dict) or not isinstance(customer.get('name'),str) or not 2<=len(customer['name'].strip())<=100 or not isinstance(customer.get('phone'),str) or not re.fullmatch(r'\+?[0-9]{8,15}',customer['phone']) or not isinstance(customer.get('email'),str) or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',customer['email']):
                     return self.respond(400,{'ok':False,'error':'الاسم والبريد الإلكتروني ورقم الهاتف مطلوبة للدفع.'})
+                pricing_quote=None
+                if conversion:
+                    pricing_quote=checkout_pricing.verify(data.get('quoteToken'),ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
+                    total=float(Decimal(pricing_quote['chargeTotal']))
+                    currency='EGP'
                 checkout_secret=secrets.token_urlsafe(32)
                 order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':BOOKS[i][0]} for i in ids],
-                       'total':total,'currency':currency,'country':country,
+                       'total':total,'currency':currency,'country':country,'pricingQuote':pricing_quote,
                        'paymobMethodId':paymob_method_id,'paymentMode':payment_mode(),
                        'paymentMethod':'Kashier' if payment_provider()=='kashier' else 'Paymob',
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
@@ -876,6 +891,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(404,{'ok':False,'error':'Not found'})
         except store.StoreError:
             return self.respond(503,{'ok':False,'error':'Temporary storage failure'},{'Retry-After':'30'})
+        except checkout_pricing.RateUnavailable:
+            return self.respond(503,{'ok':False,'error':'تعذر حساب المقابل بالجنيه الآن. يرجى المحاولة بعد قليل.'})
+        except checkout_pricing.InvalidQuote:
+            return self.respond(409,{'ok':False,'code':'QUOTE_REFRESH_REQUIRED','error':'يرجى تحديث مبلغ الدفع ومراجعته قبل تأكيد الطلب.'})
         except (ValueError,json.JSONDecodeError,TypeError) as e:
             return self.respond(400,{'ok':False,'error':'Invalid request'})
         except Exception:
@@ -964,6 +983,7 @@ class Handler(BaseHTTPRequestHandler):
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=payment_currency_supported(config['currency'])
             config['paymentProvider']=payment_provider()
+            config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']
             return self.respond(200,config)
         if route=='/api/book-stats':
             defaults={book_id:{'rating':None,'reviews':0,'downloads':0,'pageCount':None}
