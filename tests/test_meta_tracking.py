@@ -40,7 +40,7 @@ class MetaHTTPTests(HTTPCase):
             code, body, headers = self.get(path)
             self.assertEqual(code, 200)
             self.assertIn(b'data-pixel-id="1371060818078535"', body)
-            self.assertRegex(body.decode(), r'<script nonce="[^"]+" src="/meta-tracking.js"')
+            self.assertRegex(body.decode(), r'<script nonce="[^"]+" src="/meta-tracking.js\?v=[a-f0-9]{12}"')
             self.assertIn('https://connect.facebook.net', headers['Content-Security-Policy'])
             self.assertEqual(headers['Cache-Control'], 'no-store')
         _, body, _ = self.get('/')
@@ -105,5 +105,14 @@ class MetaPayloadTests(unittest.TestCase):
         with patch.dict(os.environ, {'SUPABASE_SECRET_KEY': 'rotated', 'TABO_SESSION_BINDING_KEY': 'rotated'}):
             self.assertEqual(meta_tracking.purchase(value, current), first)
         for changes in ({'status': 'REFUNDED'}, {'total': 'NaN'}, {'currency': 'XXX'},
-                        {'items': [{'id': 'book19'}]}, {'transactionId': None}):
+                        {'items': [{'id': 'book999'}]}, {'transactionId': None}):
             self.assertIsNone(meta_tracking.purchase({**value, **changes}, current))
+
+
+    def test_new_catalog_books_and_fixed_totals_remain_valid_tracking_payloads(self):
+        current=meta_tracking.PURCHASE_SINCE+timedelta(minutes=10)
+        value=order();value.update(status='PAID',paymentMode='live',transactionId='synthetic-new-book',paidAt=current.isoformat(),currency='EGP',total=500)
+        for ids,total in [(['book20'],500),(['book19','book20'],699),(['book1','book2','book20'],799)]:
+            result=meta_tracking.purchase({**value,'items':[{'id':book_id} for book_id in ids],'total':total},current)
+            self.assertEqual(result['content_ids'],ids)
+            self.assertEqual(result['value'],total)

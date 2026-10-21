@@ -1,4 +1,5 @@
 """Country detection and fixed EGP/USD pricing helpers for TABO BOOKS."""
+import catalog
 import ipaddress
 import json
 import os
@@ -127,6 +128,7 @@ def pricing_for_country(base_prices, country):
         'currency': currency,
         'multiplier': 1 if egypt else 2,
         'prices': prices,
+        'bookPolicies': catalog.public_policies(currency, prices['1']),
         'compareAtPrice': 299 if egypt else 14.99,
         'rateSource': 'fixed',
         'countries': [

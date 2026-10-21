@@ -17,6 +17,7 @@
 >
 
 <style>
+[hidden]{display:none!important}
 @font-face{font-family:"Tabo Kufi";src:url('/noto-kufi-arabic-bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
 
 /* =========================================================
@@ -1819,6 +1820,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
 .book-sample-link{display:block;text-align:center;color:#846410;border:1px solid #c9a227;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;padding:9px 6px;margin:0 0 15px}
 .book-sample-link:hover{background:#fbf7e9}
 @media(max-width:600px){.book-sample-link{font-size:11px;padding:8px 4px}}
+.fixed-price-note{font-size:12px;line-height:1.7;color:#806615;margin:7px 0}
 </style>
 
 </head>
@@ -2701,7 +2703,7 @@ const WHATSAPP_NUMBER =
 
 const BACKEND_URL = location.origin;
 let lastOrderId = localStorage.getItem("taboLastOrderId") || "";
-const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9", "دليل التحرر من العادة السرية":"book10", "الأفعى والمنشار":"book11", "جسد":"book12", "بنت تخطت الثلاثين":"book13", "أنت":"book14", "شفرة الحياة":"book15", "شفرة قلب الأنثى":"book16", "عجلة الفئران":"book17", "كيف تغير حياتك":"book18", "بدون شهادة جامعية":"book19"};
+const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9", "دليل التحرر من العادة السرية":"book10", "الأفعى والمنشار":"book11", "جسد":"book12", "بنت تخطت الثلاثين":"book13", "أنت":"book14", "شفرة الحياة":"book15", "شفرة قلب الأنثى":"book16", "عجلة الفئران":"book17", "كيف تغير حياتك":"book18", "بدون شهادة جامعية":"book19", "السيجما: الذكر الملكي":"book20"};
 let currentLanguage = localStorage.getItem("taboLanguage") ||
     ((navigator.language || "ar").toLowerCase().startsWith("en") ? "en" : "ar");
 let storeConfig = {
@@ -2745,8 +2747,8 @@ const UI_COPY = {
         aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
         pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
         emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
-        promoLead:"أضف أكثر من كتاب واحصل على سعر أفضل", books:"كتب",
-        addAnother:"أضف كتابًا آخر مقابل {difference} إضافية لتحصل على السعر الجديد: {next}.",
+        promoLead:"عروض الباقات للكتب المشمولة فقط — السيجما بسعر مستقل", books:"كتب",
+        addAnother:"أضف كتابًا من عروض الباقات مقابل {difference} إضافية ليصبح الإجمالي {next}.",
         moreBooks:"يمكنك إضافة المزيد من الكتب للحصول على السعر المناسب للعدد الجديد.",
         invalidCustomer:"أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.",
         checkoutError:"تعذر الاتصال بخادم الدفع."
@@ -2771,8 +2773,8 @@ const UI_COPY = {
         aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
         pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
         emptyCart:"Your cart is currently empty.", delete:"Remove",
-        promoLead:"Add more books and get a better bundle price", books:"books",
-        addAnother:"Add one more book for {difference} to unlock the new total: {next}.",
+        promoLead:"Bundle offers apply to eligible books — Sigma has a fixed price", books:"books",
+        addAnother:"Add an eligible bundle book for {difference}; the new total is {next}.",
         moreBooks:"You can add more books to receive the bundle price for the new quantity.",
         invalidCustomer:"Enter a valid name, email address, and phone number to continue.",
         checkoutError:"Could not connect to the payment server."
@@ -3202,6 +3204,21 @@ const BOOKS = [
     "about": "«بدون شهادة جامعية — حين لا يمنحك المجتمع ورقة تثبت قيمتك» يبدأ من سؤال «خريج إيه؟» وما قد يتركه في الإنسان من شعور بالنقص أو حاجة دائمة إلى التبرير. يناقش كيف يتحول المؤهل أحيانًا من معلومة عن التعليم إلى حكم على الإنسان، ثم ينقل القارئ من الدفاع عن ماضيه إلى تحمل مسؤولية مستقبله.\n\nعبر أربعة أبواب وعشرين فصلًا، ينتقل الكتاب من التصالح مع غياب الشهادة إلى بناء تعليم ذاتي منظم، واختيار مهارة نافعة، واكتساب الخبرة، وصناعة سيرة إنجاز وسمعة مهنية. وينتهي بمراجعة النجاح والمال والرغبة في إثبات الذات، مع التأكيد أن احترام الجامعة والتخصص لا يتعارض مع بناء طريقك خارجها.",
     "adds": "يساعدك على بناء خطة تعلم ذاتي، واختيار تخصص ومهارة قابلة للتطبيق، واكتساب خبرة دون انتظار الوظيفة الأولى، وعرض إنجازاتك وبناء الثقة، وفصل قيمتك الإنسانية عن الشهادة والدخل ونظرة الآخرين.",
     "idea": "إذا لم تحصل على شهادة جامعية، فلا تجعل ذلك سببًا للخجل، ولا تستخدمه عذرًا للجهل."
+},
+{
+    "name": "السيجما: الذكر الملكي",
+    "price": 500,
+    "image": "/book20-cover.jpg",
+    "fixedPrices": {
+        "EGP": 500,
+        "USD": 15.9
+    },
+    "bundleEligible": false,
+    "previewEnabled": false,
+    "shortDescription": "الفحولة التي لا تحتاج إلى إثبات: كتاب تثقيفي للزوجين البالغين عن الصحة الجنسية للرجل، وقلق الأداء، والرغبة والتوافق الحميم.",
+    "about": "«السيجما: الذكر الملكي» يعيد النظر في الفحولة بوصفها علاقة بين الجسد والعقل والثقة والتواصل، بعيدًا عن المقارنات والوعود بقدرات خارقة. يبدأ بمراجعة أوهام الفحولة وقلق الأداء والخوف من الفشل وفتور الرغبة، ثم ينتقل إلى فهم الصحة الجنسية والعادات المؤثرة فيها.\n\nعبر ثلاثة أبواب وخمسة عشر فصلًا، يناقش الكتاب الانتصاب والقذف والهرمونات والنوم واللياقة والتغذية، ثم سيكولوجيا الرغبة لدى الزوجة واختلاف الاحتياجات والصمت والروتين بين الزوجين. يهدف إلى بناء معرفة وتواصل ورضا متبادل، والتمييز بين ما يمكن تطويره بالعادات وما يحتاج إلى تقييم مختص.",
+    "adds": "يساعدك على مراجعة توقعاتك عن الفحولة، وفهم الصلة بين صحتك وعاداتك وحالتك النفسية، والتحدث عن الاحتياجات بوضوح، وبناء توافق حميم قائم على المعرفة والثقة والاحترام المتبادل.",
+    "idea": "الفحولة التي لا تحتاج إلى إثبات."
 }
 ];
 
@@ -3224,7 +3241,8 @@ const BOOK_TRANSLATIONS = {
     book16:{"name": "The Code of Her Heart", "shortDescription": "A journey into women's emotional lives, attraction, attachment and love, and building trust and emotional safety without manipulation.", "about": "The Code of Her Heart replaces the question 'How do I make her love me?' with 'How do I understand her emotional world and become worthy of her trust?' It explores experience, memory, attraction, safety and trust, and the journey from attention to love and conscious choice.\n\nUnderstanding a partner also requires examining one's own presence, jealousy, fear of rejection, listening and response to disagreement. The book distinguishes love from attachment, need and manipulation, while respecting individual differences and freedom of choice. It invites a more conscious and respectful relationship rather than offering a formula for controlling hearts.", "adds": "It helps you distinguish care from pursuit, jealousy from possession and love from attachment, improve listening and communication, and build trust while respecting boundaries and choice.", "idea": "Do not seek to own her heart; seek to become worthy of her trust."},
     book17:{"name": "The Rat Race", "shortDescription": "A journey into work, income, consumption and debt, and building financial flexibility and a fuller life without abandoning your responsibilities.", "about": "The Rat Race explores the paradox of working harder and earning more while obligations grow and control over time and life shrinks. It respects work and responsibility, inviting you to examine the direction of your effort and the cost of your lifestyle.\n\nAcross three parts and fifteen chapters, it moves from recognizing the cycle and understanding comparison and consumption to debt, fear and constraints, then resource management, financial reserves, earning capacity, assets and systems. Its goal is to expand realistic choices without promises of quick wealth or advice to quit work without a plan.", "adds": "It helps you review income and consumption, understand debt and comparison, clarify priorities, and build reserves and gradual steps toward more time and wider choices.", "idea": "Perhaps you do not need to run faster; you need to understand the wheel and change direction."},
     book18:{"name": "How to Change Your Life in One Day", "shortDescription": "A practical journey to understand why change stalls, rebuild identity, choose a clear direction and turn one day into a sustainable beginning.", "about": "How to Change Your Life in One Day does not promise a magical transformation in 24 hours. It shows how one honest day of reflection can change the direction of your life by revealing the gap between what you say and do, the fears and identity patterns that hold you back, and the hidden goals behind repeated behavior.\n\nAcross four parts and twenty chapters, the book moves from understanding why you are stuck to identity engineering, designing the life you want, and completing a structured day of reflection, writing, interrupting autopilot and building an actionable launch plan.", "adds": "It helps you identify the patterns blocking change, review your motives and goals, build an identity that supports your decisions, and translate your vision into a yearly goal, a monthly project and clear daily actions.", "idea": "You may not change your whole life in one day, but you can change its direction in one day."},
-    book19:{"name": "Without a University Degree", "shortDescription": "A psychological and practical journey beyond degree-related pressure, building knowledge, skills and experience while respecting university education.", "about": "Without a University Degree begins with the question 'What did you graduate in?' and the feelings of inadequacy or constant self-justification it can provoke. It examines how a qualification can become a judgment on a person, then shifts the focus from defending the past to taking responsibility for the future.\n\nAcross four parts and twenty chapters, the book moves from accepting the absence of a degree to structured self-education, useful skills, practical experience, a portfolio of achievements and professional reputation. It also explores success, money and the urge to prove yourself, while respecting universities, expertise and professions that require formal qualifications.", "adds": "It helps you structure self-directed learning, choose a practical field and skill, gain experience before your first job, demonstrate achievements, build trust, and separate your human worth from qualifications, income and social approval.", "idea": "If you do not have a university degree, do not make it a source of shame or an excuse to stop learning."}
+    book19:{"name": "Without a University Degree", "shortDescription": "A psychological and practical journey beyond degree-related pressure, building knowledge, skills and experience while respecting university education.", "about": "Without a University Degree begins with the question 'What did you graduate in?' and the feelings of inadequacy or constant self-justification it can provoke. It examines how a qualification can become a judgment on a person, then shifts the focus from defending the past to taking responsibility for the future.\n\nAcross four parts and twenty chapters, the book moves from accepting the absence of a degree to structured self-education, useful skills, practical experience, a portfolio of achievements and professional reputation. It also explores success, money and the urge to prove yourself, while respecting universities, expertise and professions that require formal qualifications.", "adds": "It helps you structure self-directed learning, choose a practical field and skill, gain experience before your first job, demonstrate achievements, build trust, and separate your human worth from qualifications, income and social approval.", "idea": "If you do not have a university degree, do not make it a source of shame or an excuse to stop learning."},
+    book20:{"name": "Sigma: The Royal Male", "shortDescription": "Strength without the need to prove it: an educational book for adult couples about men's sexual health, performance anxiety, desire and intimacy.", "about": "Sigma: The Royal Male explores sexual well-being through the body, mind, confidence and communication, without comparisons or promises of extraordinary performance. It begins with myths about virility, performance anxiety, fear of failure and changes in desire, then examines sexual health and everyday habits.\n\nAcross three parts and fifteen chapters, the book discusses erections, ejaculation, hormones, sleep, fitness and nutrition, then a partner's desire, differing needs, silence and routine within marriage. It promotes knowledge, communication and mutual satisfaction, including recognizing when professional assessment is needed.", "adds": "It helps you examine expectations about virility, understand the connections between health, habits and emotional well-being, discuss needs clearly, and build intimacy through knowledge, trust and mutual respect.", "idea": "Strength without the need to prove it."}
 };
 
 BOOKS.forEach((book,index)=>{ book.id=`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
@@ -3325,7 +3343,7 @@ function renderCountryOptions(){
 function renderPromo(){
     const track=document.getElementById("promoTrack");
     if(!track) return;
-    const items=Object.keys(PRICING_LADDER).slice(0,BOOKS.length).map(count=>
+    const items=Object.keys(PRICING_LADDER).slice(0,BOOKS.filter(book=>bookPolicy(book).bundleEligible).length).map(count=>
         `<span class="promo-item"><b>${count}</b> ${t("books")} — ${formatMoney(PRICING_LADDER[count])}</span>`
     );
     track.innerHTML=[`<span class="promo-item">${t("promoLead")}</span>`,...items,...items].join("");
@@ -3459,76 +3477,23 @@ function saveCart(){
    CALCULATE PRICING
 ========================================================= */
 
-function calculatePricing(){
-
-    const count =
-        cart.length;
-
-
-    const original = count * Number(storeConfig.compareAtPrice || PRICING_LADDER[1] || 0);
-
-
-    if(count === 0){
-
-        return {
-
-            count:0,
-
-            original:0,
-
-            final:0,
-
-            discount:0
-
-        };
-
-    }
-
-
-    let finalPrice;
-
-
-    if(
-        PRICING_LADDER[count]
-    ){
-
-        finalPrice =
-            PRICING_LADDER[count];
-
-    }
-
-    else{
-
-        finalPrice =
-
-            PRICING_LADDER[9] +
-
-            (
-                (count - 9)
-                * Number(PRICING_LADDER[1] || 0)
-            );
-
-    }
-
-
-    return {
-
-        count:count,
-
-        original:original,
-
-        final:finalPrice,
-
-        discount:
-            Math.max(
-                0,
-                original -
-                finalPrice
-            )
-
-    };
-
+/* Catalog pricing start */
+function bookPolicy(book){
+    return {...{price:book.fixedPrices?.[storeConfig.currency]??PRICING_LADDER[1],bundleEligible:book.bundleEligible!==false,previewEnabled:book.previewEnabled!==false},...(storeConfig.bookPolicies?.[book.id]||{})};
 }
+function bookPrice(book){return Number(bookPolicy(book).price)}
+function fixedPriceText(){return currentLanguage==="ar"?"سعر ثابت — غير مشمول بعروض الباقات":"Fixed price — excluded from bundle offers"}
+function fixedPriceNotice(book){return bookPolicy(book).bundleEligible?"":`<div class="fixed-price-note">${fixedPriceText()}</div>`}
+function calculatePricing(){
+    const books=cart.map(item=>BOOKS.find(book=>book.id===item.id)).filter(Boolean);
+    const ordinary=books.filter(book=>bookPolicy(book).bundleEligible);
+    const minor=value=>Math.round(Number(value||0)*100);
+    const fixedMinor=books.filter(book=>!bookPolicy(book).bundleEligible).reduce((total,book)=>total+minor(bookPrice(book)),0);
+    const ordinaryMinor=ordinary.length?minor(PRICING_LADDER[ordinary.length]??ordinary.length*Number(PRICING_LADDER[1]||0)):0;
+    const originalMinor=ordinary.length*minor(storeConfig.compareAtPrice||PRICING_LADDER[1])+fixedMinor;
+    return {count:books.length,standardCount:ordinary.length,fixedTotal:fixedMinor/100,original:originalMinor/100,final:(ordinaryMinor+fixedMinor)/100,discount:Math.max(0,originalMinor-ordinaryMinor-fixedMinor)/100};
+}
+/* Catalog pricing end */
 
 
 /* =========================================================
@@ -3604,14 +3569,15 @@ function renderBooks(){
 
                     <div class="book-bottom">
 
-                        <a class="book-sample-link" href="/previews/${book.id}" target="_blank" rel="noopener">${currentLanguage==="ar"?"اقرأ عينة مجانية":"Read a free sample"}</a>
+                        ${bookPolicy(book).previewEnabled?`<a class="book-sample-link" href="/previews/${book.id}" target="_blank" rel="noopener">${currentLanguage==="ar"?"اقرأ عينة مجانية":"Read a free sample"}</a>`:""}
+                        ${fixedPriceNotice(book)}
                         <div class="book-price">
-                            ${formatMoney(PRICING_LADDER[1])}
+                            ${formatMoney(bookPrice(book))}
                         </div>
 
-                        <div class="book-previous-price">
+                        ${bookPolicy(book).bundleEligible?`<div class="book-previous-price">
                             ${formatMoney(storeConfig.compareAtPrice || PRICING_LADDER[1])}
-                        </div>
+                        </div>`:""}
 
                         <div class="book-format">
                             ${t("pdfCopy")}
@@ -3691,7 +3657,7 @@ function addBookToCart(
 
     });
 
-    window.TaboTracking?.track('AddToCart',{content_ids:[book.id],value:Number(storeConfig.prices['1']),currency:storeConfig.currency});
+    window.TaboTracking?.track('AddToCart',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
 
 
     saveCart();
@@ -3857,6 +3823,7 @@ function renderCart(){
     if(
         cart.length === 0
     ){
+        document.getElementById("cartOriginal").parentElement.hidden=true;
 
         container.innerHTML = `
 
@@ -3924,8 +3891,9 @@ function renderCart(){
                         <div
                             class="cart-item-price"
                         >
-                            ${formatMoney(PRICING_LADDER[1])}
+                            ${formatMoney(bookPrice(book))}
                         </div>
+                        ${fixedPriceNotice(book)}
 
                     </div>
 
@@ -3957,49 +3925,16 @@ function renderCart(){
         formatMoney(pricing.final);
 
 
-    let nextMessage =
-        "";
-
-
-    const currentCount =
-        cart.length;
-
-
-    const nextCount =
-        currentCount + 1;
-
-
-    if(
-        PRICING_LADDER[nextCount]
-    ){
-
-        const nextPrice =
-            PRICING_LADDER[
-                nextCount
-            ];
-
-
-        const difference = Math.max(0,nextPrice-pricing.final);
-
-
-        nextMessage =
-
-            t("addAnother").replace("{difference}",formatMoney(difference)).replace("{next}",formatMoney(nextPrice));
-
+    const nextCount=pricing.standardCount+1;
+    let nextMessage="";
+    if(PRICING_LADDER[nextCount]){
+        const nextPrice=Math.round((Number(PRICING_LADDER[nextCount])+pricing.fixedTotal)*100)/100;
+        const difference=Math.round((nextPrice-pricing.final)*100)/100;
+        nextMessage=t("addAnother").replace("{difference}",formatMoney(difference)).replace("{next}",formatMoney(nextPrice));
     }
-
-    else{
-
-        nextMessage =
-            t("moreBooks");
-
-    }
-
-
-    document.getElementById(
-        "cartNextMessage"
-    ).textContent =
-        nextMessage;
+    if(pricing.count>pricing.standardCount) nextMessage=[nextMessage,fixedPriceText()].filter(Boolean).join(" ");
+    document.getElementById("cartNextMessage").textContent=nextMessage;
+    document.getElementById("cartOriginal").parentElement.hidden=pricing.discount===0;
 
     refreshCheckoutQuote();
 }
@@ -4133,7 +4068,7 @@ function openBookDetails(
 
     const displayBook=localizedBook(book);
 
-    window.TaboTracking?.track('ViewContent',{content_ids:[book.id],value:Number(storeConfig.prices['1']),currency:storeConfig.currency});
+    window.TaboTracking?.track('ViewContent',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
 
 
     currentDetailsBook =

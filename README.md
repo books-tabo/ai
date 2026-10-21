@@ -2,6 +2,12 @@
 
 These notes describe the original PR #1 safety review. That review used **`TABO_CHECKOUT_ENABLED=0`** and did not authorize production operations. Subsequent store/payment activation and the 2026-10-19 Meta tracking installation were separately requested by the owner. The example and CI configurations still keep checkout off; this tracking change does not modify payment environment variables, prices, previews, or book contents. The connected Render branch has auto-deploy off, so a code update alone does not deploy it.
 
+## Independent catalog pricing
+
+`catalog.py` defines the server catalog and per-book policies. Sigma (`book20`) costs **500 EGP / 15.90 USD** and is excluded from ordinary bundle quantities. A mixed order is the ordinary bundle subtotal plus Sigma's full price; for example, two ordinary books plus Sigma cost 799 EGP or 33.89 USD. Checkout recomputes this total from book IDs before signing/verifying the existing EGP charge quote.
+
+Sigma has no preview: its reader, info and page routes return 404 before any original-file read. Other books retain their preview and bundle eligibility. Public `bookPolicies` keep card, detail, mobile, cart and tracking values consistent with the server policy.
+
 ## Run and test
 
 Python 3.12, `pip install -r requirements-dev.txt`, then:

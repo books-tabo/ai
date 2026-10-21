@@ -30,6 +30,8 @@ function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new
     assert(home.calls.some(args => args[2] === 'PageView'));
     await home.context.TaboTracking.track('AddToCart', {...payload, email: 'synthetic@example.invalid'});
     assert(!JSON.stringify(home.calls).includes('synthetic@example.invalid'));
+    await home.context.TaboTracking.track('ViewContent', {content_ids:['book20'],value:15.9,currency:'USD'});
+    assert(home.calls.some(args=>args[2]==='ViewContent'&&args[3].content_ids[0]==='book20'&&args[3].value===15.9));
     await home.context.TaboTracking.track('Purchase', payload);
     await home.context.TaboTracking.purchase(payload);
     assert(!home.calls.some(args => args[2] === 'Purchase'));

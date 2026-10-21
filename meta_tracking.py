@@ -1,5 +1,6 @@
 """Public Meta configuration and minimal, authenticated conversion payloads."""
 import hashlib
+from catalog import BOOKS
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -33,7 +34,7 @@ def purchase(order, current=None):
                 order.get('currency') not in ('EGP', 'USD')):
             return None
         ids = [item['id'] for item in order['items']]
-        if not ids or any(not re.fullmatch(r'book(?:[1-9]|1[0-8])', item) for item in ids):
+        if not ids or any(item not in BOOKS for item in ids):
             return None
         digest = hashlib.sha256(('tabo-meta-purchase-v1|' + pixel_id() + '|' +
                                  order['id'] + '|' + str(order['transactionId'])).encode()).hexdigest()

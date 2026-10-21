@@ -20,24 +20,10 @@ import book_previews
 import pdf_limits
 import meta_tracking
 import checkout_pricing
+import catalog
+from catalog import BOOKS, PRICES
 
 ROOT = Path(__file__).resolve().parent
-BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','book2.pdf'),
-         'book3': ('تمرد','book3.pdf'), 'book4': ('كيف تصنع المليون الأول','book4.pdf'),
-         'book5': ('شهوات','book5.pdf'), 'book6': ('دليل السمو','book6.pdf'),
-         'book7': ('إلى كل بنت','book7.pdf'), 'book8': ('أصنام','book8.pdf'),
-         'book9': ('تأثير الكوبرا','book9.pdf'),
-         'book10': ('دليل التحرر من العادة السرية','book10.pdf'),
-         'book11': ('الأفعى والمنشار','book11.pdf'),
-         'book12': ('جسد','book12.pdf'),
-         'book13': ('بنت تخطت الثلاثين','book13.pdf'),
-         'book14': ('أنت','book14.pdf'),
-         'book15': ('شفرة الحياة','book15.pdf'),
-         'book16': ('شفرة قلب الأنثى','book16.pdf'),
-         'book17': ('عجلة الفئران','book17.pdf'),
-         'book18': ('كيف تغير حياتك','book18.pdf'),
-         'book19': ('بدون شهادة جامعية','book19.pdf')}
-PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299,13:1399,14:1499,15:1599,16:1699,17:1799,18:1899,19:1999}
 PAYMOB_BASE = 'https://accept.paymob.com'
 KASHIER_API_BASES = {
     'test': 'https://test-api.kashier.io',
@@ -612,7 +598,8 @@ class Handler(BaseHTTPRequestHandler):
         pixel_id=meta_tracking.pixel_id()
         self._meta_enabled=bool(pixel_id and filename in ('index.html','book.html','success.html'))
         if self._meta_enabled:
-            source=source.replace('</head>', '<script src="/meta-tracking.js" data-pixel-id="'+pixel_id+'"></script></head>',1)
+            version=hashlib.sha256((ROOT/'meta-tracking.js').read_bytes()).hexdigest()[:12]
+            source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'" data-pixel-id="'+pixel_id+'"></script></head>',1)
         source=re.sub(r'<(script|style)(\b[^>]*)>',
                       lambda match:'<'+match.group(1)+' nonce="'+nonce+'"'+match.group(2)+'>',source)
         payload=source.encode('utf-8'); self._csp_nonce=nonce; self.send_response(200)
@@ -672,7 +659,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(400,{'ok':False,'error':'الكتب غير صالحة أو مكررة.'})
                 country=self.pricing_country(data.get('country'))
                 price_config=localization.pricing_for_country(PRICES,country)
-                total=price_config['prices'][str(len(ids))]
+                total=catalog.total_for_items(ids,price_config)
                 currency=price_config['currency']
                 if not payment_currency_supported(currency):
                     return self.respond(503,{'ok':False,'error':'الدفع بهذه العملة غير متاح حاليًا.'})
@@ -906,6 +893,8 @@ class Handler(BaseHTTPRequestHandler):
         viewer=re.fullmatch(r'/previews/(book[1-9][0-9]*)',route)
         if viewer and viewer.group(1) in BOOKS:
             book_id=viewer.group(1)
+            if not catalog.preview_enabled(book_id):
+                return self.respond(404,{'ok':False,'error':'المعاينة غير متاحة لهذا الكتاب.'})
             session=book_previews.issue_session(book_id,self.headers.get('User-Agent',''))
             cookie=(f'__Secure-tabo_preview_{book_id}={session}; Path=/previews/{book_id}/; '
                     f'Max-Age={book_previews.SESSION_SECONDS}; HttpOnly; Secure; SameSite=Strict')
@@ -913,7 +902,7 @@ class Handler(BaseHTTPRequestHandler):
         preview_resource=re.fullmatch(r'/previews/(book[1-9][0-9]*)/(info|page/([1-9][0-9]*))',route)
         if preview_resource:
             book_id=preview_resource.group(1)
-            if book_id not in BOOKS:
+            if not catalog.preview_enabled(book_id):
                 return self.respond(404,{'ok':False,'error':'Not found'})
             # Images are issued only to same-origin viewer fetches in a short browser session.
             if (self.headers.get('X-Tabo-Preview')!='1' or
