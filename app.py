@@ -35,8 +35,9 @@ BOOKS = {'book1': ('هرمون','book1.pdf'), 'book2': ('نحو القمة','boo
          'book15': ('شفرة الحياة','book15.pdf'),
          'book16': ('شفرة قلب الأنثى','book16.pdf'),
          'book17': ('عجلة الفئران','book17.pdf'),
-         'book18': ('كيف تغير حياتك','book18.pdf')}
-PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299,13:1399,14:1499,15:1599,16:1699,17:1799,18:1899}
+         'book18': ('كيف تغير حياتك','book18.pdf'),
+         'book19': ('بدون شهادة جامعية','book19.pdf')}
+PRICES = {1:199,2:299,3:399,4:499,5:599,6:699,7:799,8:899,9:999,10:1099,11:1199,12:1299,13:1399,14:1499,15:1599,16:1699,17:1799,18:1899,19:1999}
 PAYMOB_BASE = 'https://accept.paymob.com'
 KASHIER_API_BASES = {
     'test': 'https://test-api.kashier.io',
@@ -82,7 +83,7 @@ POST_LIMITS = {
     '/api/orders': (6, 600),
     '/api/checkout-quote': (120, 600),
     '/api/download-session': (12, 600),
-    # Admission guard for 20 full 18-book bundles behind one NAT per minute.
+    # Admission guard for 20 full-catalog bundles behind one NAT per minute.
     # Per-session work limits and durable per-book entitlements are separate below.
     '/api/download': (len(BOOKS)*DOWNLOAD_LIMIT*20, 60),
     '/api/admin/confirm-payment': (10, 600),

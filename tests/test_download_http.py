@@ -34,21 +34,21 @@ class DownloadHTTPTests(HTTPCase):
 
     def paid(self,number):
         o=order(number=number);o.update(status='PAID',transactionId=f'TX-PAID-{number}',
-          items=[{'id':f'book{i}','name':'Synthetic'} for i in range(1,19)],
+          items=[{'id':book_id,'name':'Synthetic'} for book_id in app.BOOKS],
           downloadSessionHash=app.hash_secret('synthetic-session'),downloadSessionExpiresAt=future(),
           downloadDeviceHash=hmac.new(ENV['TABO_SESSION_BINDING_KEY'].encode(),b'SyntheticBrowser/1',hashlib.sha256).hexdigest())
         return o
 
-    def test_two_buyers_one_ip_can_download_all_18_books_and_no_third(self):
+    def test_two_buyers_one_ip_can_download_full_catalog_and_no_third(self):
         orders=[self.paid(1),self.paid(2)];self.install(*orders)
         with patch.object(app.store,'original',return_value=b'%PDF-synthetic') as original,patch.object(app,'watermarked',return_value=(b'%PDF-synthetic',12)):
             for o in orders:
                 headers={'Cookie':app.download_cookie_name(o['id'])+'=synthetic-session'}
                 for attempt in (1,2,3):
-                    for i in range(1,19):
-                        code,_,_=self.post(f'/api/download/book{i}',{'order_id':o['id']},headers)
-                        self.assertEqual(code,200 if attempt<=2 else 403,(o['id'],attempt,i,code))
-            self.assertEqual(original.call_count,72)
+                    for book_id in app.BOOKS:
+                        code,_,_=self.post(f'/api/download/{book_id}',{'order_id':o['id']},headers)
+                        self.assertEqual(code,200 if attempt<=2 else 403,(o['id'],attempt,book_id,code))
+            self.assertEqual(original.call_count,4*len(app.BOOKS))
 
     def test_session_does_not_depend_on_supabase_key_rotation_but_ua_change_is_denied(self):
         o=self.paid(1);self.install(o)

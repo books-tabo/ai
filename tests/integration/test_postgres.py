@@ -1,5 +1,6 @@
 """Real PostgreSQL, independent connections. Refuses non-local/non-test databases."""
 import concurrent.futures,json,os,subprocess,sys,threading,unittest
+import app
 from pathlib import Path
 
 DSN=os.environ.get('TABO_TEST_DATABASE_URL')
@@ -24,9 +25,9 @@ class PostgresTests(unittest.TestCase):
     def setUp(self):
         with self.connect() as c:
             c.execute('TRUNCATE public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
-            c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT 'book'||n,1234 FROM generate_series(1,18) n")
+            c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
-                      (json.dumps([{'id':f'book{i}'} for i in range(1,19)]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
+                      (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
 
     def claim(self,book='book1',session='a'*64,device='b'*64,barrier=None):
         with self.connect() as c:
@@ -54,12 +55,12 @@ class PostgresTests(unittest.TestCase):
         script="import os,psycopg; c=psycopg.connect(os.environ['TABO_TEST_DATABASE_URL']); print(c.execute(\"SELECT download_count FROM public.order_downloads WHERE book_id='book1'\").fetchone()[0]);c.close()"
         self.assertEqual(subprocess.check_output([sys.executable,'-c',script],text=True).strip(),'2')
 
-    def test_all_18_books_have_independent_durable_two_download_limits(self):
+    def test_all_catalog_books_have_independent_durable_two_download_limits(self):
         for attempt in (1,2,3):
-            for i in range(1,19):self.assertEqual(self.claim(f'book{i}')['allowed'],attempt<=2)
+            for book_id in app.BOOKS:self.assertEqual(self.claim(book_id)['allowed'],attempt<=2)
         with self.connect() as c:
-            self.assertEqual(c.execute('SELECT sum(download_count) FROM public.order_downloads').fetchone()[0],36)
-            self.assertEqual(c.execute('SELECT sum(download_count) FROM public.book_stats').fetchone()[0],36)
+            self.assertEqual(c.execute('SELECT sum(download_count) FROM public.order_downloads').fetchone()[0],2*len(app.BOOKS))
+            self.assertEqual(c.execute('SELECT sum(download_count) FROM public.book_stats').fetchone()[0],2*len(app.BOOKS))
 
     def test_pending_wrong_book_wrong_or_expired_session(self):
         for book,session,device in [('book99','a'*64,'b'*64),('book1','c'*64,'b'*64),('book1','a'*64,'c'*64)]:
