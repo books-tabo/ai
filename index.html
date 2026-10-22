@@ -351,6 +351,14 @@ body.drawer-open{
     line-height:1.55;
 }
 
+.drawer-links{display:grid;gap:12px;margin-top:12px}
+.drawer-links a{text-decoration:none}
+.drawer-card[aria-pressed="true"]{border-color:#c9a227;background:#fbf7e9}
+.catalog-filter{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.catalog-filter h2{margin:0;font-size:22px}
+.catalog-filter .read-more-btn{width:auto;margin:0;padding:9px 14px}
+.catalog-empty{padding:30px 12px;text-align:center;color:#666;line-height:1.9}
+
 
 /* =========================================================
    HEADER
@@ -1882,6 +1890,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
                 <span class="drawer-card-icon" aria-hidden="true">%</span>
                 <span><strong id="offersDrawerTitle">العروض</strong><small id="offersDrawerHint">باقات الكتب والأسعار الخاصة</small></span>
             </button>
+            <div class="drawer-links" id="categoryLinks"></div>
         </div>
 
         <div class="drawer-panel" id="authorsPanel" role="tabpanel" aria-labelledby="authorsTab" hidden>
@@ -1889,6 +1898,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
                 <span class="drawer-card-icon" aria-hidden="true">T</span>
                 <span><strong id="drawerAuthorName">تابو نور</strong><small id="drawerAuthorHint">تعرّف على المؤلف وكتبه</small></span>
             </button>
+            <div class="drawer-links" id="additionalAuthorLinks"></div>
         </div>
     </aside>
 </div>
@@ -1918,6 +1928,12 @@ html[lang="en"] #heroDescription{white-space:pre-line}
 ========================================================= -->
 
 <section class="books-section" id="booksSection">
+
+    <div class="catalog-filter" id="catalogFilter" hidden>
+        <h2 id="catalogFilterTitle"></h2>
+        <button type="button" class="read-more-btn" id="clearCategoryButton"></button>
+    </div>
+    <p class="catalog-empty" id="catalogEmpty" role="status" hidden></p>
 
     <div
         class="books-grid"
@@ -3247,6 +3263,40 @@ const BOOK_TRANSLATIONS = {
 
 BOOKS.forEach((book,index)=>{ book.id=`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
 
+/* Book categories and author navigation */
+const BOOK_CATEGORIES = [
+    {id:"all",ar:"كل الكتب",en:"All books"},
+    {id:"business",ar:"كتب مال وأعمال",en:"Money & Business",books:["book4","book9","book17"]},
+    {id:"wealth",ar:"كتب الثروة",en:"Wealth",books:["book4","book15","book17"]},
+    {id:"entrepreneurship",ar:"كتب ريادة أعمال",en:"Entrepreneurship",books:["book4"]},
+    {id:"self-development",ar:"كتب تطوير الذات",en:"Self-development",books:["book1","book2","book3","book6","book8","book10","book11","book14","book15","book18","book19"]},
+    {id:"psychology",ar:"كتب علم نفس",en:"Psychology",books:["book1","book3","book5","book7","book8","book9","book10","book11","book12","book13","book14","book16","book20"]},
+    {id:"novels",ar:"روايات",en:"Novels",books:[]},
+    {id:"articles",ar:"مقالات",en:"Articles",books:[]}
+];
+const ADDITIONAL_AUTHORS = [
+    {id:"donald-trump",ar:"دونالد ترامب",en:"Donald Trump",initials:"DT"},
+    {id:"robert-kiyosaki",ar:"روبرت كيوزاكي",en:"Robert Kiyosaki",initials:"RK"},
+    {id:"stephen-r-covey",ar:"ستيفن آر. كوفي",en:"Stephen R. Covey",initials:"SC"},
+    {id:"brian-tracy",ar:"برايان تريسي",en:"Brian Tracy",initials:"BT"},
+    {id:"robert-greene",ar:"روبرت غرين",en:"Robert Greene",initials:"RG"}
+];
+let selectedCategory="all";
+function categoryBooks(categoryId=selectedCategory){
+    const category=BOOK_CATEGORIES.find(item=>item.id===categoryId)||BOOK_CATEGORIES[0];
+    return category.id==="all"?BOOKS:BOOKS.filter(book=>category.books.includes(book.id));
+}
+function renderNavigation(){
+    const categories=document.getElementById("categoryLinks"),authors=document.getElementById("additionalAuthorLinks");
+    if(categories) categories.innerHTML=BOOK_CATEGORIES.map(category=>`<button type="button" class="drawer-card" data-category="${category.id}" aria-pressed="${selectedCategory===category.id}"><span class="drawer-card-icon" aria-hidden="true">${category.id==="all"?"≡":"▤"}</span><span><strong>${category[currentLanguage]}</strong><small>${categoryBooks(category.id).length} ${currentLanguage==="ar"?"كتاب متاح":"books available"}</small></span></button>`).join("");
+    if(authors) authors.innerHTML=ADDITIONAL_AUTHORS.map(author=>`<a class="drawer-card" href="/authors#${author.id}"><span class="drawer-card-icon" aria-hidden="true">${author.initials}</span><span><strong>${author[currentLanguage]}</strong><small>${currentLanguage==="ar"?"تعرّف على المؤلف":"About the author"}</small></span></a>`).join("");
+}
+function selectBookCategory(categoryId){
+    selectedCategory=BOOK_CATEGORIES.some(category=>category.id===categoryId)?categoryId:"all";
+    renderNavigation();renderBooks();goToStoreSection("booksSection");
+}
+/* End book categories and author navigation */
+
 let BOOK_STATS=Object.fromEntries(BOOKS.map(book=>[book.id,{rating:null,reviews:0,downloads:0}]));
 
 function ratingMarkup(bookId){
@@ -3375,6 +3425,7 @@ function applyStaticCopy(){
     const modalTitles={aboutModalTitle:"aboutTitle",contactModalTitle:"contactTitle",privacyModalTitle:"privacyTitle",refundModalTitle:"refundTitle",deliveryModalTitle:"deliveryTitle"};
     Object.entries(modalTitles).forEach(([id,key])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
     Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) el.innerHTML=currentLanguage==="en"?INFO_EN[id]:(INFO_AR[id]||el.innerHTML);});
+    renderNavigation();
 }
 
 function setLanguage(language){
@@ -3502,10 +3553,20 @@ function calculatePricing(){
 
 function renderPanorama(){
  const track=document.getElementById("panoramaTrack");if(!track)return;
- track.innerHTML=BOOKS.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${localizedBook(book).name}"><div class="panorama-cover"><img src="${book.image}" alt="${localizedBook(book).name}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
+ const books=categoryBooks();
+ const section=track.closest(".book-panorama");if(section)section.hidden=!books.length;
+ track.innerHTML=books.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${localizedBook(book).name}"><div class="panorama-cover"><img src="${book.image}" alt="${localizedBook(book).name}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
 }
 function renderBooks(){
     renderPanorama();
+    const visibleBooks=categoryBooks();
+    const category=BOOK_CATEGORIES.find(item=>item.id===selectedCategory)||BOOK_CATEGORIES[0];
+    document.getElementById("catalogFilter").hidden=category.id==="all";
+    document.getElementById("catalogFilterTitle").textContent=category[currentLanguage];
+    document.getElementById("clearCategoryButton").textContent=BOOK_CATEGORIES[0][currentLanguage];
+    const empty=document.getElementById("catalogEmpty");
+    empty.hidden=visibleBooks.length>0;
+    empty.textContent=currentLanguage==="ar"?"لا توجد إصدارات متاحة في هذا القسم حاليًا.":"No titles are available in this category yet.";
 
     const container =
         document.getElementById(
@@ -3519,6 +3580,8 @@ function renderBooks(){
 
     BOOKS.forEach(
         (book,index) => {
+
+            if(!visibleBooks.includes(book)) return;
 
             const displayBook=localizedBook(book);
             const cardName=displayBook.cardName||displayBook.name;
@@ -4385,8 +4448,13 @@ document.addEventListener(
         document.querySelectorAll("[data-drawer-tab]").forEach(button=>{
             button.addEventListener("click",()=>setDrawerTab(button.dataset.drawerTab));
         });
-        document.getElementById("offersDrawerLink")?.addEventListener("click",()=>goToStoreSection("booksSection"));
+        document.getElementById("offersDrawerLink")?.addEventListener("click",()=>selectBookCategory("all"));
         document.getElementById("authorDrawerLink")?.addEventListener("click",()=>{location.href="/authors"});
+        document.getElementById("categoryLinks")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-category]");
+            if(button) selectBookCategory(button.dataset.category);
+        });
+        document.getElementById("clearCategoryButton")?.addEventListener("click",()=>selectBookCategory("all"));
         document.getElementById("closeBookDetailsBtn")?.addEventListener("click",()=>closeBookDetails());
         document.getElementById("bookDetailsModal")?.addEventListener("click",event=>closeBookDetails(event));
         document.getElementById("closeCartBtn")?.addEventListener("click",()=>closeCart());
