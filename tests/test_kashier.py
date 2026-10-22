@@ -102,7 +102,20 @@ class KashierTests(unittest.TestCase):
         self.assertEqual(payload['paymentType'],'credit')
         self.assertEqual(payload['redirectMethod'],'get')
         self.assertEqual(payload['customer']['reference'],'TABO-0123456789ABCDEF')
+        self.assertNotIn('metaData',payload)
         self.assertNotIn('KASHIER_SECRET_KEY',json.dumps(payload))
+
+    def test_price_display_is_bound_to_actual_stored_charge(self):
+        order={'total':541.16,'currency':'EGP','pricingQuote':{
+            'displayTotal':'9.99','displayCurrency':'USD','chargeTotal':'541.16','chargeCurrency':'EGP'}}
+        self.assertEqual(app.payment_price_summary(order),{
+            'displayCurrency':'USD','displayTotal':'9.99','chargeCurrency':'EGP','chargeTotal':'541.16'})
+        for changes in ({'chargeTotal':'1.00'},{'chargeCurrency':'USD'},{'displayTotal':'NaN'}):
+            summary=app.payment_price_summary({**order,'pricingQuote':{**order['pricingQuote'],**changes}})
+            self.assertNotEqual((summary or {}).get('displayCurrency'),'USD')
+        self.assertEqual(app.payment_price_summary({'total':199,'currency':'EGP'}),{
+            'displayCurrency':'EGP','displayTotal':'199.00','chargeCurrency':'EGP','chargeTotal':'199.00'})
+        self.assertIsNone(app.payment_price_summary({'total':'NaN','currency':'EGP'}))
 
     def test_session_rejects_untrusted_redirect_host(self):
         environment={

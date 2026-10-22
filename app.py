@@ -248,6 +248,26 @@ def kashier_allowed_methods():
         raise ValueError('Payment methods have not been verified for this merchant')
     return ','.join(dict.fromkeys(methods))
 
+def payment_price_summary(order):
+    """Expose display/charge amounts only, bound to the stored actual charge."""
+    try:
+        amount=Decimal(str(order['total']))
+        currency=order['currency']
+        if not amount.is_finite() or amount<=0 or currency not in ('EGP','USD'):
+            return None
+        summary={'displayCurrency':currency,'displayTotal':f'{amount:.2f}',
+                 'chargeCurrency':currency,'chargeTotal':f'{amount:.2f}'}
+        price=order.get('pricingQuote')
+        if isinstance(price,dict) and currency=='EGP':
+            display=Decimal(str(price.get('displayTotal','NaN')))
+            charge=Decimal(str(price.get('chargeTotal','NaN')))
+            if (price.get('displayCurrency')=='USD' and price.get('chargeCurrency')=='EGP'
+                    and display.is_finite() and display>0 and charge.is_finite() and charge==amount):
+                summary.update(displayCurrency='USD',displayTotal=f'{display:.2f}')
+        return summary
+    except (KeyError,TypeError,ValueError,InvalidOperation):
+        return None
+
 def kashier_checkout(order, customer):
     mode=kashier_mode()
     merchant=os.environ.get('KASHIER_MERCHANT_ID','').strip()
@@ -284,6 +304,11 @@ def kashier_checkout(order, customer):
         'enable3DS':True,
         'serverWebhook':site+'/api/kashier/webhook',
     }
+    price=payment_price_summary(order)
+    if price and price['displayCurrency']=='USD' and price['chargeCurrency']=='EGP':
+        labels=('Order price (USD)','Amount charged (EGP)') if order.get('displayLanguage')=='en' else ('سعر الطلب بالدولار الأمريكي','المبلغ المحصل بالجنيه المصري')
+        payload['metaData']={'displayNotes':{
+            labels[0]:price['displayTotal']+' USD',labels[1]:price['chargeTotal']+' EGP'}}
     request=Request(KASHIER_API_BASES[mode]+'/v3/payment/sessions',
                     data=json.dumps(payload,separators=(',',':')).encode(),
                     headers={'Authorization':secret,'api-key':payment_key,
@@ -989,6 +1014,7 @@ class Handler(BaseHTTPRequestHandler):
             if not order: return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
             return self.respond(200,{'ok':True,'status':order['status'],'order_id':order['id'],
               'books':[i['name'] for i in order['items']],
+              'pricing':payment_price_summary(order),
               'ready':order['status']=='PAID'})
         if route=='/api/downloads':
             order_id=parse_qs(parsed.query).get('order',[''])[0]

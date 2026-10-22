@@ -1311,6 +1311,9 @@ footer .language-switch button.active{
 
 }
 
+.summary-final.usd-summary{align-items:center;gap:12px;flex-wrap:wrap}
+.summary-final.usd-summary strong{font-size:32px;direction:ltr;unicode-bidi:isolate}
+
 .cart-next-message{
 
     background:#f7f3e6;
@@ -2148,7 +2151,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
             </div>
 
 
-            <div class="summary-row summary-final">
+            <div class="summary-row summary-final" id="cartFinalRow">
 
                 <span id="finalPriceLabel">
                     السعر الحالي
@@ -3882,6 +3885,11 @@ function renderCart(){
     const pricing =
         calculatePricing();
 
+    const usdSummary=needsEgpQuote();
+    document.getElementById("cartFinalRow").classList.toggle("usd-summary",usdSummary);
+    document.getElementById("finalPriceLabel").textContent=usdSummary?(currentLanguage==="ar"?"الإجمالي بالدولار":"Total in USD"):t("final");
+    document.getElementById("checkoutBtn").textContent=usdSummary?`${t("checkout")} — ${formatMoney(pricing.final)}`:t("checkout");
+
 
     if(
         cart.length === 0
@@ -4226,7 +4234,7 @@ function currentCheckoutQuote(){
 function displayChargeQuote(){
     const note=document.getElementById('chargeCurrencyNote');
     const amount=new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(checkoutQuote.chargeTotal));
-    note.textContent=currentLanguage==='en'?`You will be charged the equivalent in Egyptian pounds: EGP ${amount}`:`سيتم تحصيل ما يعادل السعر بالجنيه المصري: ${amount} جنيه`;
+    note.textContent=currentLanguage==='en'?`Kashier will charge EGP ${amount}. If your card uses another currency, your bank determines its conversion rate and any fees.`:`سيتم تحصيل ${amount} جنيه مصري عبر كاشير. عند اختلاف عملة بطاقتك، يحدد بنكك سعر التحويل وأي رسوم.`;
     note.style.display='block';
 }
 async function refreshCheckoutQuote(force=false){

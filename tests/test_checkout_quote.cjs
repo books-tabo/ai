@@ -99,3 +99,4 @@ function boot(){
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
 require('./test_catalog_pricing.cjs');
+require('./test_pending_prices.cjs');

@@ -108,10 +108,19 @@ class QuoteHTTPTests(HTTPCase):
         self.assertEqual(status, 201)
         self.assertEqual((data['order']['total'],data['order']['currency']), (541.16,'EGP'))
         self.assertEqual((captured[0]['amount'],captured[0]['currency']), ('541.16','EGP'))
+        self.assertEqual(captured[0]['metaData']['displayNotes'], {
+            'سعر الطلب بالدولار الأمريكي':'9.99 USD',
+            'المبلغ المحصل بالجنيه المصري':'541.16 EGP'})
         stored=self.db.orders[data['order']['id']]
         self.assertEqual(stored['pricingQuote']['displayTotal'], '9.99')
         self.assertEqual(stored['pricingQuote']['rate'], '54.16975051')
         self.assertNotIn('token', stored['pricingQuote'])
+        with self.opener.open(self.base+'/api/order-status?key='+stored['statusKey']) as response:
+            tracking=json.loads(response.read())
+        self.assertEqual(tracking['pricing'], {'displayCurrency':'USD','displayTotal':'9.99',
+            'chargeCurrency':'EGP','chargeTotal':'541.16'})
+        self.assertNotIn('token',tracking['pricing'])
+        self.assertNotIn('buyer',tracking)
         wrong, sig=kashier_payload(stored, amount=9.99, currency='USD')
         with patch.object(app, 'reconcile_kashier', return_value='paid'):
             self.assertEqual(self.post('/api/kashier/webhook',wrong,sig)[0], 400)

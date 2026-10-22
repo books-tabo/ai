@@ -86,6 +86,16 @@ Run `node tests/test_meta_tracking.cjs` plus the Python suite. JavaScript tests 
 
 ## USD storefront price, EGP charge — owner-requested 2026-10-20 change
 
+The 2026-10-22 presentation update emphasizes the USD total in the cart and
+includes the actual EGP charge below it. The authenticated order-status response
+provides only a minimal display/charge summary derived from the stored order;
+the existing tracking page uses it to retain both amounts before opening Kashier.
+For new converted orders, documented `metaData.displayNotes` also sends both
+amounts to Kashier's hosted checkout. No currency, rate, charge, refund or payment
+authorization is changed by this presentation update. Kashier still controls its
+native total and pay-button display; replacing those with a USD primary total
+requires its separately gated customer-facing currency feature for this merchant.
+
 Book/bundle display prices and Egyptian pricing are unchanged. For a new Kashier
 order displayed in USD, the cart requests a same-origin, no-store quote from
 `POST /api/checkout-quote`. A small 13px line immediately below the total states
