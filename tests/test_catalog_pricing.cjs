@@ -2,9 +2,9 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const html = fs.readFileSync('index.html', 'utf8');
-const detail = fs.readFileSync('book.html', 'utf8');
-const booksSource = html.match(/const BOOKS = (\[[\s\S]*?\n\]);/)[1];
+const rendered = require('./rendered_template.cjs');
+const html = rendered('index.html');
+const booksSource = html.match(/const BOOKS = (\[[^\n]*\]);/)[1];
 const source = html.split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
 const egp = Object.fromEntries(Array.from({length: 19}, (_, i) => [String(i + 1), 199 + i * 100]));
 const usd = {1: 9.99, 2: 17.99, 3: 24.99, ...Object.fromEntries(Array.from({length: 16}, (_, i) => [String(i + 4), Number((29.99 + i * 5).toFixed(2))]))};
@@ -30,8 +30,9 @@ for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD'
     assert.equal(vm.runInContext('bookPolicy(BOOKS[19]).previewEnabled', context), false);
 }
 
-const detailScript = detail.slice(detail.indexOf('const BOOKS='), detail.indexOf('async function submitRating('));
 function product(bookId, currency) {
+    const detail = rendered('book.html','/books/'+bookId);
+    const detailScript = detail.slice(detail.indexOf('const BOOKS='), detail.indexOf('async function submitRating('));
     const nodes = new Map();
     const node = id => {
         if (!nodes.has(id)) nodes.set(id, {textContent: '', hidden: false, style: {}, setAttribute() {}, removeAttribute(name) {delete this[name];}});
@@ -39,10 +40,10 @@ function product(bookId, currency) {
     };
     const c = vm.createContext({location: {pathname: '/books/' + bookId, search: ''}, URLSearchParams,
         localStorage: {getItem: () => null}, navigator: {language: 'ar'},
-        document: {documentElement: {}, getElementById: node, querySelectorAll: () => []}});
+        window:{}, document: {documentElement: {}, getElementById: node, querySelectorAll: () => []}});
     vm.runInContext(detailScript, c);
     c.productConfig = {currency, prices: {'1': currency === 'EGP' ? 199 : 9.99}, compareAtPrice: currency === 'EGP' ? 299 : 14.99, countries: []};
-    vm.runInContext('config=productConfig;render()', c);
+    vm.runInContext('config=productConfig;pricingLoaded=true;render()', c);
     return nodes;
 }
 for (const currency of ['EGP', 'USD']) {

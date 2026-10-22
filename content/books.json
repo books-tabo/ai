@@ -1,0 +1,1233 @@
+{
+  "book1": {
+    "name": "هرمون",
+    "enName": "Hormone",
+    "image": "/covers/book1.webp",
+    "size": 9357358,
+    "short": "رحلة لفهم القوة والانضباط والجسد والإرادة وبناء شخصية أكثر وعيًا وقدرة على قيادة نفسها.",
+    "enShort": "A journey into strength, discipline, the body and willpower — and how to build a more self-aware character.",
+    "about": "«هرمون» ليس كتابًا عن القوة الجسدية فقط، ولا عن مطاردة الهرمونات. إنه رحلة لفهم العلاقة بين الجسد والعقل والانضباط والشخصية.\n\nيناقش الكتاب كيف يمكن للعادات والرغبات والهاتف والضغوط والخوف من آراء الآخرين أن تؤثر في طريقة حياتنا، ثم ينتقل إلى فهم الجسد والهرمونات والنوم والتوتر والحركة، قبل أن يصل إلى مفاهيم مثل الشرف والعزة والشجاعة والقيادة.\n\nالهدف ليس أن تصبح مهووسًا بجسدك، بل أن تفهمه وتحترمه، وتحول المعرفة إلى سلوك، والسلوك إلى شخصية.",
+    "enAbout": "Hormone is not only about physical strength. It explores how the body, mind, discipline and character shape one another, and turns knowledge about habits, sleep, stress and movement into practical behaviour.",
+    "adds": "يساعدك الكتاب على النظر إلى القوة بصورة أعمق: ليس فقط كيف تبدو قويًا، بل كيف تصبح قادرًا على إدارة نفسك ورغباتك وقراراتك، واستخدام قوتك في البناء وتحمل المسؤولية.",
+    "enAdds": "It helps you see strength as the ability to manage your desires, choices and responsibilities — not merely to look strong.",
+    "idea": "القوة الحقيقية ليست أن تبدو قويًا، بل أن تصبح الإنسان الذي يستحق القوة.",
+    "enIdea": "Real strength is becoming the person who deserves it.",
+    "audience": {
+      "ar": "للرجل الذي يريد فهم علاقته بجسده وانضباطه ومسؤوليته، بعيدًا عن اختزال القوة في المظهر.",
+      "en": "For men exploring the relationship between their body, discipline and responsibility beyond physical appearance."
+    },
+    "topics": {
+      "ar": [
+        "الجسد والعقل والعادات",
+        "النوم والتوتر والحركة",
+        "الإرادة والشجاعة والمسؤولية"
+      ],
+      "en": [
+        "Body, mind and habits",
+        "Sleep, stress and movement",
+        "Willpower, courage and responsibility"
+      ]
+    },
+    "related": [
+      "book6",
+      "book14",
+      "book20"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل هرمون كتاب عن العضلات فقط؟",
+          "لا؛ يربط فهم الجسد بالعقل والانضباط والرغبات وبناء الشخصية وتحمل المسؤولية."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة هرمون؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Is Hormone only about muscles?",
+          "No. It connects the body with the mind, discipline, desires, character and responsibility."
+        ],
+        [
+          "What language and format is Hormone available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 427,
+    "imageHeight": 640
+  },
+  "book2": {
+    "name": "نحو القمة",
+    "enName": "Toward the Summit",
+    "image": "/covers/book2.webp",
+    "size": 5864290,
+    "short": "رحلة عملية في الوعي والانضباط والعمل والمال والفشل والنجاح لبناء حياة أكثر صدقًا وقدرة.",
+    "enShort": "A practical journey through awareness, discipline, work, money, failure and success.",
+    "about": "«نحو القمة» يبدأ من سؤال مختلف: ليس فقط كيف أنجح؟ بل أي إنسان يجب أن أصبح حتى أعيش الحياة التي أريدها؟\n\nينتقل الكتاب من الوعي وتحمل المسؤولية إلى اكتشاف نقاط القوة، وبناء المهارات، والانضباط، والعمل، والمال، والعلاقات، والتعامل مع الفشل والنجاح.\n\nلا يقدم الكتاب وعودًا سريعة أو وصفة جاهزة، بل يركز على التفاصيل الصغيرة التي تصنع النتائج الكبيرة: مراجعة الأخطاء، دراسة الأرقام، التدريب، تحمل الملل، الالتزام، والعودة بعد الأيام السيئة.",
+    "enAbout": "Toward the Summit asks not only how to succeed, but who you need to become to build the life you want. It covers responsibility, skills, discipline, work, money, relationships and learning from failure.",
+    "adds": "يمنحك طريقة أكثر عملية للنظر إلى الوقت والانضباط والفشل والنجاح، ويذكّرك بأن النجاح لا يُبنى في الصورة النهائية، بل في العملية والتفاصيل التي تسبقها.",
+    "enAdds": "It gives you a practical way to think about time, discipline, setbacks and the small actions behind lasting results.",
+    "idea": "لا تنتظر أن تصبح مستعدًا بالكامل. ابدأ، تعلّم، صحّح، واستمر في الصعود.",
+    "enIdea": "Start, learn, correct your course, and keep climbing.",
+    "audience": {
+      "ar": "لمن يراجع أهدافه وطريقة تعامله مع العمل والوقت والفشل، ويريد تحويل الطموح إلى سلوك يومي.",
+      "en": "For readers reviewing their goals, work, time and response to setbacks, and seeking to turn ambition into daily action."
+    },
+    "topics": {
+      "ar": [
+        "الوعي وتحمل المسؤولية",
+        "بناء المهارات والانضباط",
+        "العمل والمال والتعلم من الفشل"
+      ],
+      "en": [
+        "Awareness and responsibility",
+        "Skills and discipline",
+        "Work, money and learning from setbacks"
+      ]
+    },
+    "related": [
+      "book6",
+      "book18",
+      "book15"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل نحو القمة يركز على النجاح المهني وحده؟",
+          "يتناول العمل والمال ضمن صورة أوسع تشمل الوعي والعلاقات والاختيارات والانضباط."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة نحو القمة؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Is Toward the Summit only about career success?",
+          "It considers work and money within a broader picture of awareness, relationships, choices and discipline."
+        ],
+        [
+          "What language and format is Toward the Summit available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 427,
+    "imageHeight": 640
+  },
+  "book3": {
+    "name": "تمرد",
+    "enName": "Rebellion",
+    "image": "/covers/book3.webp",
+    "size": 7023447,
+    "short": "رحلة نحو الحرية والوعي والاختيار، لفهم تأثير الخوف والعادات وتوقعات الآخرين على حياتنا.",
+    "enShort": "A journey toward freedom, conscious choice and understanding the effect of fear and social expectations.",
+    "about": "ماذا لو كانت بعض القرارات التي تظن أنك اخترتها قد تشكلت أصلًا من توقعات الآخرين والخوف والعادة والرغبة في الحصول على القبول؟\n\n«تمرد» لا يدعوك إلى الفوضى أو هدم حياتك أو مخالفة الجميع لمجرد المخالفة. بل يدعوك إلى نوع مختلف من التمرد: أن تستعيد حقك في اختيار حياتك بوعي.\n\nيناقش الكتاب الحرية والاختيار والعادات والضغوط والالتزامات، وكيف يمكن للإنسان أن يراجع طريقه دون أن يهرب من مسؤولياته.",
+    "enAbout": "Rebellion is not a call for chaos. It is an invitation to reclaim your right to choose your life consciously, examine habits and pressure, and take responsibility for the results of your choices.",
+    "adds": "يساعدك الكتاب على مراجعة اختياراتك، وفهم الخوف والضغوط التي تؤثر فيك، والتمييز بين ما تريده فعلًا وما اعتدت أن تريده لإرضاء الآخرين، مع تحمل نتائج اختياراتك.",
+    "enAdds": "It helps you separate what you truly want from what you learned to want merely to satisfy others.",
+    "idea": "لا يكفي أن تتحرر من القيد؛ عليك أن تعرف ماذا ستفعل بالحرية بعد ذلك.",
+    "enIdea": "Freedom matters only when you know what to do with it.",
+    "audience": {
+      "ar": "لمن يشعر بأن الخوف والعادات وتوقعات الآخرين تختار حياته بدلًا منه، ويريد مراجعة طريقه بوعي.",
+      "en": "For readers examining the effect of fear, habits and social expectations on their choices."
+    },
+    "topics": {
+      "ar": [
+        "الحرية والاختيار",
+        "الخوف والضغوط الاجتماعية",
+        "مراجعة العادات والمسؤولية"
+      ],
+      "en": [
+        "Freedom and choice",
+        "Fear and social pressure",
+        "Habits and responsibility"
+      ]
+    },
+    "related": [
+      "book8",
+      "book14",
+      "book19"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل تمرد يدعو إلى مخالفة الجميع؟",
+          "يدعو إلى الاختيار الواعي ومراجعة العادات والضغوط مع تحمل المسؤولية، لا إلى المخالفة لمجرد المخالفة."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة تمرد؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does Rebellion advocate opposing everyone?",
+          "It invites conscious choice and examination of habits and pressure while accepting responsibility."
+        ],
+        [
+          "What language and format is Rebellion available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 427,
+    "imageHeight": 640
+  },
+  "book4": {
+    "name": "كيف تصنع المليون الأول",
+    "enName": "How to Make Your First Million",
+    "image": "/covers/book4.webp",
+    "size": 8096147,
+    "short": "دليل عملي لفهم المال والقيمة والدخل ورأس المال والاستثمار وبناء القدرة على صناعة الثروة.",
+    "enShort": "A practical guide to value, income, capital, investing and building the ability to create wealth.",
+    "about": "هذا الكتاب لا يقدم لك وعدًا بأنك ستصبح مليونيرًا، ولا يبحث عن سر سريع للثراء. بدلًا من ذلك، يبدأ من السؤال الأهم: كيف تتعلم صناعة المال؟\n\nينتقل الكتاب من بناء القيمة والمهارة والدخل إلى المبيعات والتسويق والخدمات والتجارة والمنتجات الرقمية، ثم إلى الادخار ورأس المال والاستثمار وبناء الأصول والتوسع.\n\nالفكرة ليست أن تصل إلى رقم معين فقط، بل أن تبني القدرة التي تجعلك قادرًا على صناعة المال وإدارته وإعادة استثماره وتنمية ما تملك.",
+    "enAbout": "This book offers no shortcut to wealth. It starts with value, skill and income, then moves through sales, marketing, saving, capital, investing and building assets that can grow.",
+    "adds": "يساعدك الكتاب على التفكير في المال والعمل والفرص بصورة أكثر وضوحًا، وفهم كيف يمكن أن تتحول المهارة والقيمة التي تقدمها إلى دخل، ثم إلى رأس مال وأصول ونظام قابل للنمو.",
+    "enAdds": "It clarifies how skill and value can become income, then capital, assets and a repeatable system.",
+    "idea": "لا تطارد المليون فقط؛ ابنِ القدرة التي تستطيع أن تصنع بها المليون.",
+    "enIdea": "Do not only chase a million; build the ability that can create it.",
+    "audience": {
+      "ar": "لمن يريد فهم العلاقة بين المهارة والقيمة والدخل، والتدرج من الكسب إلى رأس المال والأصول.",
+      "en": "For readers exploring how skill and value become income, capital and assets."
+    },
+    "topics": {
+      "ar": [
+        "القيمة والمهارة والدخل",
+        "البيع والتسويق والخدمات",
+        "الادخار ورأس المال والأصول"
+      ],
+      "en": [
+        "Value, skill and income",
+        "Sales, marketing and services",
+        "Saving, capital and assets"
+      ]
+    },
+    "related": [
+      "book17",
+      "book9",
+      "book15"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل يعد الكتاب بتحقيق مليون في مدة محددة؟",
+          "لا يقدم وعدًا سريعًا بالثراء؛ يناقش بناء القدرة على خلق القيمة والكسب والتعلم وإدارة الموارد."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة كيف تصنع المليون الأول؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does the book promise a million by a deadline?",
+          "It offers no quick-wealth promise. It explores value creation, earning capacity, learning and resource management."
+        ],
+        [
+          "What language and format is How to Make Your First Million available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 427,
+    "imageHeight": 640
+  },
+  "book5": {
+    "name": "شهوات",
+    "enName": "Desires",
+    "image": "/covers/book5.webp",
+    "size": 10032567,
+    "short": "رحلة لفهم الرغبات الخفية وراء المال والحب والنجاح والاهتمام والمكانة، واكتشاف ما تقوله شهواتنا عن الإنسان الذي نكونه.",
+    "enShort": "Understand the hidden desires behind money, love, success, attention and status.",
+    "about": "«شهوات» لا يتعامل مع الشهوة باعتبارها رغبة جسدية فقط، بل ينظر إليها باعتبارها جزءًا أساسيًا من التجربة الإنسانية.\n\nيناقش الكتاب رغبات الإنسان في المال والحب والنجاح والشهرة والمكانة والاهتمام والقوة، ويحاول أن يتجاوز السؤال البسيط: ماذا نريد؟ إلى السؤال الأعمق: لماذا نريد ما نريده؟\n\nفالشيء الذي نطارده قد لا يكون دائمًا هو الغاية الحقيقية؛ فقد نبحث عن المال بحثًا عن الأمان، أو عن النجاح بحثًا عن إثبات الذات، أو عن الحب خوفًا من الوحدة.\n\nالكتاب يدعوك إلى النظر إلى رغباتك دون إدانة أو تبرير، وفهم الدوافع التي تقف خلفها، والتمييز بين الشعور والرغبة والقرار.",
+    "enAbout": "Desires looks beyond physical desire to the motives behind money, love, success, fame, status and power. It asks not only what we want, but why we want it.",
+    "adds": "يساعدك «شهوات» على فهم نفسك من زاوية مختلفة، ومراجعة الدوافع الخفية وراء بعض اختياراتك، والتمييز بين الحاجة والرغبة والشهوة، وبين الرغبة التي تدفعك إلى الأمام والرغبة التي تبدأ في التحكم في قراراتك.\n\nكما يمنحك مساحة للتوقف قبل الاستجابة لرغباتك، وسؤال نفسك: لماذا أريد هذا؟ وماذا أتوقع أن يمنحني عندما أحصل عليه؟",
+    "enAdds": "It helps you distinguish needs, wants and impulses, pause before reacting, and understand what your desires are really asking for.",
+    "idea": "السؤال ليس فقط: ماذا تشتهي؟ بل: لماذا تشتهي ما تشتهيه؟ وماذا تفعل بك هذه الشهوة؟",
+    "enIdea": "The question is not only what you desire, but why you desire it.",
+    "audience": {
+      "ar": "لمن يريد فهم دوافعه وراء المال والحب والنجاح والاهتمام، والتمييز بين الحاجة والرغبة.",
+      "en": "For readers exploring their motives around money, love, success and attention, and distinguishing needs from desires."
+    },
+    "topics": {
+      "ar": [
+        "الحاجة والرغبة والشهوة",
+        "المال والاهتمام والمكانة",
+        "الدوافع الخفية وراء الاختيارات"
+      ],
+      "en": [
+        "Needs, wants and impulses",
+        "Money, attention and status",
+        "Motives behind choices"
+      ]
+    },
+    "related": [
+      "book8",
+      "book16",
+      "book17"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل شهوات يتناول الرغبة الجسدية فقط؟",
+          "ينظر إلى الرغبة بصورة أوسع، تشمل المال والحب والنجاح والشهرة والمكانة والقوة."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة شهوات؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Is Desires only about physical desire?",
+          "It takes a wider view of desire, including money, love, success, fame, status and power."
+        ],
+        [
+          "What language and format is Desires available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 427,
+    "imageHeight": 640
+  },
+  "book6": {
+    "name": "دليل السمو",
+    "enName": "Guide to Elevation",
+    "image": "/covers/book6.webp",
+    "size": 9743195,
+    "short": "رحلة عملية للارتقاء بالإنسان من الداخل إلى الخارج؛ من سمو العقل والانضباط والعادات إلى المال والعلاقات والصحة والرسالة والأثر.",
+    "enShort": "A practical journey of inner and outer growth through thought, discipline, health, money, relationships and purpose.",
+    "about": "«دليل السمو» ينطلق من فكرة بسيطة وعميقة: لم نختر نقطة البداية، لكننا نملك بدرجة كبيرة القدرة على اختيار الاتجاه الذي نتحرك إليه.\n\nلا يتعامل الكتاب مع السمو باعتباره تفوقًا على الآخرين، بل باعتباره ارتقاءً بالنفس؛ انتقالًا من الجهل إلى المعرفة، ومن الفوضى إلى النظام، ومن الخوف إلى الشجاعة، ومن الفشل إلى الخبرة، ومن النجاح إلى الأثر.\n\nتبدأ الرحلة من العقل، ثم تمتد إلى الانضباط وإدارة الوقت والعادات والقوة وتحمل المسؤولية، ثم إلى المال باعتباره أداة للاستقلال والاختيار، وإلى القلب والعلاقات والحدود والسلام، وصولًا إلى الصحة والفشل والرسالة والأثر.\n\nوالكتاب لا يقدم وعودًا سحرية أو إنكارًا لصعوبة الحياة؛ بل يدعو إلى رؤية الواقع بوضوح، ثم البحث عما يمكن تغييره داخله، والبدء من الخطوة التي تستطيع القيام بها اليوم.",
+    "enAbout": "Guide to Elevation treats growth as rising above your previous self rather than competing with others. It turns broad self-development ideas into questions, exercises and practical steps.",
+    "adds": "يساعدك «دليل السمو» على إعادة النظر في علاقتك بظروفك وهويتك وعاداتك وقراراتك، وعلى تحويل تطوير الذات من أفكار عامة إلى أسئلة وتمارين وخطوات عملية.\n\nكما يدفعك إلى التمييز بين ما تستطيع التحكم فيه وما تستطيع التأثير فيه وما يقع خارج سيطرتك، وبناء التغيير من خطوات صغيرة تتراكم مع الوقت، مع الحفاظ على واقعية الطريق ومسؤوليته.",
+    "enAdds": "It helps you focus on what you can control, influence what you can change, and build progress through small consistent actions.",
+    "idea": "السمو ليس أن تصبح أفضل من الآخرين؛ السمو أن ترتقي بنفسك.",
+    "enIdea": "Elevation is not becoming better than others; it is raising yourself.",
+    "audience": {
+      "ar": "لمن يبحث عن تطوير متوازن يشمل التفكير والانضباط والصحة والعلاقات والمال والمعنى.",
+      "en": "For readers seeking balanced growth in thought, discipline, health, relationships, money and purpose."
+    },
+    "topics": {
+      "ar": [
+        "العقل والعادات والانضباط",
+        "ما نتحكم فيه وما نؤثر فيه",
+        "العلاقات والمال والرسالة والأثر"
+      ],
+      "en": [
+        "Thought, habits and discipline",
+        "Control and influence",
+        "Relationships, money, purpose and impact"
+      ]
+    },
+    "related": [
+      "book2",
+      "book14",
+      "book18"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "ما المقصود بالسمو في هذا الكتاب؟",
+          "الارتقاء بالنفس من المعرفة إلى السلوك ومن الفوضى إلى النظام، مع التركيز على الخطوات الصغيرة والمسؤولية."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة دليل السمو؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "What does elevation mean in this book?",
+          "Personal growth through knowledge, action, order, small steps and responsibility."
+        ],
+        [
+          "What language and format is Guide to Elevation available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 427,
+    "imageHeight": 640
+  },
+  "book7": {
+    "name": "إلى كل بنت",
+    "enName": "To Every Girl",
+    "image": "/covers/book7.webp",
+    "size": 8087582,
+    "short": "رحلة نفسية واجتماعية تساعد كل فتاة على فهم ذاتها، ووضع حدودها، والتمييز بين الحب والتعلّق، واختيار حياتها دون أن تخسر نفسها.",
+    "enShort": "A psychological and social journey into self-worth, boundaries, love, attachment and choosing your life without losing yourself.",
+    "about": "«إلى كل بنت» يبدأ من السؤال الذي يسبق الحب والزواج والناس: هل اخترتِ نفسكِ؟\n\nيناقش الكتاب تقدير الذات، وصورة الجسد، والمقارنة، وضغط المجتمع، ثم ينتقل إلى العلاقات والحدود والقدرة على قول «لا»، قبل أن يتناول الحب والتعلّق واختيار شريك الحياة والعلامات التي تستحق الانتباه.\n\nلا يدعو الكتاب إلى رفض الحب أو الزواج، بل إلى دخولهما بقلب مفتوح ووعي يحمي الكرامة والأحلام والهوية. وهو يذكّر كل فتاة بأنها ليست فقط موضوعًا للاختيار، بل صاحبة اختيار أيضًا.",
+    "enAbout": "To Every Girl begins with the question that comes before love, marriage and other people's expectations: have you chosen yourself? It explores self-worth, body image, comparison, social pressure, boundaries, attachment and how to choose a mature life partner without abandoning your identity or dreams.",
+    "adds": "يساعدك الكتاب على فهم ما تريدينه حقًا بعيدًا عن المقارنة وضغط الآخرين، وبناء حدود صحية، والتمييز بين القرب والسيطرة وبين الحب والتعلّق، ورؤية العلاقة الجيدة بوصفها مساحة للنمو لا سببًا للانطفاء.",
+    "enAdds": "It helps you understand what you truly want, build healthy boundaries, distinguish love from attachment and control, and recognize a relationship that supports growth rather than self-erasure.",
+    "idea": "قبل أن تختاري حياتكِ، تعلّمي كيف تختارين نفسكِ.",
+    "enIdea": "Before you choose your life, learn how to choose yourself.",
+    "audience": {
+      "ar": "للفتاة التي تريد فهم نفسها وحدودها وعلاقاتها، والاختيار دون التخلي عن احترام ذاتها.",
+      "en": "For women examining identity, boundaries and relationships while maintaining self-respect."
+    },
+    "topics": {
+      "ar": [
+        "فهم الذات والحدود",
+        "الحب والتعلق",
+        "الاختيار واحترام الذات"
+      ],
+      "en": [
+        "Self-understanding and boundaries",
+        "Love and attachment",
+        "Choice and self-respect"
+      ]
+    },
+    "related": [
+      "book13",
+      "book12",
+      "book14"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "ما محور إلى كل بنت؟",
+          "يركز على فهم الذات ووضع الحدود والتمييز بين الحب والتعلق واختيار الحياة بوعي."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة إلى كل بنت؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "What is To Every Girl about?",
+          "It explores self-understanding, boundaries, love versus attachment and conscious choices."
+        ],
+        [
+          "What language and format is To Every Girl available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1018
+  },
+  "book8": {
+    "name": "أصنام",
+    "enName": "Idols",
+    "image": "/covers/book8.webp",
+    "size": 13035946,
+    "short": "رحلة في الوعي والإرادة تكشف أصنام العصر الحديث، وتساعدك على امتلاك المال والتقنية والرغبة دون أن تمتلكك.",
+    "enShort": "A journey through awareness and willpower that exposes modern idols and helps you use money, technology and desire without being ruled by them.",
+    "about": "«أصنام» ينطلق من حقيقة أن الأصنام لم تختفِ؛ بل غيّرت أشكالها. فقد يصبح الهاتف أو المال أو الشهوة أو المظاهر أو رضا الناس قوةً تحدد قيمتك وتختار عنك دون أن تشعر.\n\nيتتبع الكتاب هذه العبوديات الحديثة عبر أربعة أبواب واثنين وعشرين فصلًا: اكتشاف الصنم، وأصنام الشهوة والاستهلاك، وأصنام النفس والمجتمع، ثم التحرر وبناء الإنسان.\n\nالكتاب ليس ضد المال أو التقنية أو النجاح أو المتعة، بل يدعوك إلى أن تعيش في الدنيا دون أن تصبح عبدًا لها؛ أن تمتلك دون أن تتعلق، وتستمتع دون أن تنغمس، وتنجح دون أن تفقد نفسك أو دينك.",
+    "enAbout": "Idols begins with a simple truth: idols did not disappear; they changed form. A phone, money, desire, appearances or the approval of others can define your value and make choices for you. Across four parts and twenty-two chapters, the book moves from recognizing modern servitude to rebuilding attention, restraint, responsibility and conscious choice.",
+    "adds": "يساعدك «أصنام» على اكتشاف ما يستهلك انتباهك وإرادتك، وفهم علاقتك بالهاتف والمال والشهوة والمظاهر والقبول والخوف والراحة والغضب، ثم تحويل التوحيد والعفة والانضباط والمسؤولية إلى أدوات عملية للتحرر واتخاذ القرار.",
+    "enAdds": "It helps you identify what consumes your attention and will, understand your relationship with technology, money, desire, status, approval, fear and anger, then turn faith, discipline and responsibility into practical tools for freedom.",
+    "idea": "السؤال ليس ماذا تملك، بل: ما الذي يملكك؟",
+    "enIdea": "The question is not what you own, but what owns you.",
+    "audience": {
+      "ar": "لمن يراجع تأثير الهاتف والمال والمكانة ورأي الآخرين على انتباهه وحريته في الاختيار.",
+      "en": "For readers examining how phones, money, status and approval shape attention and freedom of choice."
+    },
+    "topics": {
+      "ar": [
+        "التقنية والانتباه",
+        "المال والرغبة والقبول",
+        "الإرادة والانضباط والاختيار"
+      ],
+      "en": [
+        "Technology and attention",
+        "Money, desire and approval",
+        "Willpower, discipline and choice"
+      ]
+    },
+    "related": [
+      "book3",
+      "book5",
+      "book14"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "ما معنى الأصنام في الكتاب؟",
+          "يتناول الأشياء والرغبات والصور التي يمكن أن تحكم اختيار الإنسان، مثل التقنية والمال والمكانة والقبول."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة أصنام؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "What are the idols in this book?",
+          "Things, desires and images that can govern choices, including technology, money, status and approval."
+        ],
+        [
+          "What language and format is Idols available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1080
+  },
+  "book9": {
+    "name": "تأثير الكوبرا",
+    "enName": "Cobra Effect",
+    "image": "/covers/book9.webp",
+    "size": 8352046,
+    "short": "رحلة في الاقتصاد السلوكي وصناعة القرار تكشف كيف قد تحوّل الحوافز غير المحسوبة الحلول الذكية إلى مشكلات أكبر.",
+    "enShort": "A behavioral-economics journey into how poorly designed incentives can turn sensible solutions into larger problems.",
+    "about": "«تأثير الكوبرا» كتاب عن القرارات التي تبدأ بنية حسنة وتنتهي بنتائج عكسية. ينطلق من حكاية مكافآت أفاعي الكوبرا ليفحص ما يحدث حين تدفع الحوافز الناس إلى تحسين الرقم بدل تحقيق الغاية، أو استغلال ثغرات النظام بدل حل المشكلة.\n\nينتقل الكتاب من فهم النتائج غير المقصودة إلى عالم الشركات والمؤسسات؛ حيث مؤشرات الأداء والمكافآت والقواعد التي قد تحقق ما يُقاس وتُفسد ما أُريد.\n\nثم يقدم طريقة عملية لاختبار القرارات، ورصد آثارها من الدرجة الثانية، وتصميم أنظمة أصعب على التحايل وأكثر اتزانًا.",
+    "enAbout": "Cobra Effect examines decisions that begin with good intentions and end in unintended consequences. Starting from the famous cobra-bounty story, it explores what happens when people optimize a metric instead of the real goal, exploit loopholes, or game the system. It then moves into companies and institutions, where KPIs, rewards and rules can succeed numerically while failing in reality, and offers a practical framework for testing incentives and second-order effects before they become crises.",
+    "adds": "يساعدك الكتاب على التفكير في العواقب قبل تنفيذ القرار، واكتشاف الحوافز الخاطئة والثغرات مبكرًا، والتمييز بين نجاح المؤشر ونجاح الهدف الحقيقي.",
+    "enAdds": "It helps you anticipate consequences, detect bad incentives and loopholes early, and distinguish a successful metric from a genuinely successful outcome.",
+    "idea": "ليس الذكاء أن تطارد الكوبرا كلما ظهرت؛ الذكاء أن تكتشف لماذا يستمر نظامك في إنتاجها.",
+    "enIdea": "Intelligence is not chasing every cobra; it is discovering why the system keeps producing them.",
+    "audience": {
+      "ar": "لمن يصمم حوافز أو يقيس نتائج العمل، أو يريد فهم كيف تنتج القرارات الحسنة نتائج غير مقصودة.",
+      "en": "For readers designing incentives, assessing work or examining unintended consequences of well-intended decisions."
+    },
+    "topics": {
+      "ar": [
+        "الحوافز والنتائج غير المقصودة",
+        "المؤشرات والهدف الحقيقي",
+        "اختبار القرارات والثغرات"
+      ],
+      "en": [
+        "Incentives and unintended consequences",
+        "Metrics and real goals",
+        "Testing decisions and loopholes"
+      ]
+    },
+    "related": [
+      "book4",
+      "book17",
+      "book15"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل تأثير الكوبرا مجرد حكاية تاريخية؟",
+          "ينطلق من قصة المكافآت على الكوبرا ليتناول الحوافز ومؤشرات الأداء والقرارات داخل المؤسسات والحياة."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة تأثير الكوبرا؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Is Cobra Effect only a historical story?",
+          "It uses the cobra-bounty story to explore incentives, performance metrics and decisions in institutions and daily life."
+        ],
+        [
+          "What language and format is Cobra Effect available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1077
+  },
+  "book10": {
+    "name": "دليل التحرر من العادة السرية",
+    "enName": "A Guide to Freedom from Masturbation",
+    "image": "/covers/book10.webp",
+    "size": 8875987,
+    "short": "دليل عملي وواقعي لفهم الحلقة السلوكية للعادة السرية، وإدارة المحفزات والرغبة، وكسر الانتكاس دون جلد للذات أو وعود وهمية.",
+    "enShort": "A practical, realistic guide to understanding the habit loop, managing triggers and urges, and recovering from setbacks without shame or false promises.",
+    "about": "«دليل التحرر من العادة السرية» لا يتعامل مع الرغبة بوصفها عيبًا، ولا يبني التغيير على الخوف والعار. يبدأ من فهم الحلقة السلوكية: المحفز، والرغبة، والسلوك، والمكافأة؛ ثم يكشف دور الهاتف والوحدة والملل والضغط والهروب العاطفي في تكرارها.\n\nينتقل الكتاب من فهم الفخ وثمنه الخفي إلى خطة عملية لكسر الدائرة: التعرف إلى المحفزات، وتعديل البيئة الرقمية، والتعامل مع لحظة الرغبة، وبناء البدائل، والتعامل الصحي مع التعثر حتى يستعيد القارئ قدرته على الاختيار.",
+    "enAbout": "A Guide to Freedom from Masturbation does not treat desire as a defect or build change on fear and shame. It explains the behavioral loop of trigger, urge, action and reward, then explores how phones, isolation, boredom, stress and emotional escape can reinforce it. The book moves from understanding the hidden trap to a practical plan for changing the digital environment, handling urges, building alternatives and responding to setbacks until conscious choice returns.",
+    "adds": "يساعدك على اكتشاف نمطك الشخصي، وإغلاق الطرق التي تعيدك إلى السلوك، ووضع خطة للأيام الصعبة، وتحويل التعثر من سبب للاستسلام إلى معلومة تُحسّن بها خطتك.",
+    "enAdds": "It helps you identify your personal pattern, close the paths that lead back to the behavior, prepare for difficult days, and turn a setback into information that strengthens your plan.",
+    "idea": "التحرر لا يعني ألا تشعر بالرغبة؛ بل أن تستعيد حقك في الاختيار.",
+    "enIdea": "Freedom does not mean never feeling an urge; it means reclaiming your right to choose.",
+    "audience": {
+      "ar": "للقارئ البالغ الذي يريد فهم حلقة سلوكية متكررة وإدارة محفزاتها والتعامل مع الانتكاسات دون جلد الذات.",
+      "en": "For adult readers examining a recurring behavioral loop, its triggers and setbacks without self-blame."
+    },
+    "topics": {
+      "ar": [
+        "المحفز والرغبة والفعل والمكافأة",
+        "الهاتف والعزلة والضغط",
+        "البدائل والتعامل مع الانتكاس"
+      ],
+      "en": [
+        "Trigger, urge, action and reward",
+        "Phones, isolation and stress",
+        "Alternatives and learning from setbacks"
+      ]
+    },
+    "related": [
+      "book8",
+      "book14",
+      "book18"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل يعتمد الدليل على التخويف أو الوعود السريعة؟",
+          "يعرض فهمًا عمليًا للحلقة السلوكية والمحفزات والبدائل، ويتعامل مع التعثر بوصفه فرصة لفهم النمط وتحسين الخطة."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة دليل التحرر من العادة السرية؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does the guide rely on fear or quick promises?",
+          "It explores the habit loop, triggers and alternatives, using setbacks to understand patterns and improve a plan."
+        ],
+        [
+          "What language and format is A Guide to Freedom from Masturbation available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1078
+  },
+  "book11": {
+    "name": "الأفعى والمنشار",
+    "enName": "The Snake and the Saw",
+    "image": "/covers/book11.webp",
+    "size": 5613162,
+    "short": "كتاب عن فن الابتعاد عن الأشخاص والعلاقات والمعارك التي تستنزفك، وكيف تحمي نفسك دون انتقام أو قسوة.",
+    "enShort": "A guide to walking away from people, relationships and battles that drain you, without revenge, cruelty or losing yourself.",
+    "about": "«الأفعى والمنشار» ينطلق من حكاية رمزية عن أفعى جرحها منشار، فبدل أن تبتعد حاولت مهاجمته ثم التفّت حوله، فحوّلت جرحًا صغيرًا إلى مأساة. ومن هذه الصورة يناقش الكتاب كيف يضاعف الإنسان ألمه حين يصرّ على الانتقام، أو ينتظر الاعتذار، أو يعود إلى ما يؤذيه، أو يخوض معارك لا تستحق.\n\nعبر أربعة أبواب وعشرين فصلًا، ينتقل الكتاب من اكتشاف «المنشار» في حياتك، إلى فهم ردود فعلك، ثم تعلّم فن الابتعاد، وأخيرًا إعادة بناء نفسك بعد الجرح؛ بحدود واضحة وقلب لا يتحول إلى نسخة ممن آذاه.",
+    "enAbout": "The Snake and the Saw begins with a parable about a snake cut by a saw. Instead of moving away, it attacks and coils around the blade, turning a small wound into a tragedy. From this image, the book explores how people multiply pain by chasing revenge, waiting for apologies, returning to what hurts them, or fighting battles that are not worth the cost. Across four parts and twenty chapters, it moves from recognizing the saw in your life to understanding your reactions, learning the art of leaving, and rebuilding yourself after the wound.",
+    "adds": "يساعدك على تمييز ما يستحق المواجهة مما يستحق الرحيل، وقطع الحبال التي تعيدك إلى مصادر الأذى، ووضع حدود صحية، والتعامل مع الاشتياق والفراغ، ثم تحويل التجربة إلى وعي وحياة أقوى.",
+    "enAdds": "It helps you distinguish what deserves confrontation from what deserves departure, close the paths that lead back to harm, set healthy boundaries, handle longing and emptiness, and turn the experience into awareness and a stronger life.",
+    "idea": "ليس الانتصار أن تكسر المنشار؛ بل أن تصل إلى مكان لم يعد فيه جزءًا من طريقك.",
+    "enIdea": "Victory is not breaking the saw; it is reaching a place where it is no longer part of your path.",
+    "audience": {
+      "ar": "لمن يجد نفسه يعود إلى علاقة أو معركة تستنزفه، ويريد فهم متى يواجه ومتى يبتعد.",
+      "en": "For readers caught in draining relationships or conflicts and examining when to confront or leave."
+    },
+    "topics": {
+      "ar": [
+        "الجرح ورد الفعل والانتقام",
+        "الحدود وفن الابتعاد",
+        "إعادة بناء النفس بعد الأذى"
+      ],
+      "en": [
+        "Hurt, reaction and revenge",
+        "Boundaries and leaving",
+        "Rebuilding after harm"
+      ]
+    },
+    "related": [
+      "book14",
+      "book7",
+      "book13"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "ما علاقة حكاية الأفعى والمنشار بموضوع الكتاب؟",
+          "توضح كيف يمكن لرد الفعل على جرح أن يضاعف الأذى؛ ومنها يناقش الكتاب الانتقام والحدود والابتعاد عما يستنزفنا."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة الأفعى والمنشار؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "How does the snake-and-saw story relate to the book?",
+          "It illustrates how reacting to hurt can multiply harm, opening a discussion of revenge, boundaries and leaving draining situations."
+        ],
+        [
+          "What language and format is The Snake and the Saw available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1015
+  },
+  "book12": {
+    "name": "جسد",
+    "enName": "Body",
+    "image": "/covers/book12.webp",
+    "size": 9236156,
+    "short": "رحلة نفسية واجتماعية تكشف كيف يتحول جسد المرأة إلى صورة تحاكمها العيون والمعايير، وكيف تستعيد إنسانيتها وحقها في تعريف نفسها.",
+    "enShort": "A psychological and social journey into how a woman's body can be reduced to an image judged by others, and how she can reclaim her full humanity and self-definition.",
+    "about": "«جسد» يفتح السؤال الذي يبدأ حين لا يعود الإنسان يرى جسده كما يشعر به، بل كما يتخيل أن الآخرين يرونه. يتتبع كيف تصنع الأسرة والشارع والإعلان والمنصات الرقمية معايير الجمال والحياء والشرف، وكيف تتحول المرآة من أداة إلى محكمة.\n\nعبر خمسة أبواب وخمسة وعشرين فصلًا، يناقش الكتاب تسليع الجسد وصورته على إنستغرام، ثم قضايا الشرف والختان والتحرش والعنف المنزلي والعلاقة الزوجية، قبل أن ينتقل إلى استعادة الجسد والحدود والصوت والهوية؛ وصولًا إلى رؤية الإنسان كاملًا لا مجرد صورة.",
+    "enAbout": "Body begins where a person no longer experiences the body from within, but sees it through the imagined gaze of others. It examines how family, streets, advertising and digital platforms construct standards of beauty, modesty and honor. Across five parts and twenty-five chapters, it explores commodification, Instagram, honor, female genital mutilation, harassment, domestic violence and intimacy, before moving toward boundaries, voice, identity and seeing a complete human being rather than an image.",
+    "adds": "يساعد القارئ على فهم أثر النظرة الاجتماعية والرقمية في صورة الجسد، والتمييز بين الحماية والرقابة، وبين الجمال والقيمة، وبناء حدود صحية ولغة أرحم مع الذات والآخر.",
+    "enAdds": "It helps readers understand how social and digital gazes shape body image, distinguish protection from control and beauty from worth, and build healthier boundaries and a kinder language toward self and others.",
+    "idea": "هناك فرق بين أن ترى جسدًا، وبين ألا ترى إلا الجسد.",
+    "enIdea": "There is a difference between seeing a body and seeing nothing but the body.",
+    "audience": {
+      "ar": "لمن يريد فهم صورة المرأة عن جسدها وتأثير النظرات والمعايير الاجتماعية والرقمية عليها.",
+      "en": "For readers exploring women’s body image and the influence of social and digital standards."
+    },
+    "topics": {
+      "ar": [
+        "صورة الجسد ومعايير الجمال",
+        "نظرة المجتمع والمنصات الرقمية",
+        "الحدود والهوية والصوت"
+      ],
+      "en": [
+        "Body image and beauty standards",
+        "Social and digital scrutiny",
+        "Boundaries, identity and voice"
+      ]
+    },
+    "related": [
+      "book7",
+      "book13",
+      "book14"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل جسد كتاب عن معايير الجمال؟",
+          "يناقش أثر هذه المعايير ضمن موضوع أوسع: رؤية المرأة بوصفها إنسانًا كاملًا، وفهم الهوية والحدود والكرامة."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة جسد؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Is Body a guide to beauty standards?",
+          "It examines their effects within a wider discussion of women’s humanity, identity, boundaries and dignity."
+        ],
+        [
+          "What language and format is Body available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1018
+  },
+  "book13": {
+    "name": "بنت تخطت الثلاثين",
+    "enName": "A Woman Past Thirty",
+    "image": "/covers/book13.webp",
+    "size": 7819094,
+    "short": "رحلة نفسية واجتماعية تساعد المرأة بعد الثلاثين على التحرر من ضغط الساعة الاجتماعية والمقارنة، واستعادة قيمتها وحياتها دون إنكار رغبتها في الحب والزواج.",
+    "enShort": "A psychological and social journey for women beyond thirty to escape the pressure of the social clock and comparison, reclaim their worth, and live fully without denying their desire for love and marriage.",
+    "about": "«بنت تخطت الثلاثين» لا يحارب الزواج ولا ينكر الرغبة في الحب والأمومة، بل يفصل بين الرغبة الإنسانية وبين الخوف الذي يحوّل العمر إلى حكم على قيمة المرأة. يبدأ من الساعة الاجتماعية وأسئلة الناس وزواج الصديقات والعار الداخلي، ثم ينتقل إلى الهوية والحزن على الحياة المتخيلة والوحدة وحدود التعامل مع المجتمع.\n\nعبر ثلاثة أبواب وخمسة عشر فصلًا، يساعد الكتاب القارئة على ألا تتزوج هربًا من الضغط، وألا تضع حياتها في غرفة الانتظار، وأن تبني حياة تستحق أن تُعاش وتفتح قلبها للحب من دون أن تخسر نفسها أو تتنازل عن اختيار واعٍ.",
+    "enAbout": "A Woman Past Thirty does not attack marriage or deny the desire for love and motherhood. It separates a human wish from the fear that turns age into a verdict on a woman's worth. Across three parts and fifteen chapters, it explores the social clock, intrusive questions, friends' weddings, shame, identity, grief for an imagined life, loneliness and boundaries. It then helps the reader avoid marrying as an escape, stop placing life in a waiting room, and remain open to mature love without abandoning herself or lowering the standards of a conscious choice.",
+    "adds": "يساعدكِ على التمييز بين الرغبة في الزواج والخوف من التأخر، واستعادة قيمتكِ بعيدًا عن حالتكِ الاجتماعية، ووضع حدود صحية، واختيار شريك الحياة بوعي، والعيش الآن بدل تأجيل حياتكِ إلى موعد مجهول.",
+    "enAdds": "It helps you distinguish the desire for marriage from the fear of being late, reclaim your worth beyond relationship status, set healthy boundaries, choose a partner consciously, and live now instead of postponing life indefinitely.",
+    "idea": "لا تسمحي لغياب فصل واحد بأن يمنعكِ من قراءة بقية الكتاب.",
+    "enIdea": "Do not let one missing chapter stop you from reading the rest of the book.",
+    "audience": {
+      "ar": "للمرأة التي تواجه ضغط العمر أو المقارنة أو انتظار الزواج، وتريد بناء حياة كاملة واختيارًا واعيًا.",
+      "en": "For women facing age-related pressure, comparison or waiting for marriage, while seeking a full life and conscious choices."
+    },
+    "topics": {
+      "ar": [
+        "الساعة الاجتماعية والمقارنة",
+        "القيمة والهوية والحدود",
+        "الحب والزواج والاختيار الواعي"
+      ],
+      "en": [
+        "The social clock and comparison",
+        "Worth, identity and boundaries",
+        "Love, marriage and conscious choice"
+      ]
+    },
+    "related": [
+      "book7",
+      "book12",
+      "book14"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل الكتاب يرفض الزواج أو الرغبة فيه؟",
+          "يفصل بين الرغبة الإنسانية في الحب والزواج وبين الخوف الذي يجعل العمر حكمًا على قيمة المرأة."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة بنت تخطت الثلاثين؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does the book reject marriage or wanting it?",
+          "It distinguishes the wish for love and marriage from fear that turns age into a judgment of a woman’s worth."
+        ],
+        [
+          "What language and format is A Woman Past Thirty available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1018
+  },
+  "book14": {
+    "name": "أنت",
+    "enName": "You",
+    "image": "/covers/book14.webp",
+    "size": 8513958,
+    "short": "رحلة نفسية وتطويرية لاستعادة احترام الذات، وبناء الحدود والانضباط، واختيار نفسك دون أنانية أو هروب من المسؤولية.",
+    "enShort": "A psychological self-development journey into self-respect, healthy boundaries, discipline and choosing yourself without selfishness or escaping responsibility.",
+    "about": "«أنت — الشخص الذي يستحق ولاءك أولًا» يبدأ أمام المرآة بسؤال: ماذا فعلت لنفسك طوال السنوات الماضية؟ يكشف كيف نتخلى عن احتياجاتنا وحقوقنا وأحلامنا طلبًا للقبول، ثم يحوّل احترام الذات من شعارات إلى اختيارات وسلوك.\n\nعبر خمسة أبواب وخمسة وعشرين فصلًا، ينتقل من فهم الذات ووضع الحدود إلى بناء العادات والانضباط وحماية الكرامة من العلاقات المستنزفة، وصولًا إلى اختيار حياة واعية والوفاء بالوعود التي تقطعها لنفسك. لا يدعو إلى النرجسية أو احتقار الآخرين، بل إلى أن تكون في صف نفسك وتتحمل مسؤولية بنائها.",
+    "enAbout": "You — The Person Who Deserves Your Loyalty First begins in front of a mirror with a question: what have you done for yourself throughout the years? It explores how seeking approval can make us abandon our needs, rights and ambitions, then turns self-respect into practical choices.\n\nAcross five parts and twenty-five chapters, it moves through self-understanding, boundaries, habits, discipline and protecting dignity from draining relationships, before choosing a conscious life and keeping promises to yourself. It advocates responsibility and self-loyalty without narcissism or contempt for others.",
+    "adds": "يساعدك على التمييز بين احترام الذات والأنانية، وقول «لا» بوعي، وحماية حقوقك ووقتك، وبناء عادات تدعم صحتك ومستقبلك، واتخاذ قرارات لا تجعلك تتخلى عن نفسك لإرضاء الآخرين.",
+    "enAdds": "It helps you distinguish self-respect from selfishness, say no consciously, protect your rights and time, build habits that support your health and future, and make choices without abandoning yourself to please others.",
+    "idea": "أنت الشخص الذي لن يغادرك؛ فلا تكن أول من يتخلى عنك.",
+    "enIdea": "You are the person who will not leave you; do not be the first to abandon yourself.",
+    "audience": {
+      "ar": "لمن يرهقه إرضاء الآخرين أو إهمال وعوده لنفسه، ويريد حدودًا وعادات تحترم مسؤولياته.",
+      "en": "For readers struggling with approval-seeking or neglected promises to themselves and seeking responsible boundaries and habits."
+    },
+    "topics": {
+      "ar": [
+        "احترام الذات وإرضاء الآخرين",
+        "الحدود وحماية الوقت والكرامة",
+        "العادات والانضباط والوعود الشخصية"
+      ],
+      "en": [
+        "Self-respect and approval-seeking",
+        "Boundaries, time and dignity",
+        "Habits, discipline and personal commitments"
+      ]
+    },
+    "related": [
+      "book11",
+      "book18",
+      "book7"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل اختيار نفسك يعني الأنانية؟",
+          "يميز الكتاب بين احترام الذات والأنانية، ويربط الحدود بالمسؤولية واحترام الآخرين دون التخلي عن النفس."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة أنت؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does choosing yourself mean selfishness?",
+          "The book distinguishes self-respect from selfishness, connecting boundaries with responsibility and respect for others."
+        ],
+        [
+          "What language and format is You available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1080
+  },
+  "book15": {
+    "name": "شفرة الحياة",
+    "enName": "The Life Code",
+    "image": "/covers/book15.webp",
+    "size": 9894067,
+    "short": "25 قاعدة لفهم نفسك، وبناء قوتك، وتحسين علاقاتك، وصناعة ثروتك، والعيش بوعي.",
+    "enShort": "25 principles for understanding yourself, building strength, improving relationships, creating wealth and living consciously.",
+    "about": "«شفرة الحياة» رحلة عملية لفحص الأفكار والرغبات التي تقود اختياراتك، والتمييز بين الحياة التي اخترتها وبين ما ورثته من توقعات الآخرين.\n\nعبر خمسة أبواب وخمسة وعشرين فصلًا، يربط الكتاب بين الوعي بالذات، والقوة الجسدية والنفسية والانضباط، والعلاقات والحدود والثقة، والمال والتعلم وصناعة القيمة، ثم إدارة الحياة وفق مبادئ وأثر يستحقان الاحترام. يتضمن أسئلة وتمارين تساعدك على تحويل الفهم إلى خطوات واقعية، دون وعود مختصرة بالثراء أو النجاح المضمون.",
+    "enAbout": "The Life Code is a practical journey into the ideas and desires behind your choices, and the difference between a life you consciously choose and one shaped by inherited expectations.\n\nAcross five parts and twenty-five chapters, it connects self-awareness, physical and psychological strength, discipline, relationships, boundaries and trust, money, learning and value creation, then living by principles and leaving a meaningful impact. Questions and exercises turn reflection into realistic action without promises of instant wealth or guaranteed success.",
+    "adds": "يساعدك على مراجعة أهدافك، وفهم تأثير الماضي، واتخاذ قرارات أوضح، وبناء عادات وحدود صحية، والتعامل مع المال والتعلم بوعي، وتحويل النجاح إلى حياة ومعنى وأثر.",
+    "enAdds": "It helps you review your goals, understand the influence of the past, make clearer decisions, build healthy habits and boundaries, approach money and learning consciously, and turn achievement into meaning and impact.",
+    "idea": "ابنِ حياة تستطيع احترامها، ثم استخدم ما بنيته لصناعة أثر يتجاوزك.",
+    "enIdea": "Build a life you can respect, then use what you build to create an impact beyond yourself.",
+    "audience": {
+      "ar": "لمن يريد مراجعة مبادئه وأهدافه وربط فهم الذات بالقوة والعلاقات والمال والأثر.",
+      "en": "For readers reviewing principles and goals and connecting self-understanding with strength, relationships, money and impact."
+    },
+    "topics": {
+      "ar": [
+        "معرفة الذات وبناء القوة",
+        "العلاقات والحدود والثقة",
+        "المال والتعلم والقيمة والأثر"
+      ],
+      "en": [
+        "Self-understanding and strength",
+        "Relationships, boundaries and trust",
+        "Money, learning, value and impact"
+      ]
+    },
+    "related": [
+      "book6",
+      "book4",
+      "book14"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل شفرة الحياة عن المال وحده؟",
+          "يتناول المال ضمن مبادئ أوسع لفهم الذات والعادات والعلاقات والتعلم والعيش بوعي وترك أثر."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة شفرة الحياة؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Is The Life Code only about money?",
+          "Money is one part of its broader discussion of self-understanding, habits, relationships, learning and meaningful impact."
+        ],
+        [
+          "What language and format is The Life Code available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 960
+  },
+  "book16": {
+    "name": "شفرة قلب الأنثى",
+    "enName": "The Code of Her Heart",
+    "image": "/covers/book16.webp",
+    "size": 8954181,
+    "short": "رحلة لفهم عالم المرأة العاطفي، والتمييز بين الانجذاب والتعلق والحب، وبناء الثقة والأمان دون تلاعب.",
+    "enShort": "A journey into women's emotional lives, attraction, attachment and love, and building trust and emotional safety without manipulation.",
+    "about": "«شفرة قلب الأنثى» يبدأ بتغيير السؤال من «كيف أجعلها تحبني؟» إلى «كيف أفهم عالمها العاطفي وأصبح أهلًا لثقتها؟». يتناول أثر التجارب والذاكرة والأمان والثقة في العلاقات، وكيف ينتقل القرب من الانتباه والانجذاب إلى الحب والاختيار.\n\nيربط الكتاب فهم المرأة بمراجعة الرجل لحضوره وغيرته وخوفه من الرفض وطريقة استماعه وتعامله مع الخلاف. يميّز بين الحب والتعلق والاحتياج والتلاعب، ويحترم اختلاف النساء وحق كل إنسانة في اختيارها؛ فلا يقدم وصفة للسيطرة على القلوب، بل دعوة لبناء علاقة أكثر وعيًا واحترامًا.",
+    "enAbout": "The Code of Her Heart replaces the question 'How do I make her love me?' with 'How do I understand her emotional world and become worthy of her trust?' It explores experience, memory, attraction, safety and trust, and the journey from attention to love and conscious choice.\n\nUnderstanding a partner also requires examining one's own presence, jealousy, fear of rejection, listening and response to disagreement. The book distinguishes love from attachment, need and manipulation, while respecting individual differences and freedom of choice. It invites a more conscious and respectful relationship rather than offering a formula for controlling hearts.",
+    "adds": "يساعدك على فهم الفروق بين الاهتمام والمطاردة، والغيرة والامتلاك، والحب والتعلق، وتحسين الاستماع والتواصل وبناء الثقة مع احترام الحدود وحرية الاختيار.",
+    "enAdds": "It helps you distinguish care from pursuit, jealousy from possession and love from attachment, improve listening and communication, and build trust while respecting boundaries and choice.",
+    "idea": "لا تبحث عن الطريقة التي تجعل قلبها ملكًا لك، بل عن الطريقة التي تجعلك أهلًا لثقتها.",
+    "enIdea": "Do not seek to own her heart; seek to become worthy of her trust.",
+    "audience": {
+      "ar": "لمن يريد فهم الانجذاب والتعلق والثقة والتواصل في العلاقات دون افتراض امتلاك وصفة للتحكم في الطرف الآخر.",
+      "en": "For readers exploring attraction, attachment, trust and communication without formulas for controlling a partner."
+    },
+    "topics": {
+      "ar": [
+        "الانجذاب والتعلق والحب",
+        "الأمان والثقة والإنصات",
+        "الغيرة والحدود وحرية الاختيار"
+      ],
+      "en": [
+        "Attraction, attachment and love",
+        "Safety, trust and listening",
+        "Jealousy, boundaries and choice"
+      ]
+    },
+    "related": [
+      "book7",
+      "book5",
+      "book20"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل يقدم الكتاب طريقة للتحكم في مشاعر المرأة؟",
+          "يدعو إلى الفهم والإنصات وبناء الثقة واحترام الفروق الفردية وحرية الاختيار، بدل التلاعب بالمشاعر."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة شفرة قلب الأنثى؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does the book offer ways to control a woman’s feelings?",
+          "It emphasizes understanding, listening, trust, individual differences and freedom of choice rather than manipulation."
+        ],
+        [
+          "What language and format is The Code of Her Heart available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1018
+  },
+  "book17": {
+    "name": "عجلة الفئران",
+    "enName": "The Rat Race",
+    "image": "/covers/book17.webp",
+    "size": 8209326,
+    "short": "رحلة لفهم دائرة العمل والدخل والاستهلاك والديون، وبناء حرية مالية وحياة أوسع دون التفريط في مسؤولياتك.",
+    "enShort": "A journey into work, income, consumption and debt, and building financial flexibility and a fuller life without abandoning your responsibilities.",
+    "about": "«عجلة الفئران» يكشف مفارقة أن تعمل أكثر ويزيد دخلك، بينما تكبر التزاماتك ويقل تحكمك في وقتك وحياتك. لا يهاجم الوظيفة أو يقلل من كرامة العمل، بل يدعوك لفحص الاتجاه الذي تبذل فيه جهدك والثمن الذي تدفعه مقابل نمط معيشتك.\n\nعبر ثلاثة أبواب وخمسة عشر فصلًا، ينتقل من اكتشاف العجلة وفهم المقارنة والاستهلاك إلى الديون والخوف والقيود التي تصعّب الخروج، ثم إدارة الموارد وبناء الاحتياطي المالي وتطوير القدرة على الكسب والأصول والأنظمة. هدفه توسيع مساحة الاختيار بصورة واقعية، دون وعود بالثراء السريع أو دعوة لترك العمل بلا خطة.",
+    "enAbout": "The Rat Race explores the paradox of working harder and earning more while obligations grow and control over time and life shrinks. It respects work and responsibility, inviting you to examine the direction of your effort and the cost of your lifestyle.\n\nAcross three parts and fifteen chapters, it moves from recognizing the cycle and understanding comparison and consumption to debt, fear and constraints, then resource management, financial reserves, earning capacity, assets and systems. Its goal is to expand realistic choices without promises of quick wealth or advice to quit work without a plan.",
+    "adds": "يساعدك على مراجعة علاقتك بالدخل والاستهلاك، وفهم أثر الديون والمقارنة، وتحديد أولوياتك، وبناء احتياطي وخطوات تدريجية تمنحك وقتًا وخيارات أوسع.",
+    "enAdds": "It helps you review income and consumption, understand debt and comparison, clarify priorities, and build reserves and gradual steps toward more time and wider choices.",
+    "idea": "ربما لا تحتاج إلى أن تركض أسرع؛ ربما تحتاج أن تفهم العجلة وتغيّر اتجاهك.",
+    "enIdea": "Perhaps you do not need to run faster; you need to understand the wheel and change direction.",
+    "audience": {
+      "ar": "لمن يعمل ويكسب ثم يشعر بأن الالتزامات تكبر وأن الوقت والاختيارات يضيقان.",
+      "en": "For readers whose income and effort grow while commitments increase and control over time feels smaller."
+    },
+    "topics": {
+      "ar": [
+        "العمل والدخل والاستهلاك",
+        "الديون والمقارنة والخوف",
+        "الاحتياطي والموارد وتوسيع الاختيارات"
+      ],
+      "en": [
+        "Work, income and spending",
+        "Debt, comparison and fear",
+        "Reserves, resources and wider choices"
+      ]
+    },
+    "related": [
+      "book4",
+      "book9",
+      "book15"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل عجلة الفئران يدعو إلى ترك العمل فورًا؟",
+          "يحترم العمل والمسؤولية، ويناقش مراجعة الإنفاق والالتزامات وبناء خيارات تدريجية دون وعد سريع بالحرية المالية."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة عجلة الفئران؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does The Rat Race recommend immediately quitting work?",
+          "It respects work and responsibility, exploring spending, commitments and gradual choices without quick financial-freedom promises."
+        ],
+        [
+          "What language and format is The Rat Race available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1080
+  },
+  "book18": {
+    "name": "كيف تغير حياتك",
+    "enName": "How to Change Your Life in One Day",
+    "image": "/covers/book18.webp",
+    "size": 10078612,
+    "short": "رحلة عملية لفهم أسباب التعثر، وإعادة بناء هويتك، وصناعة اتجاه واضح، وتحويل يوم واحد إلى بداية قابلة للاستمرار.",
+    "enShort": "A practical journey to understand why change stalls, rebuild identity, choose a clear direction and turn one day into a sustainable beginning.",
+    "about": "«كيف تغير حياتك كلها في يوم واحد» لا يقدم وعدًا سحريًا بتغيير كل شيء خلال 24 ساعة، بل يشرح كيف يمكن ليوم واحد من المواجهة الصادقة أن يغيّر اتجاه حياتك. يبدأ بفهم الفجوة بين ما تقوله وما تفعله، والخوف والهوية والأهداف الخفية التي تعيدك إلى الأنماط القديمة.\n\nعبر أربعة أبواب وعشرين فصلًا، ينتقل الكتاب من اكتشاف أسباب التعثر إلى هندسة الهوية، ثم بناء رؤية للحياة التي تريدها، وينتهي بيوم عملي منظم للمراجعة والكتابة وكسر الطيار الآلي وصناعة خطة انطلاق قابلة للتنفيذ.",
+    "enAbout": "How to Change Your Life in One Day does not promise a magical transformation in 24 hours. It shows how one honest day of reflection can change the direction of your life by revealing the gap between what you say and do, the fears and identity patterns that hold you back, and the hidden goals behind repeated behavior.\n\nAcross four parts and twenty chapters, the book moves from understanding why you are stuck to identity engineering, designing the life you want, and completing a structured day of reflection, writing, interrupting autopilot and building an actionable launch plan.",
+    "adds": "يساعدك على كشف الأنماط التي تعطل التغيير، ومراجعة دوافعك وأهدافك، وبناء هوية تدعم قراراتك، وتحويل رؤيتك إلى هدف سنوي ومشروع شهري وأفعال يومية واضحة.",
+    "enAdds": "It helps you identify the patterns blocking change, review your motives and goals, build an identity that supports your decisions, and translate your vision into a yearly goal, a monthly project and clear daily actions.",
+    "idea": "قد لا تغيّر حياتك كلها في يوم واحد، لكنك تستطيع أن تغيّر اتجاهها في يوم واحد.",
+    "enIdea": "You may not change your whole life in one day, but you can change its direction in one day.",
+    "audience": {
+      "ar": "لمن يكرر محاولات التغيير ثم يتوقف، ويريد تحويل المراجعة الصادقة إلى اتجاه وخطوات مستمرة.",
+      "en": "For readers whose attempts at change stall and who want to turn honest reflection into direction and continuing action."
+    },
+    "topics": {
+      "ar": [
+        "أسباب التعثر والهوية",
+        "الفجوة بين القول والفعل",
+        "تصميم الاتجاه وخطة البداية"
+      ],
+      "en": [
+        "Stalled change and identity",
+        "The gap between words and actions",
+        "Direction and an actionable start"
+      ]
+    },
+    "related": [
+      "book14",
+      "book6",
+      "book19"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل يعد الكتاب بتغيير الحياة بالكامل خلال 24 ساعة؟",
+          "فكرته أن يومًا صادقًا من المراجعة قد يغير الاتجاه ويبدأ خطة قابلة للاستمرار؛ لا يعد بتحول سحري كامل."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة كيف تغير حياتك؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does the book promise to transform a whole life in 24 hours?",
+          "It treats a day of honest reflection as a possible change of direction and the start of a sustainable plan, not a magical transformation."
+        ],
+        [
+          "What language and format is How to Change Your Life in One Day available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "imageWidth": 720,
+    "imageHeight": 1080
+  },
+  "book19": {
+    "name": "بدون شهادة جامعية",
+    "enName": "Without a University Degree",
+    "image": "/covers/book19.webp",
+    "size": 9565961,
+    "short": "رحلة نفسية وعملية لتجاوز ضغط الشهادة، وبناء معرفة ومهارة وخبرة تثبت قيمتك دون التقليل من التعليم الجامعي.",
+    "enShort": "A psychological and practical journey beyond degree-related pressure, building knowledge, skills and experience while respecting university education.",
+    "about": "«بدون شهادة جامعية — حين لا يمنحك المجتمع ورقة تثبت قيمتك» يبدأ من سؤال «خريج إيه؟» وما قد يتركه في الإنسان من شعور بالنقص أو حاجة دائمة إلى التبرير. يناقش كيف يتحول المؤهل أحيانًا من معلومة عن التعليم إلى حكم على الإنسان، ثم ينقل القارئ من الدفاع عن ماضيه إلى تحمل مسؤولية مستقبله.\n\nعبر أربعة أبواب وعشرين فصلًا، ينتقل الكتاب من التصالح مع غياب الشهادة إلى بناء تعليم ذاتي منظم، واختيار مهارة نافعة، واكتساب الخبرة، وصناعة سيرة إنجاز وسمعة مهنية. وينتهي بمراجعة النجاح والمال والرغبة في إثبات الذات، مع التأكيد أن احترام الجامعة والتخصص لا يتعارض مع بناء طريقك خارجها.",
+    "enAbout": "Without a University Degree begins with the question 'What did you graduate in?' and the feelings of inadequacy or constant self-justification it can provoke. It examines how a qualification can become a judgment on a person, then shifts the focus from defending the past to taking responsibility for the future.\n\nAcross four parts and twenty chapters, the book moves from accepting the absence of a degree to structured self-education, useful skills, practical experience, a portfolio of achievements and professional reputation. It also explores success, money and the urge to prove yourself, while respecting universities, expertise and professions that require formal qualifications.",
+    "adds": "يساعدك على بناء خطة تعلم ذاتي، واختيار تخصص ومهارة قابلة للتطبيق، واكتساب خبرة دون انتظار الوظيفة الأولى، وعرض إنجازاتك وبناء الثقة، وفصل قيمتك الإنسانية عن الشهادة والدخل ونظرة الآخرين.",
+    "enAdds": "It helps you structure self-directed learning, choose a practical field and skill, gain experience before your first job, demonstrate achievements, build trust, and separate your human worth from qualifications, income and social approval.",
+    "idea": "إذا لم تحصل على شهادة جامعية، فلا تجعل ذلك سببًا للخجل، ولا تستخدمه عذرًا للجهل.",
+    "enIdea": "If you do not have a university degree, do not make it a source of shame or an excuse to stop learning.",
+    "audience": {
+      "ar": "لمن لم يدخل الجامعة أو لم يكملها ويبحث عن تعليم ذاتي ومهارة وخبرة، دون التقليل من قيمة الدراسة الجامعية.",
+      "en": "For readers without a completed university degree seeking structured learning, skills and experience while respecting formal education."
+    },
+    "topics": {
+      "ar": [
+        "ضغط الشهادة والقيمة الذاتية",
+        "التعليم الذاتي وبناء منهج",
+        "المهارة والخبرة وسيرة الإنجاز"
+      ],
+      "en": [
+        "Degree-related pressure and self-worth",
+        "Self-directed learning and a curriculum",
+        "Skills, experience and a portfolio"
+      ]
+    },
+    "related": [
+      "book18",
+      "book14",
+      "book4"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل يدعو بدون شهادة جامعية إلى ترك الجامعة؟",
+          "يحترم الجامعة والتخصصات التي تتطلب مؤهلًا، ويركز على تحمل مسؤولية التعلم وإثبات المهارة لمن لا يحمل شهادة."
+        ],
+        [
+          "بأي لغة وصيغة تُتاح نسخة بدون شهادة جامعية؟",
+          "النسخة المتاحة في المتجر باللغة العربية وبصيغة PDF. يمكنك قراءة العينة المتاحة قبل اختيار الكتاب."
+        ]
+      ],
+      "en": [
+        [
+          "Does Without a University Degree advocate dropping out?",
+          "It respects universities and professions requiring qualifications, focusing on learning and demonstrating skills without a degree."
+        ],
+        [
+          "What language and format is Without a University Degree available in?",
+          "The store edition is an Arabic-language PDF. An available free sample can help you assess the book before choosing it."
+        ]
+      ]
+    },
+    "pageCount": 309,
+    "chapters": [
+      "السؤال الذي تخشاه: خريج إيه؟",
+      "حين تختصر نفسك في ورقة",
+      "الجامعة ليست الذكاء",
+      "لماذا لم تدخل الجامعة؟",
+      "اخلع ثوب الاعتذار",
+      "لا شهادة؟ إذن أنت مسؤول عن تعليمك",
+      "اختر تخصص حياتك",
+      "اصنع منهجك",
+      "ساعة الجامعة اليومية",
+      "امتحانك هو ما تستطيع فعله",
+      "من السيرة الذاتية إلى سيرة الإنجاز",
+      "تعلم شيئًا يدفع الناس مقابله",
+      "خبرة بلا وظيفة",
+      "اجعل اسمك شهادة",
+      "دع النتائج تتحدث",
+      "لا تجعل نجاحك انتقامًا",
+      "المال ليس شهادة بديلة",
+      "تعلم حتى آخر يوم",
+      "لا تحتقر صاحب الشهادة",
+      "اكتب شهادتك بنفسك"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1018
+  },
+  "book20": {
+    "name": "السيجما: الذكر الملكي",
+    "enName": "Sigma: The Royal Male",
+    "image": "/covers/book20.webp",
+    "size": 7658509,
+    "fixedPrices": {
+      "EGP": 500,
+      "USD": 15.9
+    },
+    "bundleEligible": false,
+    "previewEnabled": false,
+    "short": "الفحولة التي لا تحتاج إلى إثبات: كتاب تثقيفي للزوجين البالغين عن الصحة الجنسية للرجل، وقلق الأداء، والرغبة والتوافق الحميم.",
+    "enShort": "Strength without the need to prove it: an educational book for adult couples about men's sexual health, performance anxiety, desire and intimacy.",
+    "about": "«السيجما: الذكر الملكي» يعيد النظر في الفحولة بوصفها علاقة بين الجسد والعقل والثقة والتواصل، بعيدًا عن المقارنات والوعود بقدرات خارقة. يبدأ بمراجعة أوهام الفحولة وقلق الأداء والخوف من الفشل وفتور الرغبة، ثم ينتقل إلى فهم الصحة الجنسية والعادات المؤثرة فيها.\n\nعبر ثلاثة أبواب وخمسة عشر فصلًا، يناقش الكتاب الانتصاب والقذف والهرمونات والنوم واللياقة والتغذية، ثم سيكولوجيا الرغبة لدى الزوجة واختلاف الاحتياجات والصمت والروتين بين الزوجين. يهدف إلى بناء معرفة وتواصل ورضا متبادل، والتمييز بين ما يمكن تطويره بالعادات وما يحتاج إلى تقييم مختص.",
+    "enAbout": "Sigma: The Royal Male explores sexual well-being through the body, mind, confidence and communication, without comparisons or promises of extraordinary performance. It begins with myths about virility, performance anxiety, fear of failure and changes in desire, then examines sexual health and everyday habits.\n\nAcross three parts and fifteen chapters, the book discusses erections, ejaculation, hormones, sleep, fitness and nutrition, then a partner's desire, differing needs, silence and routine within marriage. It promotes knowledge, communication and mutual satisfaction, including recognizing when professional assessment is needed.",
+    "adds": "يساعدك على مراجعة توقعاتك عن الفحولة، وفهم الصلة بين صحتك وعاداتك وحالتك النفسية، والتحدث عن الاحتياجات بوضوح، وبناء توافق حميم قائم على المعرفة والثقة والاحترام المتبادل.",
+    "enAdds": "It helps you examine expectations about virility, understand the connections between health, habits and emotional well-being, discuss needs clearly, and build intimacy through knowledge, trust and mutual respect.",
+    "idea": "الفحولة التي لا تحتاج إلى إثبات.",
+    "enIdea": "Strength without the need to prove it.",
+    "audience": {
+      "ar": "للزوجين البالغين، وبخاصة الرجل الذي يريد فهم صحته الجنسية وقلق الأداء والتواصل والتوافق داخل الزواج.",
+      "en": "For adult couples, especially men exploring sexual health, performance anxiety, communication and intimacy within marriage."
+    },
+    "topics": {
+      "ar": [
+        "أوهام الفحولة وقلق الأداء",
+        "الصحة الجنسية والعادات اليومية",
+        "رغبة الشريكة والتواصل والتوافق"
+      ],
+      "en": [
+        "Virility myths and performance anxiety",
+        "Sexual health and daily habits",
+        "A partner’s desire, communication and intimacy"
+      ]
+    },
+    "related": [
+      "book1",
+      "book16",
+      "book5"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "هل السيجما بديل عن الاستشارة الطبية؟",
+          "هو كتاب تثقيفي للزوجين البالغين، وليس بديلًا عن التشخيص أو العلاج أو الاستشارة الطبية المتخصصة."
+        ],
+        [
+          "هل تتوفر معاينة للسيجما وهل تشمله عروض الباقات؟",
+          "لا تتوفر معاينة لهذا الكتاب. له سعر مستقل ثابت في كل عملة، ولا يدخل في عدد كتب عروض الباقات."
+        ]
+      ],
+      "en": [
+        [
+          "Is Sigma a substitute for medical advice?",
+          "It is educational reading for adult couples, not a substitute for professional assessment, diagnosis or treatment."
+        ],
+        [
+          "Is a sample available, and do bundle offers apply?",
+          "No sample is available. Sigma has a separate fixed price in each currency and is excluded from the ordinary bundle count."
+        ]
+      ]
+    },
+    "pageCount": 245,
+    "edition": {
+      "ar": "الطبعة الأولى — 2026",
+      "en": "First edition — 2026"
+    },
+    "chapters": [
+      "من هو الذكر الملكي؟",
+      "الجنس يبدأ من الدماغ",
+      "تحت الاختبار",
+      "عندما تختفي الرغبة",
+      "أسطورة الرجل الذي لا يتعب",
+      "الانتصاب لغة الجسد الصامتة",
+      "إيقاع القذف بين السرعة والتأخر",
+      "التستوستيرون هرمون لا يصنع المعجزات",
+      "الجسد الذي يصنع الفحولة",
+      "عندما تتعثر الفحولة",
+      "الرجل الذي يفهم قبل أن يطلب",
+      "عقل الأنثى — أسرار الرغبة الزوجية",
+      "المتعة التي لا تتكلم",
+      "عندما يدخل الروتين غرفة النوم",
+      "الذكر الملكي — الفحولة التي لا تحتاج إلى إثبات"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1018
+  }
+}

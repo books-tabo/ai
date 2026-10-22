@@ -24,6 +24,7 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: node tests/test_meta_tracking.cjs
       - run: node tests/test_checkout_quote.cjs
+      - run: node tests/test_seo_rendering.cjs
   postgres:
     runs-on: ubuntu-latest
     services:

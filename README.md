@@ -137,3 +137,7 @@ Run the Python suite, PostgreSQL integration suite and
 The quote HTTP tests use synthetic storage/provider responses; the SQL suite
 rebuilds from all migrations and checks quote persistence and charge constraints.
 No real-money payment or real customer download is part of these tests.
+
+## SEO review (not approved for production)
+
+See [docs/seo-review.md](docs/seo-review.md) for initial-HTML rendering, metadata, the public catalog, draft articles, review isolation, testing and rollback. Use `python tools/serve_review.py` only on an isolated service without customer or payment credentials. The live start command remains `python app.py`; no payment setting changes are part of this review.

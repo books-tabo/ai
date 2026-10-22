@@ -21,6 +21,7 @@ import pdf_limits
 import meta_tracking
 import checkout_pricing
 import catalog
+import seo
 from catalog import BOOKS, PRICES
 
 ROOT = Path(__file__).resolve().parent
@@ -503,6 +504,10 @@ class Handler(BaseHTTPRequestHandler):
         self.connection.settimeout(15)
 
     def end_headers(self):
+        if not seo.indexable(self.headers.get('Host','')):
+            self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
+        elif urlparse(self.path).path.startswith('/api/'):
+            self.send_header('X-Robots-Tag','noindex, noarchive')
         self.send_header('X-Content-Type-Options','nosniff')
         self.send_header('X-Frame-Options','DENY')
         self.send_header('Referrer-Policy','no-referrer')
@@ -617,11 +622,15 @@ class Handler(BaseHTTPRequestHandler):
         data=json.loads(self.rfile.read(size))
         if not isinstance(data,dict): raise ValueError('Invalid JSON object')
         return data
-    def html(self, filename, extra_headers=None):
+    def html(self, filename, extra_headers=None, public_path=None):
         nonce=secrets.token_urlsafe(24)
         source=(ROOT/filename).read_text(encoding='utf-8')
+        if filename in ('index.html','book.html','info.html'):
+            source=seo.render(source,public_path or urlparse(self.path).path,self.headers.get('Host',''),filename)
+            if source is None:
+                return self.respond(404,{'ok':False,'error':'Not found'})
         pixel_id=meta_tracking.pixel_id()
-        self._meta_enabled=bool(pixel_id and filename in ('index.html','book.html','success.html'))
+        self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','success.html'))
         if self._meta_enabled:
             version=hashlib.sha256((ROOT/'meta-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'" data-pixel-id="'+pixel_id+'"></script></head>',1)
@@ -654,6 +663,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         route=urlparse(self.path).path
         try:
+            if seo.review_mode():
+                return self.respond(503,{'ok':False,'error':'Read-only review environment'})
             if not self.enforce_rate_limit(route,'POST'): return
             if (route in ('/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
@@ -914,6 +925,14 @@ class Handler(BaseHTTPRequestHandler):
             self.log_error('Internal error');return self.respond(500,{'ok':False,'error':'Server error'})
     def do_GET(self):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
+        if seo.review_mode() and route=='/api/book-stats':
+            return self.respond(200,{key:{'rating':None,'reviews':0,'downloads':0,'pageCount':value.get('pageCount')} for key,value in seo.BOOKS.items()})
+        if seo.review_mode() and route.startswith('/api/') and route not in ('/api/config','/api/store-config'):
+            return self.respond(503,{'ok':False,'error':'Read-only review environment'})
+        if seo.review_mode() and route.startswith('/previews/'):
+            book_id=route.split('/')[2]
+            return self.respond(503 if catalog.preview_enabled(book_id) else 404,
+                                {'ok':False,'error':'Preview originals are not connected to the review environment'})
         if not self.enforce_rate_limit(route,'GET'): return
         viewer=re.fullmatch(r'/previews/(book[1-9][0-9]*)',route)
         if viewer and viewer.group(1) in BOOKS:
@@ -959,15 +978,14 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/previews' or route.startswith('/previews/'):
             return self.respond(410,{'ok':False,'error':'رابط ملف العينة غير متاح.'})
         if route=='/': return self.html('index.html')
+        if route=='/robots.txt':
+            payload=seo.robots(self.headers.get('Host','')).encode()
+            self.send_response(200)
+            self.send_header('Content-Type','text/plain; charset=utf-8')
+            self.send_header('Content-Length',str(len(payload)))
+            self.end_headers();self.wfile.write(payload);return
         if route=='/sitemap.xml':
-            from xml.etree.ElementTree import Element, SubElement, tostring
-            namespace='http://www.sitemaps.org/schemas/sitemap/0.9'
-            root=Element('urlset', xmlns=namespace)
-            paths=['/']+['/books/'+book_id for book_id in BOOKS]+[
-                '/authors','/about','/contact','/privacy','/refund','/delivery']
-            for path in paths:
-                SubElement(SubElement(root,'url'),'loc').text='https://tabobooks.com'+path
-            payload=tostring(root,encoding='utf-8',xml_declaration=True)
+            payload=seo.sitemap()
             self.send_response(200)
             self.send_header('Content-Type','application/xml; charset=utf-8')
             self.send_header('Cache-Control','public, max-age=300')
@@ -978,10 +996,23 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/noto-kufi-arabic-bold.ttf':
             return self.asset('noto-kufi-arabic-bold.ttf','font/ttf')
         if route=='/meta-tracking.js': return self.asset('meta-tracking.js','text/javascript; charset=utf-8')
+        if route=='/seo.js': return self.asset('seo.js','text/javascript; charset=utf-8')
+        if route=='/seo.css': return self.asset('seo.css','text/css; charset=utf-8')
+        optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
+        if optimized_cover and optimized_cover.group(1) in BOOKS:
+            return self.asset('covers/'+optimized_cover.group(1)+'.webp','image/webp')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
         detail_match=re.fullmatch(r'/books/(book[1-9][0-9]*)',route)
-        if (detail_match and detail_match.group(1) in BOOKS) or route=='/book.html': return self.html('book.html')
+        if detail_match and detail_match.group(1) in BOOKS:
+            return self.html('book.html')
+        if route=='/book.html':
+            book_id=parse_qs(parsed.query).get('id',[''])[0]
+            if book_id not in BOOKS:return self.respond(404,{'ok':False,'error':'Not found'})
+            return self.html('book.html',public_path='/books/'+book_id)
+        if (route in seo.public_paths() or
+                (seo.review_mode() and (route=='/articles' or route in ['/articles/'+key for key in seo.listed_articles(True)]))):
+            return self.html('info.html')
         cover_match=re.fullmatch(r'/(book[1-9][0-9]*)-cover\.jpg',route)
         if cover_match and cover_match.group(1) in BOOKS and (ROOT/(cover_match.group(1)+'-cover.jpg')).is_file():
             return self.asset(cover_match.group(1)+'-cover.jpg','image/jpeg')
