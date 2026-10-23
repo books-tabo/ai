@@ -4,8 +4,13 @@
   const node = document.getElementById('seo-data');
   if (!node) return;
   const data = JSON.parse(node.textContent);
+  // SSR already matches Arabic. Keep links, focus and open FAQ state intact
+  // when pricing/statistics rerender the page without a language change.
+  let renderedLanguage = document.documentElement.lang === 'en' ? 'en' : 'ar';
   window.TaboSEO = {
     render(language) {
+      language = language === 'en' ? 'en' : 'ar';
+      if (language === renderedLanguage) return;
       const copy = data[language === 'en' ? 'en' : 'ar'];
       document.title = copy.title;
       for (const [selector, value] of [
@@ -22,6 +27,7 @@
       document.querySelectorAll('[data-seo-label="categories"]').forEach(target => {
         target.textContent = language === 'en' ? 'Book categories' : 'أقسام الكتب';
       });
+      renderedLanguage = language;
     },
     page(language) { return data[language === 'en' ? 'en' : 'ar']; }
   };

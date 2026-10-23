@@ -55,13 +55,18 @@ All review responses carry X-Robots-Tag noindex/nofollow/noarchive, and public H
 - Actual rendered browser script under Node with delayed statistics and configuration: content remains available, country prices update, Sigma remains independent, cart contents survive, UTM/fbclid remain in the landing URL, and ViewContent/AddToCart do not repeat during rerenders.
 - Existing quote, bundle, callback, activation, download-limit and Meta Purchase-deduplication suites.
 - Local compileall, JavaScript parsing and git diff whitespace checks. CI additionally runs fatal Ruff rules and the existing isolated PostgreSQL integration suite.
-- Live browser and Google Rich Results Test results are recorded in the handover after the isolated review URL is available. A noindex test URL is never submitted for indexing.
+- CI passed for application commit `322d2820617118a7d4c941c0fb8ed5ae0ea16dba`: 80 Python/HTTP tests, 9 PostgreSQL integration tests, all Node suites, compilation and fatal Ruff rules. [CI run](https://github.com/books-tabo/ai/actions/runs/39901417009).
+- The isolated HTTPS review was checked for all 20 book responses: nonempty H1/description/canonical/JSON-LD and both HTTP and HTML noindex. Its sitemap contains the expected 34 canonical production URLs.
+- Browser checks covered Arabic/English, Sigma added alone ($15.90) and with book19 ($25.89), three-book business filtering, author links to all 20 books, and an Arabic article draft with its three related books. No payment was submitted.
+- Pricing/statistics refreshes preserve existing editorial links and open FAQ state; language changes update the copy once.
+- Google Rich Results Test requested sign-in rather than returning a result; Schema.org Validator showed a human-verification challenge. No external rich-result/schema certification is claimed. Search Console's saved Google account was signed out, so no property reports were accessed. No preview indexing request was sent.
+- Google PageSpeed mobile testing was available. Its lab measurements and final responsive-image verification are included in the handover. Preview noindex is intentionally retained regardless of the SEO score.
 
 ## After owner approval
 
 Keep the live service's current payment settings, keys, start command and branch strategy. Review the SEO diff against the current live branch again, run CI, and deploy the approved application without the review launcher or review environment value. No database migration is required. Confirm live pages have no accidental noindex, then submit `https://tabobooks.com/sitemap.xml` in the correct Search Console property and inspect representative book/category URLs.
 
-Search Console access was not available through the connected sources. The HTML verification tag was retained; it is not evidence of verified ownership, accepted sitemap status, clean manual-action/security reports or successful indexing. After deployment check Sitemaps, Page indexing, URL Inspection, Manual actions and Security issues in the actual property.
+Search Console access was not available through the connected sources, and its browser flow required signing into a saved but signed-out account. The HTML verification tag was retained; it is not evidence of verified ownership, accepted sitemap status, clean manual-action/security reports or successful indexing. After deployment check Sitemaps, Page indexing, URL Inspection, Manual actions and Security issues in the actual property.
 
 ## Rollback
 

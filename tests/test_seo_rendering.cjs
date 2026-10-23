@@ -62,5 +62,15 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
     }
   }
   new vm.Script(fs.readFileSync('seo.js','utf8'));
+  // A configuration/statistics refresh must not replace a focused related
+  // link or collapse a FAQ that the reader has already opened.
+  const copies={ar:{title:'عربي',description:'نبذة',breadcrumb:'ar',extra:'Arabic FAQ',body:'Arabic body'},en:{title:'English',description:'Description',breadcrumb:'en',extra:'English FAQ',body:'English body'}};
+  const faq={expanded:true,_html:'Arabic FAQ'};
+  Object.defineProperty(faq,'innerHTML',{get(){return this._html},set(value){this._html=value;this.expanded=false;}});
+  const editorial={document:{documentElement:{lang:'ar'},getElementById:id=>id==='seo-data'?{textContent:JSON.stringify(copies)}:id==='seo-extra'?faq:{innerHTML:''},querySelector:()=>({setAttribute(){}}),querySelectorAll:()=>[]}};
+  editorial.window=editorial;vm.createContext(editorial);vm.runInContext(fs.readFileSync('seo.js','utf8'),editorial);
+  editorial.TaboSEO.render('ar');assert.equal(faq.expanded,true);
+  editorial.TaboSEO.render('en');assert.equal(faq.innerHTML,'English FAQ');
+  faq.expanded=true;editorial.TaboSEO.render('en');assert.equal(faq.expanded,true);
   console.log('SEO rendering: core content before config/stats; exact fixed prices, preserved cart/query/language, single ViewContent/AddToCart and zero Purchase events passed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
