@@ -129,6 +129,7 @@ def pricing_for_country(base_prices, country):
         'multiplier': 1 if egypt else 2,
         'prices': prices,
         'bookPolicies': catalog.public_policies(currency, prices['1']),
+        'offers': catalog.public_offers(currency),
         'compareAtPrice': 299 if egypt else 14.99,
         'rateSource': 'fixed',
         'countries': [

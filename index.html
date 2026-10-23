@@ -1918,6 +1918,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
     </div>
 
     <div class="brand-line"></div>
+    <a href="/offers" data-offers-label class="offers-home-link">عروض الباقات</a>
 
     <h1 id="heroTitle">
         مكتبة تابو الرقمية
@@ -1970,7 +1971,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
     </div>
 
 
-    <div class="footer-links"><a href="/categories" data-seo-label="categories">أقسام الكتب</a>
+    <div class="footer-links"><a href="/offers" data-offers-label>عروض الباقات</a><a href="/categories" data-seo-label="categories">أقسام الكتب</a>
 
         <a id="footerAuthors" href="/authors">المؤلفين</a>
         <a id="footerAbout" href="/about">
@@ -2128,6 +2129,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
 
 
         <div id="cartItems"></div>
+        <div id="cartOfferSummary" class="offer-applied" role="status" hidden></div>
 
 
         <div
@@ -2978,6 +2980,7 @@ function applyStaticCopy(){
     Object.entries(modalTitles).forEach(([id,key])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
     Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) el.innerHTML=currentLanguage==="en"?INFO_EN[id]:(INFO_AR[id]||el.innerHTML);});
     renderNavigation();
+    renderCuratedOffers();
 }
 
 function setLanguage(language){
@@ -3038,6 +3041,7 @@ async function loadStoreConfig(country=browserCountryHint()){
         window.TABO_CHECKOUT_READY=storeConfig.checkoutEnabled===true&&storeConfig.checkoutSupported===true;
     } catch(error){ window.TABO_CHECKOUT_READY=false; }
     renderCountryOptions(); renderPromo(); renderBooks(); updateCart();
+    if(window.TABO_CHECKOUT_READY || Array.isArray(storeConfig.offers))completeOfferIntent();
     const notice=document.getElementById("checkoutNotice");
     if(notice){notice.style.display=window.TABO_CHECKOUT_READY?"none":"block";notice.textContent=storeConfig.checkoutSupported?t("preview"):t("currencyPending");}
 }
@@ -3050,6 +3054,7 @@ let cart =
     ) || [];
 
 cart=cart.map(item=>({type:"book",id:item.id||BOOK_IDS[item.name]})).filter(item=>BOOKS.some(book=>book.id===item.id));
+cart=[...new Map(cart.map(item=>[item.id,item])).values()];
 
 
 
@@ -3092,11 +3097,40 @@ function calculatePricing(){
     const ordinary=books.filter(book=>bookPolicy(book).bundleEligible);
     const minor=value=>Math.round(Number(value||0)*100);
     const fixedMinor=books.filter(book=>!bookPolicy(book).bundleEligible).reduce((total,book)=>total+minor(bookPrice(book)),0);
-    const ordinaryMinor=ordinary.length?minor(PRICING_LADDER[ordinary.length]??ordinary.length*Number(PRICING_LADDER[1]||0)):0;
+    const basicMinor=ordinary.length?minor(PRICING_LADDER[ordinary.length]??ordinary.length*Number(PRICING_LADDER[1]||0)):0;
+    const special=typeof TaboOfferPricing!=="undefined"?TaboOfferPricing.best(ordinary.map(book=>book.id),storeConfig):{totalMinor:basicMinor,offerIds:[],savingsMinor:0};
+    const ordinaryMinor=special.totalMinor;
     const originalMinor=ordinary.length*minor(storeConfig.compareAtPrice||PRICING_LADDER[1])+fixedMinor;
-    return {count:books.length,standardCount:ordinary.length,fixedTotal:fixedMinor/100,original:originalMinor/100,final:(ordinaryMinor+fixedMinor)/100,discount:Math.max(0,originalMinor-ordinaryMinor-fixedMinor)/100};
+    return {offerIds:special.offerIds,offerSavings:special.savingsMinor/100,count:books.length,standardCount:ordinary.length,fixedTotal:fixedMinor/100,original:originalMinor/100,final:(ordinaryMinor+fixedMinor)/100,discount:Math.max(0,originalMinor-ordinaryMinor-fixedMinor)/100};
 }
 /* Catalog pricing end */
+/* Curated offer actions start */
+function renderCuratedOffers(){
+    if(typeof TaboOfferUI!=="undefined")TaboOfferUI.render(storeConfig,currentLanguage,cart.map(x=>x.id));
+}
+function addCuratedOffer(offerId){
+    const offer=(storeConfig.offers||[]).find(x=>x.id===offerId);
+    if(!offer)return false;
+    const before=calculatePricing().final;
+    const added=offer.books.filter(id=>!cart.some(item=>item.id===id));
+    added.forEach(id=>cart.push({type:"book",id}));
+    if(added.length){
+        saveCart();
+        const delta=Math.max(0,Math.round((calculatePricing().final-before)*100)/100);
+        window.TaboTracking?.track('AddToCart',{content_ids:added,value:delta,currency:storeConfig.currency});
+    }
+    updateCart();openCart();return true;
+}
+function completeOfferIntent(){
+    const params=new URLSearchParams(location.search),id=params.get('offer');
+    if(id && addCuratedOffer(id)){
+        params.delete('offer');
+        const search=params.toString();
+        history.replaceState(history.state,'',location.pathname+(search?'?'+search:'')+location.hash);
+    }
+}
+/* Curated offer actions end */
+
 
 
 /* =========================================================
@@ -3398,6 +3432,7 @@ function updateBookButtons(){
 ========================================================= */
 
 function updateCart(){
+    renderCuratedOffers();
 
     document.querySelectorAll("[data-cart-count]").forEach(badge=>{
         badge.textContent=cart.length;
@@ -3434,6 +3469,12 @@ function renderCart(){
     const pricing =
         calculatePricing();
 
+    const offerSummary=document.getElementById("cartOfferSummary");
+    if(offerSummary){
+        const applied=(storeConfig.offers||[]).filter(offer=>pricing.offerIds.includes(offer.id));
+        offerSummary.hidden=!applied.length;
+        offerSummary.textContent=applied.map(offer=>offer.title[currentLanguage]+" — "+formatMoney(offer.price)).join(" | ")+(applied.length?(currentLanguage==="ar"?" — تم تطبيق سعر الباقة تلقائيًا.":" — Pack price applied automatically."):"");
+    }
     const usdSummary=needsEgpQuote();
     document.getElementById("cartFinalRow").classList.toggle("usd-summary",usdSummary);
     document.getElementById("finalPriceLabel").textContent=usdSummary?(currentLanguage==="ar"?"الإجمالي بالدولار":"Total in USD"):t("final");
@@ -3511,7 +3552,7 @@ function renderCart(){
                         <div
                             class="cart-item-price"
                         >
-                            ${formatMoney(bookPrice(book))}
+                            ${(pricing.offerIds.some(id=>(storeConfig.offers||[]).find(o=>o.id===id)?.books.includes(item.id))?(currentLanguage==="ar"?"ضمن سعر الباقة":"Included in pack"):formatMoney(bookPrice(book)))}
                         </div>
                         ${fixedPriceNotice(book)}
 
@@ -3547,11 +3588,12 @@ function renderCart(){
 
     const nextCount=pricing.standardCount+1;
     let nextMessage="";
-    if(PRICING_LADDER[nextCount]){
+    if(PRICING_LADDER[nextCount] && !(storeConfig.offers||[]).length){
         const nextPrice=Math.round((Number(PRICING_LADDER[nextCount])+pricing.fixedTotal)*100)/100;
         const difference=Math.round((nextPrice-pricing.final)*100)/100;
         nextMessage=t("addAnother").replace("{difference}",formatMoney(difference)).replace("{next}",formatMoney(nextPrice));
     }
+    if((storeConfig.offers||[]).length)nextMessage=currentLanguage==="ar"?"يُحسب أقل إجمالي مستحق تلقائيًا. حذف كتاب قد يغيّر الباقة المتاحة.":"The lowest eligible total is calculated automatically. Removing a book may change pack eligibility.";
     if(pricing.count>pricing.standardCount) nextMessage=[nextMessage,fixedPriceText()].filter(Boolean).join(" ");
     document.getElementById("cartNextMessage").textContent=nextMessage;
     document.getElementById("cartOriginal").parentElement.hidden=pricing.discount===0;
@@ -4005,7 +4047,7 @@ document.addEventListener(
         document.querySelectorAll("[data-drawer-tab]").forEach(button=>{
             button.addEventListener("click",()=>setDrawerTab(button.dataset.drawerTab));
         });
-        document.getElementById("offersDrawerLink")?.addEventListener("click",()=>selectBookCategory("all"));
+        document.getElementById("offersDrawerLink")?.addEventListener("click",()=>{location.href="/offers";});
         document.getElementById("authorDrawerLink")?.addEventListener("click",()=>{location.href="/authors"});
         document.getElementById("categoryLinks")?.addEventListener("click",event=>{
             const button=event.target.closest("[data-category]");
@@ -4035,6 +4077,10 @@ document.addEventListener(
         document.getElementById("countrySelect")?.addEventListener("change",event=>{
             localStorage.setItem("taboCountry",event.target.value);
             loadStoreConfig(event.target.value);
+        });
+        document.getElementById("curatedOffers")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-add-offer]");
+            if(button)addCuratedOffer(button.dataset.addOffer);
         });
         loadStoreConfig();
         loadBookStats();

@@ -103,6 +103,20 @@ def book_extra(book_id, language):
     return section
 
 
+def offer_card(offer_id, language='ar', home=False):
+    offer = catalog.OFFERS[offer_id]
+    ar = language == 'ar'
+    names = ''.join('<li>' + link('/books/'+bid,book_name(BOOKS[bid],language)).replace('<a ', '<a data-offer-book-name="'+bid+'" ',1) + '</li>' for bid in offer['books'])
+    images = ''.join('<img src="'+BOOKS[bid]['image']+'" alt="'+escape(book_name(BOOKS[bid],language))+'" width="'+str(BOOKS[bid]['imageWidth'])+'" height="'+str(BOOKS[bid]['imageHeight'])+'" loading="lazy" decoding="async">' for bid in offer['books'])
+    action = ('<button type="button" data-add-offer="'+offer_id+'"' if home else '<a data-offer-buy href="/?offer='+offer_id+'&amp;cart=1"') + ' class="offer-button" data-offer-button-label>' + ('أضف الباقة للسلة' if ar else 'Add pack to cart') + ('</button>' if home else '</a>')
+    heading = 'h3' if home else 'h2'
+    return '<article class="curated-offer" data-offer-id="'+offer_id+'"><div class="offer-covers">'+images+'</div><p data-offer-count>'+str(len(offer['books']))+(' كتب PDF' if ar else ' PDF books')+'</p><'+heading+' data-offer-title>'+escape(offer['title'][language])+'</'+heading+'><p data-offer-description>'+escape(offer['description'][language])+'</p><ul>'+names+'</ul><div class="offer-price" data-offer-price>'+str(offer['prices']['EGP'])+' جنيه / $'+str(offer['prices']['USD'])+'</div><p class="offer-original" data-offer-original hidden></p>'+action+'<a class="offer-details" href="/offers/'+offer_id+'" data-offer-details>'+('تفاصيل الباقة والكتب' if ar else 'Pack details and books')+'</a></article>'
+
+
+def offers_section(language='ar', home=False):
+    return '<section class="curated-offers" id="curatedOffers"><h2 data-offer-section-title>'+('باقات كتب مختارة' if language=='ar' else 'Curated book packs')+'</h2><div class="curated-offer-grid">'+''.join(offer_card(key,language,home) for key in catalog.OFFERS)+'</div></section>'
+
+
 def listed_articles(include_drafts=False):
     return {key: value for key, value in ARTICLES.items() if value['status'] == 'published' or include_drafts}
 
@@ -110,6 +124,7 @@ def listed_articles(include_drafts=False):
 def public_paths():
     paths = ['/'] + ['/books/' + book_id for book_id in catalog.BOOKS]
     paths += ['/' + key for key in PAGES] + ['/categories', '/authors/tabo-noor']
+    paths += ['/offers'] + ['/offers/' + key for key in catalog.OFFERS]
     paths += ['/categories/' + key for key, cat in CATEGORIES.items() if cat['books']]
     articles = listed_articles()
     if articles:
@@ -181,6 +196,20 @@ def page_data(path, include_drafts=False):
             trail += [('/categories/' + primary, category[language]), (None, name)]
             image = book['image']
             extra = book_extra(book_id, language)
+        elif path == '/offers':
+            title = 'عروض باقات الكتب' if ar else 'Book pack offers'
+            description = 'باقات مختارة من 3 أو 4 أو 5 كتب مترابطة من تأليف تابو نور. أسعار خاصة بالجنيه داخل مصر وبالدولار خارجها، مع إضافة كتب الباقة إلى السلة.' if ar else 'Curated packs of 3, 4 or 5 related Arabic PDF books by TABO NOOR, with Egyptian-pound and US-dollar prices.'
+            trail += [(None,title)]
+            body = paragraphs(description) + offers_section(language)
+            body += paragraphs('يُطبق سعر الباقة عند اكتمال كتبها في السلة، ويُختار أقل إجمالي مستحق عند جمع العروض. حذف كتاب قد يغيّر العرض المستحق. سعر السيجما مستقل.' if ar else 'A pack price applies when all its books are in the cart. The lowest eligible total is used when packs are combined. Removing a book may change eligibility. Sigma keeps its independent price.')
+        elif path.startswith('/offers/') and path.rsplit('/',1)[-1] in catalog.OFFERS:
+            key = path.rsplit('/',1)[-1]
+            offer = catalog.OFFERS[key]
+            title,description = offer['title'][language],offer['description'][language]
+            image = BOOKS[offer['books'][0]]['image']
+            trail += [('/offers','عروض الباقات' if ar else 'Book pack offers'),(None,title)]
+            body = offer_card(key,language) + '<h2>'+('الكتب المشمولة في الباقة' if ar else 'Books included in this pack')+'</h2>'+book_list(offer['books'],language)
+            body += '<section class="seo-section"><h2>'+('كيف تحصل على العرض؟' if ar else 'How does the offer work?')+'</h2>'+paragraphs('اضغط «أضف الباقة للسلة» لإضافة الكتب المحددة دون تكرار كتب موجودة بالفعل. يُحسب أقل سعر مستحق تلقائيًا. إذا حذفت كتابًا من الباقة يُعاد حساب الإجمالي والعروض المتاحة. الكتب باللغة العربية وبصيغة PDF، وتظهر روابطها في طلبك بعد إتمام الدفع وفق سياسة المتجر.' if ar else 'Add the pack to your cart to add its selected books without duplicating titles already there. The lowest eligible total is calculated automatically. Removing a book recalculates the available offers. These are Arabic PDF books; access follows the store delivery policy after successful payment.')+'</section>'
         elif path == '/categories':
             title = 'أقسام الكتب' if ar else 'Book categories'
             description = 'تصفح أقسام كتب تابو نور حسب موضوعها: تطوير الذات، علم النفس، المال والأعمال، الثروة وريادة الأعمال.' if ar else 'Browse TABO NOOR books by subject: personal growth, psychology, money and business, wealth and entrepreneurship.'
@@ -227,9 +256,9 @@ def page_data(path, include_drafts=False):
         if path != '/' and not book_id:
             title += ' | TABO BOOKS'
         result[language] = {'title': title, 'description': description, 'image': ORIGIN + image, 'body': body,
-                            'extra': extra, 'breadcrumb': crumbs(trail, language), 'heading': (book_name(BOOKS[book_id], language) if book_id else title.removesuffix(' | TABO BOOKS'))}
+                            'extra': extra, 'trail':trail, 'breadcrumb': crumbs(trail, language), 'heading': (book_name(BOOKS[book_id], language) if book_id else title.removesuffix(' | TABO BOOKS'))}
     result['graph'] = graph(path, result['ar']['title'], result['ar']['description'], result['ar']['image'].removeprefix(ORIGIN),
-                            [('/', 'الرئيسية')] + ([('/categories/' + categories_for(book_id)[0][0], categories_for(book_id)[0][1]['ar']), (None, BOOKS[book_id]['name'])] if book_id else ([(None, result['ar']['heading'])] if path != '/' else [])), book_id)
+                            result['ar']['trail'], book_id)
     result['canonical'] = ORIGIN + path
     return result
 
@@ -254,6 +283,11 @@ def render(source, path, host, filename):
         head += '<meta name="robots" content="noindex, nofollow, noarchive">\n'
     head += '<link rel="stylesheet" href="/seo.css?v=' + ASSET_VERSIONS['seo.css'] + '">\n<script type="application/ld+json" id="seo-graph">' + safe_json(data['graph']) + '</script>\n'
     head += '<script type="application/json" id="seo-data">' + safe_json(data) + '</script>\n<script src="/seo.js?v=' + ASSET_VERSIONS['seo.js'] + '"></script>\n'
+    if filename in ('index.html','offers.html'):
+        names = {bid:{'ar':book['name'],'en':book['enName']} for bid,book in BOOKS.items()}
+        code = 'var TABO_CURATED_OFFERS='+safe_json(catalog.OFFERS)+';var TABO_OFFER_BOOK_NAMES='+safe_json(names)+';\n'
+        code += (ROOT/'offer-pricing.js').read_text()+'\n'+(ROOT/'offer-ui.js').read_text()
+        head += '<script id="curated-offer-code">'+code+'</script>\n'
     source = source.replace('</head>', head + '</head>', 1)
     if review_mode():
         notice = '<aside class="seo-review-banner">نسخة مراجعة غير منشورة — ' + link('/articles', 'مسودات المقالات') + '</aside>'
@@ -271,6 +305,7 @@ def render(source, path, host, filename):
         grid = re.compile(r'(<div\s+class="books-grid"\s+id="booksGrid"\s*>)[\s\S]*?</div>')
         cards = ''.join(book_card(key, home=True, position=i) for i, key in enumerate(catalog.BOOKS))
         source = grid.sub(lambda m: m[1] + cards + '</div>', source, count=1)
+        source = source.replace('<section class="book-panorama"', offers_section(home=True)+'<section class="book-panorama"',1)
         source = source.replace('<section class="book-panorama"', '<div id="seo-body" class="seo-home-nav">' + ar['body'] + '</div><section class="book-panorama"', 1)
     elif filename == 'book.html':
         book_id = path.rsplit('/', 1)[-1]
