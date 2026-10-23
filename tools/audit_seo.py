@@ -47,9 +47,9 @@ class Page(HTMLParser):
 def fetch(url):
     try:
         with urlopen(Request(url, headers={'User-Agent': 'TABO-SEO-ReadOnly-Audit/1.0'}), timeout=30) as response:
-            return response.status, dict(response.headers), response.read().decode('utf-8')
+            return response.status, {k.lower():v for k,v in response.headers.items()}, response.read().decode('utf-8')
     except HTTPError as error:
-        return error.code, dict(error.headers), error.read().decode('utf-8', errors='replace')
+        return error.code, {k.lower():v for k,v in error.headers.items()}, error.read().decode('utf-8', errors='replace')
 
 
 def audit(base):
@@ -70,7 +70,7 @@ def audit(base):
                 'h1': page.h1, 'description': page.meta.get('description'),
                 'canonical': [x.get('href') for x in page.links if x.get('rel') == 'canonical'],
                 'graphs': len(page.graphs), 'bookLinks': sorted(set(x for x in page.anchors if x.startswith('/books/'))),
-                'robotsHeader': headers.get('X-Robots-Tag'), 'robotsMeta': page.meta.get('robots')}
+                'robotsHeader': headers.get('x-robots-tag'), 'robotsMeta': page.meta.get('robots')}
     with ThreadPoolExecutor(max_workers=4) as pool:
         pages = list(pool.map(one, paths))
     return {'base': base, 'sitemapStatus': sitemap_status, 'sitemapURLs': urls, 'pages': pages}
