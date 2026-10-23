@@ -44,6 +44,8 @@ class PublicHTMLTests(HTTPCase):
                 self.assertIn('أسئلة عن الكتاب',source)
                 self.assertIn('nonce=',source)
                 self.assertNotIn('SSR_BOOK',source)
+                self.assertIn('/seo.js?v='+seo.ASSET_VERSIONS['seo.js'],source)
+                self.assertIn('/seo.css?v='+seo.ASSET_VERSIONS['seo.css'],source)
                 titles.add(page.title);descriptions.add(page.meta['description'])
             self.assertEqual(len(titles),20);self.assertEqual(len(descriptions),20)
             originals.assert_not_called();stats.assert_not_called()

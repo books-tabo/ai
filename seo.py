@@ -1,4 +1,5 @@
 """Public, server-rendered catalog. Never reads orders, statistics or PDF originals."""
+import hashlib
 import html
 import json
 import os
@@ -14,6 +15,7 @@ BOOKS = json.loads((ROOT / 'content/books.json').read_text())
 PAGES = json.loads((ROOT / 'content/pages.json').read_text())
 CATEGORIES = json.loads((ROOT / 'content/categories.json').read_text())
 ARTICLES = json.loads((ROOT / 'content/articles.json').read_text())
+ASSET_VERSIONS = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()[:12] for name in ('seo.js', 'seo.css')}
 AUTHOR = {'ar': 'تابو نور', 'en': 'TABO NOOR'}
 AUTHOR_BIO = {
     'ar': 'تابو نور كاتب ومؤلف يهتم بالوعي وتطوير الذات والمال والطموح وفهم الإنسان لنفسه والعالم من حوله. تتناول كتبه السلوك والعلاقات والاختيار والمسؤولية، وتربط التأمل بخطوات عملية.',
@@ -250,8 +252,8 @@ def render(source, path, host, filename):
     head += '<meta name="twitter:card" content="summary_large_image">\n'
     if not indexable(host):
         head += '<meta name="robots" content="noindex, nofollow, noarchive">\n'
-    head += '<link rel="stylesheet" href="/seo.css">\n<script type="application/ld+json" id="seo-graph">' + safe_json(data['graph']) + '</script>\n'
-    head += '<script type="application/json" id="seo-data">' + safe_json(data) + '</script>\n<script src="/seo.js"></script>\n'
+    head += '<link rel="stylesheet" href="/seo.css?v=' + ASSET_VERSIONS['seo.css'] + '">\n<script type="application/ld+json" id="seo-graph">' + safe_json(data['graph']) + '</script>\n'
+    head += '<script type="application/json" id="seo-data">' + safe_json(data) + '</script>\n<script src="/seo.js?v=' + ASSET_VERSIONS['seo.js'] + '"></script>\n'
     source = source.replace('</head>', head + '</head>', 1)
     if review_mode():
         notice = '<aside class="seo-review-banner">نسخة مراجعة غير منشورة — ' + link('/articles', 'مسودات المقالات') + '</aside>'
