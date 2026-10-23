@@ -31,7 +31,7 @@ Product/Offer markup is deliberately deferred: prices depend on verified visitor
 - The current reference **السيجما _ نسخة نهائية (2).pdf** was read: 245 PDF pages, first edition 2026, 15 chapter headings. The heading of chapter 3 is **تحت الاختبار**, as printed in this edition. Its no-preview policy and separate fixed price are retained.
 - The current reference **بدون شهادة جامعية _ نسخة نهائية.pdf** was read: 309 PDF pages and 20 chapter headings. An edition number was not inferred from copyright text.
 - These page counts include the PDF cover; the UI labels them as PDF page counts.
-- Full chapter headings, edition and page counts for the other 18 books require confirmation against their current sale files. Unnecessary unknown facts are omitted. No original PDF bytes are committed or served for SEO.
+- All 20 PDF page counts were checked against the live public aggregate `/api/book-stats`, and now appear in initial HTML and Book JSON-LD. The two inspected reference PDFs independently match their public counts. The other 18 counts are sourced from current public store metadata, not an independent reading of each paid original; evidence is in `docs/seo-page-count-sources.json`. Full chapter headings and edition details for those 18 books remain unverified and omitted. No original PDF bytes are committed or served for SEO.
 
 ## Editorial drafts
 
@@ -55,12 +55,12 @@ All review responses carry X-Robots-Tag noindex/nofollow/noarchive, and public H
 - Actual rendered browser script under Node with delayed statistics and configuration: content remains available, country prices update, Sigma remains independent, cart contents survive, UTM/fbclid remain in the landing URL, and ViewContent/AddToCart do not repeat during rerenders.
 - Existing quote, bundle, callback, activation, download-limit and Meta Purchase-deduplication suites.
 - Local compileall, JavaScript parsing and git diff whitespace checks. CI additionally runs fatal Ruff rules and the existing isolated PostgreSQL integration suite.
-- CI passed for application commit `322d2820617118a7d4c941c0fb8ed5ae0ea16dba`: 80 Python/HTTP tests, 9 PostgreSQL integration tests, all Node suites, compilation and fatal Ruff rules. [CI run](https://github.com/books-tabo/ai/actions/runs/39901417009).
+- CI passed for application commit `7e0650b6be840975df1f0e84ab2460062051bb88`: 80 Python/HTTP tests, 9 PostgreSQL integration tests, all Node suites, compilation and fatal Ruff rules. [CI run](https://github.com/books-tabo/ai/actions/runs/39901946024). Final page-count metadata validation is also recorded in PR #2 checks.
 - The isolated HTTPS review was checked for all 20 book responses: nonempty H1/description/canonical/JSON-LD and both HTTP and HTML noindex. Its sitemap contains the expected 34 canonical production URLs.
 - Browser checks covered Arabic/English, Sigma added alone ($15.90) and with book19 ($25.89), three-book business filtering, author links to all 20 books, and an Arabic article draft with its three related books. No payment was submitted.
 - Pricing/statistics refreshes preserve existing editorial links and open FAQ state; language changes update the copy once.
 - Google Rich Results Test requested sign-in rather than returning a result; Schema.org Validator showed a human-verification challenge. No external rich-result/schema certification is claimed. Search Console's saved Google account was signed out, so no property reports were accessed. No preview indexing request was sent.
-- Google PageSpeed mobile testing was available. Its lab measurements and final responsive-image verification are included in the handover. Preview noindex is intentionally retained regardless of the SEO score.
+- [Google PageSpeed mobile lab test](https://pagespeed.web.dev/analysis/https-tabo-books-seo-review-onrender-com-books-book20/v5jjya532x?form_factor=mobile): performance 100, accessibility 97, best practices 100, SEO 69 because of intentional preview noindex; FCP 1.0s, LCP 1.5s, TBT 0ms, CLS 0. These are one emulated preview run, not real-user or live-store guarantees. Cover CSS now preserves the source aspect ratio with height:auto. Preview noindex is intentionally retained regardless of the SEO score.
 
 ## After owner approval
 

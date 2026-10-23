@@ -56,7 +56,8 @@
       ]
     },
     "imageWidth": 427,
-    "imageHeight": 640
+    "imageHeight": 640,
+    "pageCount": 440
   },
   "book2": {
     "name": "نحو القمة",
@@ -115,7 +116,8 @@
       ]
     },
     "imageWidth": 427,
-    "imageHeight": 640
+    "imageHeight": 640,
+    "pageCount": 304
   },
   "book3": {
     "name": "تمرد",
@@ -174,7 +176,8 @@
       ]
     },
     "imageWidth": 427,
-    "imageHeight": 640
+    "imageHeight": 640,
+    "pageCount": 276
   },
   "book4": {
     "name": "كيف تصنع المليون الأول",
@@ -233,7 +236,8 @@
       ]
     },
     "imageWidth": 427,
-    "imageHeight": 640
+    "imageHeight": 640,
+    "pageCount": 434
   },
   "book5": {
     "name": "شهوات",
@@ -292,7 +296,8 @@
       ]
     },
     "imageWidth": 427,
-    "imageHeight": 640
+    "imageHeight": 640,
+    "pageCount": 362
   },
   "book6": {
     "name": "دليل السمو",
@@ -351,7 +356,8 @@
       ]
     },
     "imageWidth": 427,
-    "imageHeight": 640
+    "imageHeight": 640,
+    "pageCount": 379
   },
   "book7": {
     "name": "إلى كل بنت",
@@ -410,7 +416,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018
+    "imageHeight": 1018,
+    "pageCount": 377
   },
   "book8": {
     "name": "أصنام",
@@ -469,7 +476,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1080
+    "imageHeight": 1080,
+    "pageCount": 678
   },
   "book9": {
     "name": "تأثير الكوبرا",
@@ -528,7 +536,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1077
+    "imageHeight": 1077,
+    "pageCount": 329
   },
   "book10": {
     "name": "دليل التحرر من العادة السرية",
@@ -587,7 +596,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1078
+    "imageHeight": 1078,
+    "pageCount": 326
   },
   "book11": {
     "name": "الأفعى والمنشار",
@@ -646,7 +656,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1015
+    "imageHeight": 1015,
+    "pageCount": 208
   },
   "book12": {
     "name": "جسد",
@@ -705,7 +716,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018
+    "imageHeight": 1018,
+    "pageCount": 532
   },
   "book13": {
     "name": "بنت تخطت الثلاثين",
@@ -764,7 +776,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018
+    "imageHeight": 1018,
+    "pageCount": 222
   },
   "book14": {
     "name": "أنت",
@@ -823,7 +836,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1080
+    "imageHeight": 1080,
+    "pageCount": 411
   },
   "book15": {
     "name": "شفرة الحياة",
@@ -882,7 +896,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 960
+    "imageHeight": 960,
+    "pageCount": 187
   },
   "book16": {
     "name": "شفرة قلب الأنثى",
@@ -941,7 +956,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018
+    "imageHeight": 1018,
+    "pageCount": 580
   },
   "book17": {
     "name": "عجلة الفئران",
@@ -1000,7 +1016,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1080
+    "imageHeight": 1080,
+    "pageCount": 225
   },
   "book18": {
     "name": "كيف تغير حياتك",
@@ -1059,7 +1076,8 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1080
+    "imageHeight": 1080,
+    "pageCount": 443
   },
   "book19": {
     "name": "بدون شهادة جامعية",
