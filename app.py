@@ -625,12 +625,12 @@ class Handler(BaseHTTPRequestHandler):
     def html(self, filename, extra_headers=None, public_path=None):
         nonce=secrets.token_urlsafe(24)
         source=(ROOT/filename).read_text(encoding='utf-8')
-        if filename in ('index.html','book.html','info.html'):
+        if filename in ('index.html','book.html','info.html','offers.html'):
             source=seo.render(source,public_path or urlparse(self.path).path,self.headers.get('Host',''),filename)
             if source is None:
                 return self.respond(404,{'ok':False,'error':'Not found'})
         pixel_id=meta_tracking.pixel_id()
-        self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','success.html'))
+        self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','success.html','offers.html'))
         if self._meta_enabled:
             version=hashlib.sha256((ROOT/'meta-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'" data-pixel-id="'+pixel_id+'"></script></head>',1)
@@ -978,6 +978,8 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/previews' or route.startswith('/previews/'):
             return self.respond(410,{'ok':False,'error':'رابط ملف العينة غير متاح.'})
         if route=='/': return self.html('index.html')
+        if route=='/offers' or route.startswith('/offers/'):
+            return self.html('offers.html')
         if route=='/robots.txt':
             payload=seo.robots(self.headers.get('Host','')).encode()
             self.send_response(200)

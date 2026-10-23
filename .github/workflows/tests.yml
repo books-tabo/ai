@@ -25,6 +25,7 @@ jobs:
       - run: node tests/test_meta_tracking.cjs
       - run: node tests/test_checkout_quote.cjs
       - run: node tests/test_seo_rendering.cjs
+      - run: node tests/test_curated_offers.cjs
   postgres:
     runs-on: ubuntu-latest
     services:

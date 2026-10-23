@@ -1,0 +1,20 @@
+{
+  "change-starter": {
+    "title": {"ar": "باقة بداية التغيير", "en": "Start Your Change"},
+    "description": {"ar": "ثلاث قراءات متكاملة للبدء بخطوات عملية، وفهم نفسك، وبناء العادات والانضباط: كيف تغير حياتك، وأنت، ودليل السمو.", "en": "Three connected reads on practical change, self-understanding, habits and discipline: How to Change Your Life, You, and The Guide to Elevation."},
+    "books": ["book18", "book14", "book6"],
+    "prices": {"EGP": 300, "USD": 15}
+  },
+  "money-and-wealth": {
+    "title": {"ar": "باقة المال وبناء الثروة", "en": "Money and Wealth"},
+    "description": {"ar": "أربع زوايا لفهم المال والدخل والاستهلاك والحوافز: كيف تصنع المليون الأول، وعجلة الفئران، وتأثير الكوبرا، وأصنام. قراءة للفهم ومراجعة القرارات المالية.", "en": "Four perspectives on money, income, consumption and incentives: How to Make Your First Million, The Rat Race, The Cobra Effect, and Idols. Reading for understanding money and reviewing financial decisions."},
+    "books": ["book4", "book17", "book9", "book8"],
+    "prices": {"EGP": 350, "USD": 20}
+  },
+  "self-growth": {
+    "title": {"ar": "باقة بناء النفس والنجاح", "en": "Self-Growth and Progress"},
+    "description": {"ar": "خمس قراءات تربط التغيير والوعي بالانضباط والطموح والتعلم الذاتي: كيف تغير حياتك، وأنت، ودليل السمو، ونحو القمة، وبدون شهادة جامعية.", "en": "Five connected reads on change, self-awareness, discipline, ambition and self-directed learning: How to Change Your Life, You, The Guide to Elevation, Toward the Summit, and Without a University Degree."},
+    "books": ["book18", "book14", "book6", "book2", "book19"],
+    "prices": {"EGP": 400, "USD": 23}
+  }
+}
