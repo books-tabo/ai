@@ -19,6 +19,7 @@ import proxy_identity
 import book_previews
 import pdf_limits
 import meta_tracking
+import google_ads_tracking
 import checkout_pricing
 import catalog
 import seo
@@ -521,11 +522,17 @@ class Handler(BaseHTTPRequestHandler):
             meta_scripts=' https://connect.facebook.net' if meta_enabled else ''
             meta_images=' https://www.facebook.com https://facebook.com' if meta_enabled else ''
             meta_connect=' https://www.facebook.com https://connect.facebook.net' if meta_enabled else ''
+            google_enabled=getattr(self,'_google_enabled',False)
+            google_scripts=' https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com' if google_enabled else ''
+            google_images=(google_scripts+' https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com'
+                           ' https://www.google.com.eg https://www.google.com.sa https://www.google.com.kw') if google_enabled else ''
+            google_connect=google_images+' https://ad.doubleclick.net' if google_enabled else ''
+            google_frames='https://www.googletagmanager.com' if google_enabled else "'none'"
             self.send_header('Content-Security-Policy',
-                "default-src 'self'; script-src 'nonce-"+nonce+"'"+meta_scripts+"; "
-                "style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ibb.co data:"+meta_images+"; "
-                "connect-src 'self'"+meta_connect+"; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
-                "frame-ancestors 'none'; frame-src 'none'; form-action 'self'; worker-src 'none'; "
+                "default-src 'self'; script-src 'nonce-"+nonce+"'"+meta_scripts+google_scripts+"; "
+                "style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ibb.co data:"+meta_images+google_images+"; "
+                "connect-src 'self'"+meta_connect+google_connect+"; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
+                "frame-ancestors 'none'; frame-src "+google_frames+"; form-action 'self'; worker-src 'none'; "
                 "upgrade-insecure-requests")
         else:
             self.send_header('Content-Security-Policy',"default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
@@ -634,6 +641,11 @@ class Handler(BaseHTTPRequestHandler):
         if self._meta_enabled:
             version=hashlib.sha256((ROOT/'meta-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'" data-pixel-id="'+pixel_id+'"></script></head>',1)
+        google_id=google_ads_tracking.tag_id()
+        self._google_enabled=bool(google_id and not seo.review_mode() and filename in ('index.html','book.html','info.html','offers.html','success.html'))
+        if self._google_enabled:
+            version=hashlib.sha256((ROOT/'google-ads-tracking.js').read_bytes()).hexdigest()[:12]
+            source=source.replace('</head>', '<script src="/google-ads-tracking.js?v='+version+'" data-google-tag-id="'+google_id+'" data-google-conversion-label="'+google_ads_tracking.CONVERSION_LABEL+'"></script></head>',1)
         source=re.sub(r'<(script|style)(\b[^>]*)>',
                       lambda match:'<'+match.group(1)+' nonce="'+nonce+'"'+match.group(2)+'>',source)
         payload=source.encode('utf-8'); self._csp_nonce=nonce; self.send_response(200)
@@ -998,6 +1010,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/noto-kufi-arabic-bold.ttf':
             return self.asset('noto-kufi-arabic-bold.ttf','font/ttf')
         if route=='/meta-tracking.js': return self.asset('meta-tracking.js','text/javascript; charset=utf-8')
+        if route=='/google-ads-tracking.js': return self.asset('google-ads-tracking.js','text/javascript; charset=utf-8')
         if route=='/seo.js': return self.asset('seo.js','text/javascript; charset=utf-8')
         if route=='/seo.css': return self.asset('seo.css','text/css; charset=utf-8')
         optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
@@ -1062,7 +1075,8 @@ class Handler(BaseHTTPRequestHandler):
                 used=max(0,min(DOWNLOAD_LIMIT,int(usage.get(item['id'],0))))
                 books.append({'id':item['id'],'name':item['name'],'remaining':DOWNLOAD_LIMIT-used})
             return self.respond(200,{'ok':True,'downloadLimit':DOWNLOAD_LIMIT,'books':books,
-                                     'metaPurchase':meta_tracking.purchase(order)})
+                                     'metaPurchase':meta_tracking.purchase(order),
+                                     'googleAdsPurchase':google_ads_tracking.purchase(order) if not seo.review_mode() else None})
         match=re.fullmatch(r'/api/download/(book[1-9][0-9]*)',route)
         if match:
             return self.respond(405,{'ok':False,'error':'استخدم زر التحميل الآمن من صفحة الطلب.'},{'Allow':'POST'})

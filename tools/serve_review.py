@@ -6,6 +6,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 os.environ['TABO_SITE_ENV'] = 'review'
 os.environ['TABO_META_PIXEL_ID'] = ''
+os.environ['TABO_GOOGLE_ADS_ID'] = ''
 
 # A review service has no production credentials, storage or customer data.
 if any(value for key, value in os.environ.items() if
