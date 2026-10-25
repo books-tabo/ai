@@ -20,6 +20,7 @@ import book_previews
 import pdf_limits
 import meta_tracking
 import google_ads_tracking
+import snap_tracking
 import checkout_pricing
 import catalog
 import seo
@@ -528,10 +529,13 @@ class Handler(BaseHTTPRequestHandler):
                            ' https://www.google.com.eg https://www.google.com.sa https://www.google.com.kw') if google_enabled else ''
             google_connect=google_images+' https://ad.doubleclick.net' if google_enabled else ''
             google_frames='https://www.googletagmanager.com' if google_enabled else "'none'"
+            snap_enabled=getattr(self,'_snap_enabled',False)
+            snap_scripts=' https://sc-static.net' if snap_enabled else ''
+            snap_endpoints=' https://tr.snapchat.com https://tr6.snapchat.com' if snap_enabled else ''
             self.send_header('Content-Security-Policy',
-                "default-src 'self'; script-src 'nonce-"+nonce+"'"+meta_scripts+google_scripts+"; "
-                "style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ibb.co data:"+meta_images+google_images+"; "
-                "connect-src 'self'"+meta_connect+google_connect+"; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
+                "default-src 'self'; script-src 'nonce-"+nonce+"'"+meta_scripts+google_scripts+snap_scripts+"; "
+                "style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ibb.co data:"+meta_images+google_images+snap_endpoints+"; "
+                "connect-src 'self'"+meta_connect+google_connect+snap_endpoints+"; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
                 "frame-ancestors 'none'; frame-src "+google_frames+"; form-action 'self'; worker-src 'none'; "
                 "upgrade-insecure-requests")
         else:
@@ -646,6 +650,11 @@ class Handler(BaseHTTPRequestHandler):
         if self._google_enabled:
             version=hashlib.sha256((ROOT/'google-ads-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/google-ads-tracking.js?v='+version+'" data-google-tag-id="'+google_id+'" data-google-conversion-label="'+google_ads_tracking.CONVERSION_LABEL+'"></script></head>',1)
+        snap_id=snap_tracking.pixel_id()
+        self._snap_enabled=bool(snap_id and not seo.review_mode() and filename in ('index.html','book.html','offers.html','success.html'))
+        if self._snap_enabled:
+            version=hashlib.sha256((ROOT/'snap-tracking.js').read_bytes()).hexdigest()[:12]
+            source=source.replace('</head>', '<script src="/snap-tracking.js?v='+version+'" data-snap-pixel-id="'+snap_id+'"></script></head>',1)
         source=re.sub(r'<(script|style)(\b[^>]*)>',
                       lambda match:'<'+match.group(1)+' nonce="'+nonce+'"'+match.group(2)+'>',source)
         payload=source.encode('utf-8'); self._csp_nonce=nonce; self.send_response(200)
@@ -1011,6 +1020,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.asset('noto-kufi-arabic-bold.ttf','font/ttf')
         if route=='/meta-tracking.js': return self.asset('meta-tracking.js','text/javascript; charset=utf-8')
         if route=='/google-ads-tracking.js': return self.asset('google-ads-tracking.js','text/javascript; charset=utf-8')
+        if route=='/snap-tracking.js': return self.asset('snap-tracking.js','text/javascript; charset=utf-8')
         if route=='/seo.js': return self.asset('seo.js','text/javascript; charset=utf-8')
         if route=='/seo.css': return self.asset('seo.css','text/css; charset=utf-8')
         optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
@@ -1076,7 +1086,8 @@ class Handler(BaseHTTPRequestHandler):
                 books.append({'id':item['id'],'name':item['name'],'remaining':DOWNLOAD_LIMIT-used})
             return self.respond(200,{'ok':True,'downloadLimit':DOWNLOAD_LIMIT,'books':books,
                                      'metaPurchase':meta_tracking.purchase(order),
-                                     'googleAdsPurchase':google_ads_tracking.purchase(order) if not seo.review_mode() else None})
+                                     'googleAdsPurchase':google_ads_tracking.purchase(order) if not seo.review_mode() else None,
+                                     'snapPurchase':snap_tracking.purchase(order) if not seo.review_mode() else None})
         match=re.fullmatch(r'/api/download/(book[1-9][0-9]*)',route)
         if match:
             return self.respond(405,{'ok':False,'error':'استخدم زر التحميل الآمن من صفحة الطلب.'},{'Allow':'POST'})
@@ -1088,4 +1099,5 @@ if __name__=='__main__':
     missing=[name for name,ready in checkout_readiness().items() if not ready]
     print('Checkout readiness: '+('ready' if not missing else 'blocked: '+','.join(missing)),flush=True)
     ThreadingHTTPServer((host,port),Handler).serve_forever()
+
 
