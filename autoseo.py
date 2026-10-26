@@ -1,5 +1,6 @@
 """Authenticated AutoSEO publishing; independent of orders and private book assets."""
 import base64
+from collections import Counter
 import hashlib
 import hmac
 import html
@@ -14,6 +15,7 @@ import re
 import socket
 import ssl
 import tempfile
+import threading
 import time
 import unicodedata
 from datetime import datetime, timezone
@@ -30,6 +32,21 @@ MAX_IMAGE_DOWNLOAD = 10_485_760
 MAX_IMAGE_STORED = 1_000_000
 MEDIA_PATH = '/blog/media/'
 SUMMARY_FIELDS = 'id,slug,title,description,language,published_at,updated_at'
+_REJECTIONS = Counter()
+_REJECTION_LOCK = threading.Lock()
+
+
+def record_rejection(reason):
+    """Count bounded, fixed validation reasons only; never retain article data."""
+    reason = re.sub(r'[^A-Za-z0-9 ._-]', '', str(reason))[:80]
+    with _REJECTION_LOCK:
+        if reason in _REJECTIONS or len(_REJECTIONS) < 32:
+            _REJECTIONS[reason] += 1
+
+
+def diagnostics():
+    with _REJECTION_LOCK:
+        return {'rejections': dict(_REJECTIONS)}
 
 
 class InvalidArticle(ValueError):

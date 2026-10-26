@@ -548,6 +548,8 @@ class Handler(BaseHTTPRequestHandler):
         # Avoid recording buyer details or bearer download tokens in server logs.
         print('%s %s %s' % (self.address_string(), self.command, urlparse(self.path).path))
     def respond(self, code, obj, extra_headers=None):
+        if code == 400 and urlparse(self.path).path == autoseo.ENDPOINT:
+            autoseo.record_rejection(obj.get('error', 'Invalid request'))
         body=json.dumps(obj,ensure_ascii=False).encode()
         self.send_response(code); self.send_header('Content-Type','application/json; charset=utf-8')
         self.send_header('Cache-Control','no-store'); self.send_header('Content-Length',str(len(body)))
@@ -1039,6 +1041,12 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(503 if catalog.preview_enabled(book_id) else 404,
                                 {'ok':False,'error':'Preview originals are not connected to the review environment'})
         if not self.enforce_rate_limit(route,'GET'): return
+        if route == '/api/autoseo/status':
+            try:
+                autoseo.authenticate(self.headers)
+            except autoseo.Unauthorized:
+                return self.respond(401, {'error': 'Unauthorized'})
+            return self.respond(200, autoseo.diagnostics())
         if route == '/blog/' and autoseo.enabled():
             return self.respond(301, {'url': autoseo.origin() + '/blog'}, {'Location': '/blog'})
         if route == '/blog' or route.startswith('/blog/'):

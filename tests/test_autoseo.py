@@ -103,6 +103,16 @@ class AutoSEOHTTPTests(HTTPCase):
         self.assertEqual((status, response), (200, {'url': 'https://tabobooks.com/test'}))
         self.assertFalse(self.calls)
 
+    def test_diagnostics_require_bearer_and_only_count_validation_reasons(self):
+        autoseo._REJECTIONS.clear()
+        self.assertEqual(self.get('/api/autoseo/status')[0], 401)
+        self.post(autoseo.ENDPOINT, article(title=''), AUTH)
+        request = Request(self.base + '/api/autoseo/status', headers=AUTH)
+        with self.opener.open(request, timeout=10) as response:
+            result = json.loads(response.read())
+        self.assertEqual(result, {'rejections': {'Invalid title': 1}})
+        self.assertNotIn(SECRET, json.dumps(result))
+
     def test_raw_body_signature_and_required_signature_mode(self):
         raw = json.dumps(article(), ensure_ascii=False, indent=3).encode() + b'\n'
         signature = hmac.new(SECRET.encode(), raw, hashlib.sha256).hexdigest()
@@ -165,7 +175,7 @@ class AutoSEOHTTPTests(HTTPCase):
         self.assertFalse(self.calls)
         self.assertEqual(self.raw_post(b'[]', AUTH)[0], 400)
         self.assertEqual(self.raw_post(b'{invalid', AUTH)[0], 400)
-        self.assertEqual(self.raw_post(b'x' * (autoseo.MAX_BODY + 1), AUTH)[0], 413)
+        self.assertEqual(self.raw_post(b'x', {**AUTH, 'Content-Length': str(autoseo.MAX_BODY + 1)})[0], 413)
 
     def test_public_page_metadata_and_sitemap_are_server_rendered(self):
         self.post(autoseo.ENDPOINT, article(), AUTH)
