@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation
 from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs, quote, urlencode
+from urllib.parse import urlparse, parse_qs, quote, unquote, urlencode
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from pypdf import PdfReader, PdfWriter
@@ -24,6 +24,7 @@ import snap_tracking
 import checkout_pricing
 import catalog
 import seo
+import autoseo
 from catalog import BOOKS, PRICES
 
 ROOT = Path(__file__).resolve().parent
@@ -68,6 +69,7 @@ class SlidingWindowLimiter:
 
 RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
+    '/api/autoseo/webhook': (60, 60),
     '/api/ratings': (12, 600),
     '/api/orders': (6, 600),
     '/api/checkout-quote': (120, 600),
@@ -640,6 +642,9 @@ class Handler(BaseHTTPRequestHandler):
             source=seo.render(source,public_path or urlparse(self.path).path,self.headers.get('Host',''),filename)
             if source is None:
                 return self.respond(404,{'ok':False,'error':'Not found'})
+        if filename == 'index.html' and autoseo.enabled():
+            source = source.replace('<div class="footer-links">',
+                '<div class="footer-links"><a href="/blog">المقالات · Blog</a>', 1)
         pixel_id=meta_tracking.pixel_id()
         self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','success.html','offers.html'))
         if self._meta_enabled:
@@ -687,6 +692,8 @@ class Handler(BaseHTTPRequestHandler):
             if seo.review_mode():
                 return self.respond(503,{'ok':False,'error':'Read-only review environment'})
             if not self.enforce_rate_limit(route,'POST'): return
+            if route == autoseo.ENDPOINT:
+                return self.autoseo_webhook()
             if (route in ('/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
@@ -944,6 +951,83 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(400,{'ok':False,'error':'Invalid request'})
         except Exception:
             self.log_error('Internal error');return self.respond(500,{'ok':False,'error':'Server error'})
+    def autoseo_webhook(self):
+        try:
+            # Authenticate before reading or parsing untrusted request bodies.
+            autoseo.authenticate(self.headers)
+            if self.headers.get('Transfer-Encoding'):
+                return self.respond(400, {'error': 'Transfer-Encoding is unsupported'})
+            lengths = self.headers.get_all('Content-Length', [])
+            if len(lengths) != 1 or not re.fullmatch(r'[0-9]+', lengths[0]):
+                return self.respond(400, {'error': 'A valid Content-Length is required'})
+            size = int(lengths[0])
+            if size > autoseo.MAX_BODY:
+                return self.respond(413, {'error': 'Article payload too large'})
+            if size < 1 or self.headers.get_content_type() != 'application/json':
+                return self.respond(400, {'error': 'A JSON body is required'})
+            self.connection.settimeout(15)
+            raw = self.rfile.read(size)
+            if len(raw) != size:
+                return self.respond(400, {'error': 'Incomplete JSON body'})
+            result = autoseo.publish(raw, self.headers)
+            return self.respond(200, result)
+        except autoseo.Unauthorized:
+            return self.respond(401, {'error': 'Unauthorized'})
+        except autoseo.InvalidArticle as exc:
+            return self.respond(400, {'error': str(exc)})
+        except Exception:
+            # Do not log payloads, image URLs, credentials or database responses.
+            self.log_error('AutoSEO publishing failed')
+            return self.respond(500, {'error': 'Publishing failed; retry delivery'}, {'Retry-After': '30'})
+
+    def autoseo_page(self, route, parsed):
+        if not autoseo.enabled():
+            return self.respond(404, {'error': 'Not found'})
+        try:
+            if route == '/blog/style.css':
+                payload = autoseo.STYLE.encode()
+                content_type = 'text/css; charset=utf-8'
+            elif route == '/blog/sitemap.xml':
+                payload = autoseo.sitemap()
+                content_type = 'application/xml; charset=utf-8'
+            elif route.startswith(autoseo.MEDIA_PATH):
+                match = re.fullmatch(r'/blog/media/([0-9a-f]{64})\.webp', route)
+                payload = autoseo.get_media(match[1]) if match else None
+                if payload is None:
+                    return self.respond(404, {'error': 'Not found'})
+                content_type = 'image/webp'
+            else:
+                if route == '/blog':
+                    value = parse_qs(parsed.query).get('page', ['1'])[0]
+                    if not re.fullmatch(r'[1-9][0-9]{0,4}', value):
+                        return self.respond(400, {'error': 'Invalid page'})
+                    page = int(value)
+                    rows = autoseo.list_posts(page, 21, offset=(page - 1) * 20)
+                    if page > 1 and not rows:
+                        return self.respond(404, {'error': 'Not found'})
+                    source = autoseo.render_index(rows, page, self.headers.get('Host', ''))
+                else:
+                    slug = autoseo.article_slug(unquote(route.removeprefix('/blog/')), maximum=210)
+                    row = autoseo.get_post(slug)
+                    if not row:
+                        return self.respond(404, {'error': 'Not found'})
+                    source = autoseo.render_post(row, self.headers.get('Host', ''))
+                nonce = secrets.token_urlsafe(24)
+                source = source.replace('<script ', '<script nonce="' + nonce + '" ')
+                self._csp_nonce = nonce
+                payload = source.encode()
+                content_type = 'text/html; charset=utf-8'
+            self.send_response(200)
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Length', str(len(payload)))
+            self.send_header('Cache-Control', 'public, max-age=31536000, immutable' if content_type == 'image/webp' else 'no-store')
+            self.end_headers()
+            self.wfile.write(payload)
+        except autoseo.InvalidArticle:
+            return self.respond(404, {'error': 'Not found'})
+        except Exception:
+            return self.respond(503, {'error': 'Blog temporarily unavailable'}, {'Retry-After': '30'})
+
     def do_GET(self):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if seo.review_mode() and route=='/api/book-stats':
@@ -955,6 +1039,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(503 if catalog.preview_enabled(book_id) else 404,
                                 {'ok':False,'error':'Preview originals are not connected to the review environment'})
         if not self.enforce_rate_limit(route,'GET'): return
+        if route == '/blog/' and autoseo.enabled():
+            return self.respond(301, {'url': autoseo.origin() + '/blog'}, {'Location': '/blog'})
+        if route == '/blog' or route.startswith('/blog/'):
+            return self.autoseo_page(route, parsed)
         viewer=re.fullmatch(r'/previews/(book[1-9][0-9]*)',route)
         if viewer and viewer.group(1) in BOOKS:
             book_id=viewer.group(1)
@@ -1002,7 +1090,10 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/offers' or route.startswith('/offers/'):
             return self.html('offers.html')
         if route=='/robots.txt':
-            payload=seo.robots(self.headers.get('Host','')).encode()
+            robots=seo.robots(self.headers.get('Host',''))
+            if autoseo.enabled() and seo.indexable(self.headers.get('Host','')):
+                robots += 'Sitemap: ' + autoseo.origin() + '/blog/sitemap.xml\n'
+            payload=robots.encode()
             self.send_response(200)
             self.send_header('Content-Type','text/plain; charset=utf-8')
             self.send_header('Content-Length',str(len(payload)))

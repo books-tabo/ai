@@ -29,6 +29,57 @@ class PostgresTests(unittest.TestCase):
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
                       (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
 
+    def autoseo_publish(self, identifier, slug, title='Synthetic article', updated='2026-10-26T12:00:00Z', media=None, barrier=None):
+        post={'id':identifier,'slug':slug,'title':title,'description':'Synthetic description',
+              'language':'en','published_at':'2026-10-26T12:00:00Z','updated_at':updated,'content_html':'<p>Synthetic</p>'}
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            if barrier:barrier.wait(timeout=15)
+            return c.execute('SELECT public.tabo_autoseo_publish(%s::jsonb,%s::jsonb)',
+                             (json.dumps(post),json.dumps(media or []))).fetchone()[0]
+
+    def test_autoseo_concurrent_duplicates_are_one_row_and_keep_existing_orders(self):
+        barrier=threading.Barrier(12)
+        with self.connect() as c:
+            before=c.execute('SELECT row_to_json(o) FROM public.orders o ORDER BY id').fetchall()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+            result=list(pool.map(lambda _:self.autoseo_publish(80001,'concurrent-post',barrier=barrier),range(12)))
+        self.assertTrue(all(item=={'slug':'concurrent-post'} for item in result))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.tabo_autoseo_posts WHERE id=80001').fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT row_to_json(o) FROM public.orders o ORDER BY id').fetchall(),before)
+
+    def test_autoseo_stale_updates_preserve_newer_content_and_original_url(self):
+        self.autoseo_publish(80002,'original-slug')
+        self.assertEqual(self.autoseo_publish(80002,'changed-slug','Newer title','2026-10-27T12:00:00Z'),{'slug':'original-slug'})
+        self.assertEqual(self.autoseo_publish(80002,'old-slug','Stale title'),{'slug':'original-slug'})
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT slug,title FROM public.tabo_autoseo_posts WHERE id=80002').fetchone(),('original-slug','Newer title'))
+
+    def test_autoseo_slug_collisions_and_media_are_atomic(self):
+        self.autoseo_publish(80003,'shared-slug')
+        self.autoseo_publish(80005,'shared-slug-80004')
+        result=self.autoseo_publish(80004,'shared-slug',media=[{'digest':'a'*64,'content_base64':'U3ludGhldGlj'}])
+        self.assertTrue(result['slug'].startswith('shared-slug-80004-'))
+        with self.connect() as c:
+            self.assertEqual(c.execute("SELECT content_base64 FROM public.tabo_autoseo_media WHERE digest=%s",('a'*64,)).fetchone()[0],'U3ludGhldGlj')
+        import psycopg
+        with self.assertRaises(psycopg.errors.NotNullViolation):
+            self.autoseo_publish(80006,'failed-atomic',title=None,media=[{'digest':'b'*64,'content_base64':'U3ludGhldGlj'}])
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.tabo_autoseo_media WHERE digest=%s',('b'*64,)).fetchone()[0],0)
+            self.assertEqual(c.execute('SELECT count(*) FROM public.tabo_autoseo_posts WHERE id=80006').fetchone()[0],0)
+
+    def test_autoseo_objects_are_server_only_and_do_not_change_store_privileges(self):
+        for role in ('anon','authenticated'):
+            with self.connect() as c:
+                for table in ('tabo_autoseo_media','tabo_autoseo_posts'):
+                    self.assertFalse(c.execute('SELECT has_table_privilege(%s,%s,\'SELECT\')',(role,'public.'+table)).fetchone()[0])
+                self.assertFalse(c.execute("SELECT has_function_privilege(%s,'public.tabo_autoseo_publish(jsonb,jsonb)','EXECUTE')",(role,)).fetchone()[0])
+        with self.connect() as c:
+            self.assertEqual(c.execute("SELECT count(*) FROM pg_class WHERE relname IN ('tabo_autoseo_media','tabo_autoseo_posts') AND relrowsecurity").fetchone()[0],2)
+            self.assertFalse(c.execute("SELECT prosecdef FROM pg_proc WHERE oid='public.tabo_autoseo_publish(jsonb,jsonb)'::regprocedure").fetchone()[0])
+
     def claim(self,book='book1',session='a'*64,device='b'*64,barrier=None):
         with self.connect() as c:
             c.execute('SET ROLE service_role')
