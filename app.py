@@ -37,6 +37,14 @@ FONT = os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/Deja
 DOWNLOAD_LIMIT = 2
 DOWNLOAD_SESSION_DAYS = 30
 
+# Temporary owner-authorized exact-file importer; removed after verification.
+BOOK21_UPLOAD_EXPIRES = 1793126098
+BOOK21_UPLOAD_TOKEN_HASH = '9dd71b16e3af50807497cb8ab8fbd0be88a74d9e6369c5e0c7342ddb54a785bf'
+BOOK21_UPLOAD_SHA = '16f76160cee2c893c68af41547882772bb4108cda28542031f3937559add0d38'
+BOOK21_UPLOAD_BYTES = 10079348
+BOOK21_UPLOAD_LOCK = threading.Lock()
+BOOK21_UPLOAD_DONE = threading.Event()
+
 
 class SlidingWindowLimiter:
     """Small in-process abuse guard; Render/Cloudflare remain the DDoS boundary."""
@@ -78,6 +86,7 @@ POST_LIMITS = {
     # Per-session work limits and durable per-book entitlements are separate below.
     '/api/download': (len(BOOKS)*DOWNLOAD_LIMIT*20, 60),
     '/api/admin/confirm-payment': (10, 600),
+    '/api/private/upload-book21': (8, 3600),
     '/api/paymob/webhook': (180, 60),
     '/api/kashier/webhook': (180, 60),
 }
@@ -694,6 +703,36 @@ class Handler(BaseHTTPRequestHandler):
             if seo.review_mode():
                 return self.respond(503,{'ok':False,'error':'Read-only review environment'})
             if not self.enforce_rate_limit(route,'POST'): return
+            if route == '/api/private/upload-book21':
+                if time.time() >= BOOK21_UPLOAD_EXPIRES or BOOK21_UPLOAD_DONE.is_set():
+                    return self.respond(404, {'ok': False, 'error': 'Not found'})
+                supplied = self.headers.get('X-Upload-Token', '')
+                if not hmac.compare_digest(hash_secret(supplied), BOOK21_UPLOAD_TOKEN_HASH):
+                    return self.respond(403, {'ok': False, 'error': 'Forbidden'})
+                if not self.same_origin_browser_request():
+                    return self.respond(403, {'ok': False, 'error': 'Forbidden'})
+                if self.headers.get_content_type() != 'application/pdf':
+                    return self.respond(415, {'ok': False, 'error': 'PDF required'})
+                size = int(self.headers.get('Content-Length', '0'))
+                if size != BOOK21_UPLOAD_BYTES or self.headers.get('Transfer-Encoding'):
+                    return self.respond(413, {'ok': False, 'error': 'Invalid file size'})
+                if not BOOK21_UPLOAD_LOCK.acquire(blocking=False):
+                    return self.respond(409, {'ok': False, 'error': 'Upload in progress'})
+                try:
+                    if time.time() >= BOOK21_UPLOAD_EXPIRES or BOOK21_UPLOAD_DONE.is_set():
+                        return self.respond(404, {'ok': False, 'error': 'Not found'})
+                    self.connection.settimeout(60)
+                    payload = self.rfile.read(size)
+                    if len(payload) != size or hashlib.sha256(payload).hexdigest() != BOOK21_UPLOAD_SHA:
+                        return self.respond(400, {'ok': False, 'error': 'File mismatch'})
+                    store.upload_book21(payload)
+                    verified = hashlib.sha256(store.original('book21.pdf')).hexdigest()
+                    if verified != BOOK21_UPLOAD_SHA:
+                        return self.respond(500, {'ok': False, 'error': 'Verification failed'})
+                    BOOK21_UPLOAD_DONE.set()
+                    return self.respond(201, {'ok': True, 'size': size, 'sha256': verified})
+                finally:
+                    BOOK21_UPLOAD_LOCK.release()
             if route == autoseo.ENDPOINT:
                 return self.autoseo_webhook()
             if (route in ('/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
