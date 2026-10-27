@@ -55,7 +55,8 @@ def paragraphs(value):
 
 
 def categories_for(book_id):
-    return [(key, cat) for key, cat in CATEGORIES.items() if book_id in cat['books']]
+    matches = [(key, cat) for key, cat in CATEGORIES.items() if book_id in cat['books']]
+    return sorted(matches, key=lambda item: item[0] != BOOKS[book_id].get('primaryCategory'))
 
 
 def book_card(book_id, language='ar', home=False, position=0):
@@ -64,7 +65,7 @@ def book_card(book_id, language='ar', home=False, position=0):
     image = book['image']
     loading = 'eager' if position < 2 else 'lazy'
     if home:
-        preview = ('<a class="book-sample-link" href="/previews/' + book_id + '" target="_blank" rel="noopener">اقرأ عينة مجانية</a>') if catalog.preview_enabled(book_id) else '<p class="fixed-price-note">سعر ثابت — غير مشمول بعروض الباقات</p>'
+        preview = ('<a class="book-sample-link" href="/previews/' + book_id + '" target="_blank" rel="noopener">اقرأ عينة مجانية</a>') if catalog.preview_enabled(book_id) else '<p class="fixed-price-note">سعر مستقل — خارج خصومات عدد الكتب</p>'
         return f'''<div class="book-card"><a class="book-cover-link" href="/books/{book_id}"><img class="book-image" src="{image}" alt="{escape(name)}" width="{book['imageWidth']}" height="{book['imageHeight']}" loading="{loading}" decoding="async"><span class="pdf-badge">PDF</span></a><div class="book-content"><div class="book-title"><span>{escape(name)}</span><span class="title-pdf">PDF</span></div><div class="book-description">{escape(book['short'])}</div><a class="read-more-btn" href="/books/{book_id}">اقرأ المزيد</a><div class="book-bottom">{preview}<div class="book-price">السعر بحسب الدولة</div><div class="book-format">نسخة PDF</div><button class="add-cart-btn" id="addBtn-{position}" data-book-id="{book_id}">أضف للسلة</button></div></div></div>'''
     return f'''<article class="seo-book"><a href="/books/{book_id}"><img src="{image}" alt="{escape(name)}" width="{book['imageWidth']}" height="{book['imageHeight']}" loading="lazy" decoding="async"><h3>{escape(name)}</h3></a><p>{escape(text(book,'short',language))}</p></article>'''
 
@@ -99,6 +100,9 @@ def book_extra(book_id, language):
     section += '<section class="section"><h2>' + ('أسئلة عن الكتاب' if ar else 'Questions about this book') + '</h2>'
     section += ''.join('<details><summary>' + escape(q) + '</summary><p>' + escape(a) + '</p></details>' for q, a in book['faq'][language]) + '</section>'
     section += '<section class="section"><h2>' + ('كتب مرتبطة بالموضوع' if ar else 'Related reading') + '</h2>' + book_list(related(book_id), language) + '</section>'
+    for offer_id, offer in catalog.OFFERS.items():
+        if offer.get('fixedPriceBundle') and book_id in offer['books']:
+            section += '<section class="section"><h2>' + ('عرض كتابَي السيجما' if ar else 'Sigma pair offer') + '</h2>' + paragraphs(offer['description'][language]) + link('/offers/' + offer_id, 'عرض الباقة والكتابين' if ar else 'View the pack and both books') + '</section>'
     section += '<nav class="seo-categories" aria-label="' + ('أقسام الكتاب' if ar else 'Book categories') + '">' + ''.join(link('/categories/' + key, cat[language]) for key, cat in categories_for(book_id)) + '</nav>'
     return section
 
@@ -110,7 +114,9 @@ def offer_card(offer_id, language='ar', home=False):
     images = ''.join('<img src="'+BOOKS[bid]['image']+'" alt="'+escape(book_name(BOOKS[bid],language))+'" width="'+str(BOOKS[bid]['imageWidth'])+'" height="'+str(BOOKS[bid]['imageHeight'])+'" loading="lazy" decoding="async">' for bid in offer['books'])
     action = ('<button type="button" data-add-offer="'+offer_id+'"' if home else '<a data-offer-buy href="/?offer='+offer_id+'&amp;cart=1"') + ' class="offer-button" data-offer-button-label>' + ('أضف الباقة للسلة' if ar else 'Add pack to cart') + ('</button>' if home else '</a>')
     heading = 'h3' if home else 'h2'
-    return '<article class="curated-offer" data-offer-id="'+offer_id+'"><div class="offer-covers">'+images+'</div><p data-offer-count>'+str(len(offer['books']))+(' كتب PDF' if ar else ' PDF books')+'</p><'+heading+' data-offer-title>'+escape(offer['title'][language])+'</'+heading+'><p data-offer-description>'+escape(offer['description'][language])+'</p><ul>'+names+'</ul><div class="offer-price" data-offer-price>'+str(offer['prices']['EGP'])+' جنيه / $'+str(offer['prices']['USD'])+'</div><p class="offer-original" data-offer-original hidden></p>'+action+'<a class="offer-details" href="/offers/'+offer_id+'" data-offer-details>'+('تفاصيل الباقة والكتب' if ar else 'Pack details and books')+'</a></article>'
+    prices = ' / '.join((str(value)+' جنيه' if currency=='EGP' and ar else 'EGP '+str(value) if currency=='EGP' else '$'+str(value)) for currency,value in offer['prices'].items())
+    availability = ('هذا العرض متاح عند التسعير بالدولار فقط. داخل مصر يظل سعر كل كتاب 500 جنيه.' if ar else 'This offer applies only to USD pricing. In Egypt each book remains EGP 500.') if set(offer['prices'])=={'USD'} else ''
+    return '<article class="curated-offer" data-offer-id="'+offer_id+'"><div class="offer-covers">'+images+'</div><p data-offer-count>'+str(len(offer['books']))+(' كتب PDF' if ar else ' PDF books')+'</p><'+heading+' data-offer-title>'+escape(offer['title'][language])+'</'+heading+'><p data-offer-description>'+escape(offer['description'][language])+'</p><ul>'+names+'</ul><div class="offer-price" data-offer-price>'+prices+'</div><p class="offer-original" data-offer-original hidden></p><p data-offer-availability>'+availability+'</p>'+action+'<a class="offer-details" href="/offers/'+offer_id+'" data-offer-details>'+('تفاصيل الباقة والكتب' if ar else 'Pack details and books')+'</a></article>'
 
 
 def offers_section(language='ar', home=False):
@@ -198,10 +204,10 @@ def page_data(path, include_drafts=False):
             extra = book_extra(book_id, language)
         elif path == '/offers':
             title = 'عروض باقات الكتب' if ar else 'Book pack offers'
-            description = 'باقات مختارة من 3 أو 4 أو 5 كتب مترابطة من تأليف تابو نور. أسعار خاصة بالجنيه داخل مصر وبالدولار خارجها، مع إضافة كتب الباقة إلى السلة.' if ar else 'Curated packs of 3, 4 or 5 related Arabic PDF books by TABO NOOR, with Egyptian-pound and US-dollar prices.'
+            description = 'باقات مختارة من كتب تابو نور العربية PDF في التغيير والمال وتطوير الذات، وعرض خاص لكتابَي السيجما معًا بالدولار. تصفح كتب كل باقة وأسعارها.' if ar else 'Curated Arabic PDF book packs by TABO NOOR on change, money and personal growth, plus a dedicated USD offer for the two Sigma books.'
             trail += [(None,title)]
             body = paragraphs(description) + offers_section(language)
-            body += paragraphs('يُطبق سعر الباقة عند اكتمال كتبها في السلة، ويُختار أقل إجمالي مستحق عند جمع العروض. حذف كتاب قد يغيّر العرض المستحق. سعر السيجما مستقل.' if ar else 'A pack price applies when all its books are in the cart. The lowest eligible total is used when packs are combined. Removing a book may change eligibility. Sigma keeps its independent price.')
+            body += paragraphs('يُطبق سعر الباقة عند اكتمال كتبها في السلة وفي العملة المحددة للعرض، ويُختار أقل إجمالي مستحق عند جمع العروض. حذف كتاب قد يغيّر العرض المستحق. كتابا السيجما خارج خصومات العدد، ولهما باقة مستقلة بالدولار فقط.' if ar else 'A pack price applies when all its books are in the cart and the offer supports the current currency. The lowest eligible total is used when packs are combined. Removing a book may change eligibility. The Sigma books do not count toward quantity discounts and have a dedicated USD-only pack.')
         elif path.startswith('/offers/') and path.rsplit('/',1)[-1] in catalog.OFFERS:
             key = path.rsplit('/',1)[-1]
             offer = catalog.OFFERS[key]
@@ -212,7 +218,7 @@ def page_data(path, include_drafts=False):
             body += '<section class="seo-section"><h2>'+('كيف تحصل على العرض؟' if ar else 'How does the offer work?')+'</h2>'+paragraphs('اضغط «أضف الباقة للسلة» لإضافة الكتب المحددة دون تكرار كتب موجودة بالفعل. يُحسب أقل سعر مستحق تلقائيًا. إذا حذفت كتابًا من الباقة يُعاد حساب الإجمالي والعروض المتاحة. الكتب باللغة العربية وبصيغة PDF، وتظهر روابطها في طلبك بعد إتمام الدفع وفق سياسة المتجر.' if ar else 'Add the pack to your cart to add its selected books without duplicating titles already there. The lowest eligible total is calculated automatically. Removing a book recalculates the available offers. These are Arabic PDF books; access follows the store delivery policy after successful payment.')+'</section>'
         elif path == '/categories':
             title = 'أقسام الكتب' if ar else 'Book categories'
-            description = 'تصفح أقسام كتب تابو نور حسب موضوعها: تطوير الذات، علم النفس، المال والأعمال، الثروة وريادة الأعمال.' if ar else 'Browse TABO NOOR books by subject: personal growth, psychology, money and business, wealth and entrepreneurship.'
+            description = 'تصفح أقسام كتب تابو نور حسب موضوعها: تطوير الذات، علم النفس، المال والأعمال، الثروة، ريادة الأعمال والعلاقات الزوجية والأسرية.' if ar else 'Browse TABO NOOR books by subject: personal growth, psychology, money and business, wealth, entrepreneurship, and marriage and family relationships.'
             trail += [(None, title)]
             body = ''.join('<section class="seo-section"><h2>' + link('/categories/' + key, cat[language]) + '</h2>' + paragraphs(cat['description'][language]) + '</section>' for key, cat in CATEGORIES.items() if cat['books'])
         elif path.startswith('/categories/') and path.rsplit('/', 1)[-1] in CATEGORIES:

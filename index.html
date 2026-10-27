@@ -2725,7 +2725,7 @@ const WHATSAPP_NUMBER =
 
 const BACKEND_URL = location.origin;
 let lastOrderId = localStorage.getItem("taboLastOrderId") || "";
-const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9", "دليل التحرر من العادة السرية":"book10", "الأفعى والمنشار":"book11", "جسد":"book12", "بنت تخطت الثلاثين":"book13", "أنت":"book14", "شفرة الحياة":"book15", "شفرة قلب الأنثى":"book16", "عجلة الفئران":"book17", "كيف تغير حياتك":"book18", "بدون شهادة جامعية":"book19", "السيجما: الذكر الملكي":"book20"};
+const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9", "دليل التحرر من العادة السرية":"book10", "الأفعى والمنشار":"book11", "جسد":"book12", "بنت تخطت الثلاثين":"book13", "أنت":"book14", "شفرة الحياة":"book15", "شفرة قلب الأنثى":"book16", "عجلة الفئران":"book17", "كيف تغير حياتك":"book18", "بدون شهادة جامعية":"book19", "السيجما: الذكر الملكي":"book20", "السيجما: أنوثة طاغية":"book21"};
 let currentLanguage = localStorage.getItem("taboLanguage") ||
     ((navigator.language || "ar").toLowerCase().startsWith("en") ? "en" : "ar");
 let storeConfig = {
@@ -3090,7 +3090,7 @@ function bookPolicy(book){
     return {...{price:book.fixedPrices?.[storeConfig.currency]??PRICING_LADDER[1],bundleEligible:book.bundleEligible!==false,previewEnabled:book.previewEnabled!==false},...(storeConfig.bookPolicies?.[book.id]||{})};
 }
 function bookPrice(book){return Number(bookPolicy(book).price)}
-function fixedPriceText(){return currentLanguage==="ar"?"سعر ثابت — غير مشمول بعروض الباقات":"Fixed price — excluded from bundle offers"}
+function fixedPriceText(){return currentLanguage==="ar"?"سعر مستقل — خارج خصومات العدد، مع عرض خاص لكتابَي السيجما بالدولار":"Independent price — excluded from quantity discounts; a special USD Sigma pair offer is available"}
 function fixedPriceNotice(book){return bookPolicy(book).bundleEligible?"":`<div class="fixed-price-note">${fixedPriceText()}</div>`}
 function calculatePricing(){
     const books=cart.map(item=>BOOKS.find(book=>book.id===item.id)).filter(Boolean);
@@ -3098,10 +3098,9 @@ function calculatePricing(){
     const minor=value=>Math.round(Number(value||0)*100);
     const fixedMinor=books.filter(book=>!bookPolicy(book).bundleEligible).reduce((total,book)=>total+minor(bookPrice(book)),0);
     const basicMinor=ordinary.length?minor(PRICING_LADDER[ordinary.length]??ordinary.length*Number(PRICING_LADDER[1]||0)):0;
-    const special=typeof TaboOfferPricing!=="undefined"?TaboOfferPricing.best(ordinary.map(book=>book.id),storeConfig):{totalMinor:basicMinor,offerIds:[],savingsMinor:0};
-    const ordinaryMinor=special.totalMinor;
+    const special=typeof TaboOfferPricing!=="undefined"?TaboOfferPricing.best(books.map(book=>book.id),{...storeConfig,prices:PRICING_LADDER,bookPolicies:Object.fromEntries(books.map(book=>[book.id,bookPolicy(book)]))}):{totalMinor:basicMinor+fixedMinor,offerIds:[],savingsMinor:0};
     const originalMinor=ordinary.length*minor(storeConfig.compareAtPrice||PRICING_LADDER[1])+fixedMinor;
-    return {offerIds:special.offerIds,offerSavings:special.savingsMinor/100,count:books.length,standardCount:ordinary.length,fixedTotal:fixedMinor/100,original:originalMinor/100,final:(ordinaryMinor+fixedMinor)/100,discount:Math.max(0,originalMinor-ordinaryMinor-fixedMinor)/100};
+    return {offerIds:special.offerIds,offerSavings:special.savingsMinor/100,count:books.length,standardCount:ordinary.length,fixedTotal:fixedMinor/100,original:originalMinor/100,final:special.totalMinor/100,discount:Math.max(0,originalMinor-special.totalMinor)/100};
 }
 /* Catalog pricing end */
 /* Curated offer actions start */

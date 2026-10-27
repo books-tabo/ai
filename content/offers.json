@@ -16,5 +16,23 @@
     "description": {"ar": "خمس قراءات تربط التغيير والوعي بالانضباط والطموح والتعلم الذاتي: كيف تغير حياتك، وأنت، ودليل السمو، ونحو القمة، وبدون شهادة جامعية.", "en": "Five connected reads on change, self-awareness, discipline, ambition and self-directed learning: How to Change Your Life, You, The Guide to Elevation, Toward the Summit, and Without a University Degree."},
     "books": ["book18", "book14", "book6", "book2", "book19"],
     "prices": {"EGP": 400, "USD": 23}
+  },
+  "sigma-couple": {
+    "title": {
+      "ar": "باقة السيجما للزوجين",
+      "en": "Sigma for Couples"
+    },
+    "description": {
+      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية — قراءتان متكاملتان للبالغين عن فهم الرجل والمرأة والتواصل والحميمية داخل الزواج. الكتابان معًا بسعر 20 دولار عند التسعير بالدولار.",
+      "en": "Sigma: The Royal Male and Sigma: Captivating Femininity — two complementary adult reads about understanding men and women, communication and intimacy within marriage. Both books cost $20 together when priced in USD."
+    },
+    "books": [
+      "book20",
+      "book21"
+    ],
+    "prices": {
+      "USD": 20
+    },
+    "fixedPriceBundle": true
   }
 }

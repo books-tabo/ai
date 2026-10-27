@@ -47,7 +47,7 @@ class PublicHTMLTests(HTTPCase):
                 self.assertIn('/seo.js?v='+seo.ASSET_VERSIONS['seo.js'],source)
                 self.assertIn('/seo.css?v='+seo.ASSET_VERSIONS['seo.css'],source)
                 titles.add(page.title);descriptions.add(page.meta['description'])
-            self.assertEqual(len(titles),20);self.assertEqual(len(descriptions),20)
+            self.assertEqual(len(titles),len(catalog.BOOKS));self.assertEqual(len(descriptions),len(catalog.BOOKS))
             originals.assert_not_called();stats.assert_not_called()
 
     def test_home_and_every_book_are_linked_without_javascript(self):
@@ -136,9 +136,10 @@ class PublicHTMLTests(HTTPCase):
 
     def test_private_and_preview_policy_is_not_exposed_as_public_content(self):
         with patch.object(app.store,'original') as original:
-            for path in ['/book20.pdf','/originals/book20.pdf','/content/books.json','/covers/../app.py']:
+            for path in ['/book20.pdf','/originals/book20.pdf','/book21.pdf','/originals/book21.pdf','/content/books.json','/covers/../app.py']:
                 self.assertEqual(self.get(path)[0],404,path)
-            self.assertNotIn('href="/previews/book20"',self.get('/books/book20')[2])
+            for book_id in ('book20','book21'):
+                self.assertNotIn('href="/previews/'+book_id+'"',self.get('/books/'+book_id)[2])
             self.assertIn('href="/previews/book19"',self.get('/books/book19')[2])
             original.assert_not_called()
 
@@ -167,3 +168,8 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(len(seo.BOOKS['book19']['chapters']),20)
         self.assertEqual(seo.BOOKS['book20']['pageCount'],245)
         self.assertEqual(len(seo.BOOKS['book20']['chapters']),15)
+        self.assertEqual(seo.BOOKS['book21']['pageCount'],471)
+        self.assertEqual(len(seo.BOOKS['book21']['chapters']),15)
+        self.assertEqual(seo.CATEGORIES['marriage-family']['books'],['book20','book21'])
+        for bid in ('book20','book21'):
+            self.assertEqual(seo.categories_for(bid)[0][0],'marriage-family')

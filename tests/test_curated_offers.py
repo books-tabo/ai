@@ -11,11 +11,28 @@ from urllib.error import HTTPError
 
 
 class CuratedPricingTests(unittest.TestCase):
+    def test_sigma_pair_is_an_exact_usd_exception_to_independent_prices(self):
+        cases=[(['book20'],500,15.9),(['book21'],500,15.99),
+               (['book20','book21'],1000,20),
+               (['book20','book21','book1'],1199,29.99),
+               (['book21','book1','book2'],799,33.98),
+               (['book20','book21','book18','book14','book6'],1300,35)]
+        for ids,egp,usd in cases:
+            for country,expected in [('EG',egp),('SA',usd)]:
+                config=localization.pricing_for_country(catalog.PRICES,country)
+                self.assertEqual(catalog.total_for_items(ids,config),expected)
+                self.assertEqual(catalog.total_for_items(ids[::-1],config),expected)
+        usd=localization.pricing_for_country(catalog.PRICES,'SA')
+        self.assertEqual(catalog.pricing_breakdown(['book20','book21'],usd)['offerSavings'],Decimal('11.89'))
+        self.assertNotIn('sigma-couple',[o['id'] for o in catalog.public_offers('EGP')])
+        for bid,price in [('book20',15.9),('book21',15.99)]:
+            self.assertEqual(usd['bookPolicies'][bid],{'price':price,'bundleEligible':False,'previewEnabled':False})
+
     def test_advertised_packs_and_related_book_identity(self):
         expected={'change-starter':(['book18','book14','book6'],300,15),
                   'money-and-wealth':(['book4','book17','book9','book8'],350,20),
                   'self-growth':(['book18','book14','book6','book2','book19'],400,23)}
-        self.assertEqual(set(catalog.OFFERS),set(expected))
+        self.assertEqual(set(catalog.OFFERS),set(expected)|{'sigma-couple'})
         for key,(ids,egp,usd) in expected.items():
             self.assertEqual(catalog.OFFERS[key]['books'],ids)
             self.assertNotIn('book20',ids)
@@ -34,7 +51,7 @@ class CuratedPricingTests(unittest.TestCase):
                (['book1','book2','book3'],399,24.99),
                (starter+['book20'],800,30.9),(money+['book20'],850,35.9),
                (growth+['book20'],900,38.9),
-               (list(catalog.BOOKS),2349,118.89)]
+               (list(catalog.BOOKS),2849,122.99)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('KW',usd)]:
                 with self.subTest(country=country,ids=ids):
@@ -59,12 +76,14 @@ class OfferPageTests(HTTPCase):
             self.assertEqual(status,200);self.assertNotIn('noindex',headers.get('X-Robots-Tag',''))
             self.assertIn('href="https://tabobooks.com/offers/'+slug+'"',source)
             self.assertIn(offer['title']['ar'],source)
-            self.assertIn(str(offer['prices']['EGP'])+' جنيه / $'+str(offer['prices']['USD']),source)
+            for currency,value in offer['prices'].items():
+                self.assertIn(str(value)+' جنيه' if currency=='EGP' else '$'+str(value),source)
             self.assertTrue(all('href="/books/'+bid+'"' in source for bid in offer['books']))
             self.assertIn('data-offer-buy',source)
-            self.assertNotIn('href="/books/book20"',source)
+            if not offer.get('fixedPriceBundle'):
+                self.assertNotIn('href="/books/book20"',source)
         self.assertEqual(self.get('/offers/unknown')[0],404)
-        self.assertEqual(len(seo.public_paths()),38)
+        self.assertEqual(len(seo.public_paths()),41)
         self.assertIn('/offers',seo.public_paths())
         home=self.get('/')[2]
         self.assertIn('data-add-offer="change-starter"',home)

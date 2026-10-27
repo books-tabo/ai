@@ -6,7 +6,14 @@ var TaboOfferPricing = (() => {
     const selected = new Set(ids);
     if (selected.size !== ids.length) throw Error('Duplicate books');
     const regular = count => count ? minor(config.prices[count]) : 0;
-    let totalMinor = regular(ids.length), offerIds = [];
+    const fixed = id => config.bookPolicies?.[id]?.bundleEligible === false;
+    function remainder(used) {
+      const remaining = ids.filter(id => !used.has(id));
+      return regular(remaining.filter(id => !fixed(id)).length) +
+        remaining.filter(fixed).reduce((total,id) => total + minor(config.bookPolicies[id].price), 0);
+    }
+    const baseline = remainder(new Set());
+    let totalMinor = baseline, offerIds = [];
     const eligible = (config.offers || []).filter(offer => offer.books.every(id => selected.has(id)));
     for (let mask = 1; mask < (1 << eligible.length); mask++) {
       const used = new Set(), applied = [];
@@ -18,10 +25,10 @@ var TaboOfferPricing = (() => {
         applied.push(offer.id); cost += minor(offer.price);
       }
       if (overlap) continue;
-      cost += regular(ids.length - used.size);
+      cost += remainder(used);
       if (cost < totalMinor) { totalMinor = cost; offerIds = applied; }
     }
-    return {totalMinor, offerIds, savingsMinor: regular(ids.length) - totalMinor};
+    return {totalMinor, offerIds, savingsMinor: baseline - totalMinor};
   }
   return {best};
 })();

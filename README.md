@@ -4,9 +4,9 @@ These notes describe the original PR #1 safety review. That review used **`TABO_
 
 ## Independent catalog pricing
 
-`catalog.py` defines the server catalog and per-book policies. Sigma (`book20`) costs **500 EGP / 15.90 USD** and is excluded from ordinary bundle quantities. A mixed order is the ordinary bundle subtotal plus Sigma's full price; for example, two ordinary books plus Sigma cost 799 EGP or 33.89 USD. Checkout recomputes this total from book IDs before signing/verifying the existing EGP charge quote.
+`catalog.py` defines the server catalog and per-book policies. Sigma (`book20`) costs **500 EGP / 15.90 USD** and its companion (`book21`) costs **500 EGP / 15.99 USD**. Both are excluded from ordinary bundle quantities and have no preview. Their dedicated pack costs **20 USD** together; no EGP pack discount is configured. Other mixed orders retain independent Sigma prices. Checkout recomputes totals from book IDs before signing/verifying the existing EGP charge quote. See [Sigma pair details](docs/sigma-pair.md).
 
-Sigma has no preview: its reader, info and page routes return 404 before any original-file read. Other books retain their preview and bundle eligibility. Public `bookPolicies` keep card, detail, mobile, cart and tracking values consistent with the server policy.
+Both Sigma books have no preview: its reader, info and page routes return 404 before any original-file read. Other books retain their preview and bundle eligibility. Public `bookPolicies` keep card, detail, mobile, cart and tracking values consistent with the server policy.
 
 ## Run and test
 
