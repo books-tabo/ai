@@ -121,6 +121,25 @@ def original(book_name):
         raise RuntimeError('Original file is not a PDF')
     return payload
 
+def upload_book21(payload):
+    """Temporary create-only import of the owner's exact book21 PDF."""
+    bucket = request('/storage/v1/bucket/tabo-originals')
+    if not isinstance(bucket, dict) or bucket.get('public') is not False:
+        raise StoreError()
+    base = os.environ['SUPABASE_URL'].rstrip('/')
+    key = os.environ['SUPABASE_SECRET_KEY']
+    req = Request(base + '/storage/v1/object/tabo-originals/book21.pdf', data=payload,
+                  headers={**auth_headers(key), 'Content-Type': 'application/pdf',
+                           'x-upsert': 'false'}, method='POST')
+    try:
+        with urlopen(req, timeout=90) as response:
+            response.read(4096)
+    except HTTPError as error:
+        raise StoreError(error.code) from None
+    except (URLError, TimeoutError, OSError):
+        raise StoreUnavailable() from None
+
+
 def apply_payment_event(order_id,provider,mode,transaction,kind,amount,currency,provider_order_id,digest):
     result=request('/rest/v1/rpc/apply_payment_event','POST',{
         'p_order_id':order_id,'p_provider':provider,'p_mode':mode,
