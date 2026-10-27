@@ -182,3 +182,18 @@ def submit_rating(book_id, voter_hash, rating):
         'rating':float(result['rating']),
         'reviews':int(result['reviews'])
     }
+
+
+def submit_comment(comment, verified_order_hash=None):
+    result=request('/rest/v1/rpc/submit_reader_comment', 'POST', {
+        'p_book_id':comment['book_id'], 'p_email_hash':comment['email_hash'],
+        'p_display_name':comment['display_name'], 'p_body':comment['body'],
+        'p_verified_order_hash':verified_order_hash})
+    if not isinstance(result,dict) or result.get('accepted') is not True:
+        raise StoreUnavailable()
+    return result
+
+
+def book_comments(book_id, offset=0):
+    return request('/rest/v1/rpc/list_reader_comments', 'POST', {
+        'p_book_id':book_id, 'p_offset':offset})

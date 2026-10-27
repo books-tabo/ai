@@ -24,10 +24,57 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
                       (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
+
+    def comment(self, email='c'*64, order_hash=None, body='Synthetic honest opinion', barrier=None):
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            if barrier:barrier.wait(timeout=15)
+            return c.execute('SELECT public.submit_reader_comment(%s,%s,%s,%s,%s)',
+                             ('book20',email,'Synthetic reader',body,order_hash)).fetchone()[0]
+
+    def test_reader_comments_are_pending_private_and_do_not_modify_real_counters(self):
+        with self.connect() as c:
+            before=c.execute('SELECT row_to_json(s) FROM public.book_stats s ORDER BY book_id').fetchall()
+        self.assertEqual(self.comment(),{'accepted':True})
+        self.assertEqual(self.comment(body='Duplicate must not replace original'),{'accepted':True})
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT status,body,verified_purchase FROM public.book_comments').fetchone(),
+                             ('pending','Synthetic honest opinion',False))
+            c.execute('SET ROLE service_role')
+            self.assertEqual(c.execute("SELECT public.list_reader_comments('book20',0)").fetchone()[0],{'comments':[],'total':0})
+            c.execute("UPDATE public.book_comments SET status='approved',moderated_at=now()")
+            result=c.execute("SELECT public.list_reader_comments('book20',0)").fetchone()[0]
+            self.assertEqual(result['total'],1)
+            self.assertEqual(set(result['comments'][0]),{'id','display_name','body','verified_purchase','created_at'})
+            self.assertEqual(c.execute('SELECT row_to_json(s) FROM public.book_stats s ORDER BY book_id').fetchall(),before)
+
+    def test_reader_comment_unique_email_and_verified_order_survive_races(self):
+        barrier=threading.Barrier(12)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+            results=list(pool.map(lambda _:self.comment(order_hash='d'*64,barrier=barrier),range(12)))
+        self.assertTrue(all(result=={'accepted':True} for result in results))
+        self.comment(email='e'*64,order_hash='d'*64)
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.book_comments').fetchone()[0],1)
+            self.assertTrue(c.execute('SELECT verified_purchase FROM public.book_comments').fetchone()[0])
+
+    def test_reader_comment_database_access_and_constraints(self):
+        import psycopg
+        with self.connect() as c:
+            self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid='public.book_comments'::regclass").fetchone()[0])
+            self.assertFalse(c.execute("SELECT prosecdef FROM pg_proc WHERE oid='public.submit_reader_comment(text,text,text,text,text)'::regprocedure").fetchone()[0])
+            for role in ('anon','authenticated'):
+                for privilege in ('SELECT','INSERT','UPDATE','DELETE'):
+                    self.assertFalse(c.execute("SELECT has_table_privilege(%s,'public.book_comments',%s)",(role,privilege)).fetchone()[0])
+                for signature in ('public.submit_reader_comment(text,text,text,text,text)','public.list_reader_comments(text,integer)'):
+                    self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,signature)).fetchone()[0])
+        for values in (('bad-hash','Honest opinion'),('c'*64,'tiny')):
+            with self.assertRaises(psycopg.errors.CheckViolation):
+                self.comment(email=values[0],body=values[1])
 
     def autoseo_publish(self, identifier, slug, title='Synthetic article', updated='2026-10-26T12:00:00Z', media=None, barrier=None):
         post={'id':identifier,'slug':slug,'title':title,'description':'Synthetic description',

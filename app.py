@@ -1,6 +1,7 @@
 """TABO BOOKS backend. Python 3.11+, pypdf, reportlab, Pillow."""
 import json, os, re, secrets, hmac, hashlib, ipaddress, threading, time, unicodedata
 import media_sandbox
+import reader_comments
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -68,6 +69,7 @@ RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
     '/api/autoseo/webhook': (60, 60),
     '/api/ratings': (12, 600),
+    '/api/book-comments': (5, 600),
     '/api/orders': (6, 600),
     '/api/checkout-quote': (120, 600),
     '/api/download-session': (12, 600),
@@ -79,6 +81,7 @@ POST_LIMITS = {
     '/api/kashier/webhook': (180, 60),
 }
 GET_LIMITS = {
+    '/api/book-comments': (120, 600),
     '/previews/view': (30, 600),
     '/previews/read': (180, 600),
     '/api/order-status': (120, 600),
@@ -671,10 +674,25 @@ class Handler(BaseHTTPRequestHandler):
             if not self.enforce_rate_limit(route,'POST'): return
             if route == autoseo.ENDPOINT:
                 return self.autoseo_webhook()
-            if (route in ('/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
+            if (route in ('/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
+            if route=='/api/book-comments':
+                if not store.ready():
+                    return self.respond(503,{'ok':False,'error':'Comments temporarily unavailable'})
+                if data.get('website'):
+                    return self.respond(202,{'ok':True,'status':'pending'})
+                comment=reader_comments.validate(data,BOOKS)
+                verified_hash=None
+                order_id=data.get('order_id')
+                if (isinstance(order_id,str) and re.fullmatch(r'TABO-[A-F0-9]{16}',order_id)
+                        and self.cookie(download_cookie_name(order_id))):
+                    order=self.authorized_download_order(order_id)
+                    if order and comment['book_id'] in [item.get('id') for item in order['items'] if isinstance(item,dict)]:
+                        verified_hash=reader_comments.fingerprint('order',order['id'])
+                store.submit_comment(comment,verified_hash)
+                return self.respond(202,{'ok':True,'status':'pending'})
             if route=='/api/ratings':
                 book_id=data.get('book_id'); rating=data.get('rating')
                 if book_id not in BOOKS or isinstance(rating,bool) or not isinstance(rating,int) or not 1<=rating<=5:
@@ -1009,13 +1027,27 @@ class Handler(BaseHTTPRequestHandler):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if seo.review_mode() and route=='/api/book-stats':
             return self.respond(200,{key:{'rating':None,'reviews':0,'downloads':0,'pageCount':value.get('pageCount')} for key,value in seo.BOOKS.items()})
-        if seo.review_mode() and route.startswith('/api/') and route not in ('/api/config','/api/store-config'):
+        if seo.review_mode() and route.startswith('/api/') and route not in ('/api/config','/api/store-config','/api/book-comments'):
             return self.respond(503,{'ok':False,'error':'Read-only review environment'})
         if seo.review_mode() and route.startswith('/previews/'):
             book_id=route.split('/')[2]
             return self.respond(503 if catalog.preview_enabled(book_id) else 404,
                                 {'ok':False,'error':'Preview originals are not connected to the review environment'})
         if not self.enforce_rate_limit(route,'GET'): return
+        if route=='/api/book-comments':
+            book_id=parse_qs(parsed.query).get('book_id',[''])[0]
+            raw_offset=parse_qs(parsed.query).get('offset',['0'])[0]
+            if book_id not in BOOKS or not re.fullmatch(r'[0-9]{1,4}',raw_offset) or int(raw_offset)>1000:
+                return self.respond(400,{'ok':False,'error':'Invalid comment request'})
+            if seo.review_mode():
+                return self.respond(200,{'comments':[],'total':0})
+            try:
+                if not store.ready():
+                    raise store.StoreUnavailable()
+                result=reader_comments.public_result(store.book_comments(book_id,int(raw_offset)))
+                return self.respond(200,result)
+            except Exception:
+                return self.respond(503,{'ok':False,'error':'Comments temporarily unavailable'})
         if route == '/api/autoseo/status':
             try:
                 autoseo.authenticate(self.headers)
@@ -1092,6 +1124,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if route=='/noto-kufi-arabic-bold.ttf':
             return self.asset('noto-kufi-arabic-bold.ttf','font/ttf')
+        if route=='/book-comments.js': return self.asset('book-comments.js','text/javascript; charset=utf-8')
         if route=='/meta-tracking.js': return self.asset('meta-tracking.js','text/javascript; charset=utf-8')
         if route=='/google-ads-tracking.js': return self.asset('google-ads-tracking.js','text/javascript; charset=utf-8')
         if route=='/snap-tracking.js': return self.asset('snap-tracking.js','text/javascript; charset=utf-8')
