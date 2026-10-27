@@ -1,5 +1,6 @@
-pypdf==6.19.0
+# Production dependency lock; every runtime dependency is pinned.
+pypdf==6.21.3
 reportlab==5.0.1
-Pillow==12.3.0
-
+Pillow==13.0.0
 pypdfium2==5.14.0
+charset-normalizer==3.5.2

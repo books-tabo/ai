@@ -24,3 +24,8 @@ class LimitedBuffer(io.BytesIO):
 def check_source(value):
     if not isinstance(value,bytes) or not value.startswith(b'%PDF-') or len(value)>MAX_SOURCE_BYTES:
         raise ValueError('Invalid or oversized PDF')
+
+def check_page_size(width,height):
+    import math
+    if not all(math.isfinite(value) and 0 < value <= 14400 for value in (width,height)):
+        raise ValueError('Invalid PDF page dimensions')

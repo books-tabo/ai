@@ -1,5 +1,6 @@
 """TABO BOOKS backend. Python 3.11+, pypdf, reportlab, Pillow."""
-import io, json, os, re, secrets, hmac, hashlib, ipaddress, threading, time, unicodedata
+import json, os, re, secrets, hmac, hashlib, ipaddress, threading, time, unicodedata
+import media_sandbox
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -9,10 +10,6 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs, quote, unquote, urlencode
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from pypdf import PdfReader, PdfWriter
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.utils import ImageReader
-from PIL import Image, ImageDraw, ImageFont
 import supabase_store as store
 import localization
 import proxy_identity
@@ -469,35 +466,13 @@ def kashier_payment_matches(order,data):
     return (order.get('paymentMethod')=='Kashier' and data.get('status')=='SUCCESS' and
             str(data.get('transactionResponseCode',''))=='00' and
             data.get('currency')==order['currency'] and actual==expected)
-def make_stamp(name, phone, order_id, width):
-    font = ImageFont.truetype(FONT, 26)
-    canvas = Image.new('RGBA',(1800,125),(255,255,255,0))
-    draw = ImageDraw.Draw(canvas)
-    draw.text((900,10), f'نسخة مرخصة إلى: {name}', fill=(105,105,105,255), font=font, anchor='mt', direction='rtl')
-    draw.text((900,52), f'هاتف: {phone}  |  طلب: {order_id}', fill=(105,105,105,255), font=font, anchor='mt', direction='rtl')
-    buf=io.BytesIO(); canvas.save(buf,format='PNG'); buf.seek(0)
-    return buf
-
-def _watermarked(src, order):
-    pdf_limits.check_source(src)
-    reader=PdfReader(io.BytesIO(src) if isinstance(src, bytes) else str(src)); writer=PdfWriter()
-    if len(reader.pages)>pdf_limits.MAX_PAGES:raise ValueError('PDF page limit')
-    for page in reader.pages:
-        width=float(page.mediabox.width); height=float(page.mediabox.height)
-        overlay=io.BytesIO(); c=Canvas(overlay,pagesize=(width,height))
-        stamp=make_stamp(order['buyer']['name'],order['buyer']['phone'],order['id'],width)
-        c.drawImage(ImageReader(stamp), width*.08, max(10,height*.025), width=width*.84, height=40, mask='auto')
-        c.save(); overlay.seek(0)
-        page.merge_page(PdfReader(overlay).pages[0])
-        writer.add_page(page)
-        # merge_page creates a combined, uncompressed content stream. Reapply
-        # lossless Flate compression so stamping does not inflate the PDF.
-        writer.pages[-1].compress_content_streams()
-    out=pdf_limits.LimitedBuffer(); writer.write(out); return out.getvalue(),len(reader.pages)
-
 def watermarked(src,order):
+    pdf_limits.check_source(src)
     with pdf_limits.work_slot():
-        return _watermarked(src,order)
+        stamp_order={'id':order['id'],'buyer':{key:order['buyer'][key] for key in ('name','phone')}}
+        payload,result=media_sandbox.run('watermark',src,{'order':stamp_order,'max_pages':pdf_limits.MAX_PAGES,'font':FONT},
+            input_limit=pdf_limits.MAX_SOURCE_BYTES,output_limit=pdf_limits.MAX_OUTPUT_BYTES)
+        return payload,result['pages']
 
 class Handler(BaseHTTPRequestHandler):
     server_version = 'TABO'
@@ -924,7 +899,7 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     with pdf_limits.work_slot():
                         payload,page_count=watermarked(store.original(BOOKS[book_id][1]),order)
-                except pdf_limits.PDFBusy:
+                except (pdf_limits.PDFBusy,media_sandbox.MediaBusy):
                     return self.respond(503,{'ok':False,'error':'يجري تجهيز كتاب آخر. حاول بعد قليل.'},{'Retry-After':'5'})
                 except Exception: return self.respond(500,{'ok':False,'error':'تعذر تجهيز الكتاب. تواصل مع الدعم.'})
                 try:
@@ -1077,7 +1052,7 @@ class Handler(BaseHTTPRequestHandler):
                     _,count=book_previews.get_sample(book_id,BOOKS,store.original)
                     return self.respond(200,{'pages':count,'title':BOOKS[book_id][0]})
                 payload=book_previews.render_page(book_id,int(preview_resource.group(3)),BOOKS,store.original)
-            except pdf_limits.PDFBusy:
+            except (pdf_limits.PDFBusy,media_sandbox.MediaBusy):
                 return self.respond(503,{'ok':False,'error':'يجري تجهيز معاينة أخرى. حاول بعد قليل.'},{'Retry-After':'5'})
             except IndexError:
                 return self.respond(404,{'ok':False,'error':'Page not found'})

@@ -6,7 +6,6 @@ import hmac
 import html
 from html.parser import HTMLParser
 import http.client
-import io
 import ipaddress
 import json
 import os
@@ -22,7 +21,7 @@ from datetime import datetime, timezone
 from urllib.parse import quote, urljoin, urlsplit
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-from PIL import Image, ImageOps
+import media_sandbox
 import seo
 import supabase_store as store
 
@@ -269,16 +268,12 @@ def cache_media(digest, payload):
 
 def download_media(url, deadline):
     raw = fetch_image(url, deadline)
-    with Image.open(io.BytesIO(raw)) as source:
-        if source.width * source.height > 25_000_000:
-            raise InvalidArticle('Image dimensions too large')
-        image = ImageOps.exif_transpose(source).convert('RGB')
-        image.thumbnail((1800, 1800))
-        output = io.BytesIO()
-        image.save(output, format='WEBP', quality=85, method=4)
-    payload = output.getvalue()
-    if len(payload) > MAX_IMAGE_STORED:
-        raise InvalidArticle('Image too large after processing')
+    try:
+        payload, _ = media_sandbox.run('image', raw, {}, input_limit=MAX_IMAGE_DOWNLOAD,
+                                     output_limit=MAX_IMAGE_STORED,
+                                     timeout=deadline - time.monotonic())
+    except media_sandbox.MediaError:
+        raise InvalidArticle('Image processing rejected') from None
     digest = hashlib.sha256(payload).hexdigest()
     cache_media(digest, payload)
     return {'digest': digest, 'content_base64': base64.b64encode(payload).decode('ascii')}

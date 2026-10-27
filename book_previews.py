@@ -8,11 +8,10 @@ import threading
 import time
 from collections import OrderedDict
 
-import pypdfium2 as pdfium
-from PIL import ImageDraw, ImageFont
-from pypdf import PdfReader, PdfWriter
-from pypdf.generic import NameObject
-from pdf_limits import work_slot,check_source,MAX_PAGES,LimitedBuffer
+import pdf_limits
+import media_sandbox
+from media_worker import BoundedBuffer
+from pdf_limits import work_slot,check_source
 
 SAMPLE_PAGE_LIMIT = 16
 _CACHE = OrderedDict()
@@ -47,23 +46,35 @@ def valid_session(token, book_id, user_agent):
     return hmac.compare_digest(signature, _signature(book_id, expiry, nonce, user_agent))
 
 
-def make_sample(source, title):
+def _make_sample(source, title, max_pages, output_limit):
+    from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import NameObject
     check_source(source)
     reader = PdfReader(io.BytesIO(source))
     total = len(reader.pages)
-    if total>MAX_PAGES: raise ValueError('PDF page limit')
+    if total>max_pages: raise ValueError('PDF page limit')
     if total < 2:
         raise ValueError('A public sample must not contain the complete book')
     count = min(SAMPLE_PAGE_LIMIT, max(1, total // 10), total - 1)
     writer = PdfWriter()
     for index in range(count):
-        writer.add_page(reader.pages[index])
+        page = reader.pages[index]
+        pdf_limits.check_page_size(float(page.mediabox.width),float(page.mediabox.height))
+        writer.add_page(page)
         # Do not carry document actions, file attachments, or external links.
         writer.pages[-1].pop(NameObject('/Annots'), None)
     writer.add_metadata({'/Title': title + ' — عينة مجانية', '/Author': 'TABO NOOR'})
-    output = LimitedBuffer()
+    output = BoundedBuffer(output_limit)
     writer.write(output)
     return output.getvalue(), count
+
+
+def make_sample(source, title):
+    check_source(source)
+    with work_slot():
+        payload,result=media_sandbox.run('sample',source,{'title':title,'max_pages':pdf_limits.MAX_PAGES},
+            input_limit=pdf_limits.MAX_SOURCE_BYTES,output_limit=pdf_limits.MAX_OUTPUT_BYTES)
+        return payload,result['pages']
 
 
 def get_sample(book_id, books, fetch_original):
@@ -99,38 +110,47 @@ def render_page(book_id, page_number, books, fetch_original):
         sample, count = get_sample(book_id, books, fetch_original)
         if page_number > count:
             raise IndexError('Page outside sample')
-        with pdfium.PdfDocument(sample) as document:
-            page = document[page_number - 1]
-            try:
-                width, height = page.get_size()
-                if min(width, height) <= 0:
-                    raise ValueError('Invalid page size')
-                scale = min(1400 / width, 2000 / height, 2.5)
-                bitmap = page.render(scale=scale)
-                try:
-                    image = bitmap.to_pil().convert('RGB')
-                finally:
-                    bitmap.close()
-            finally:
-                page.close()
-        try:
-            draw = ImageDraw.Draw(image)
-            font = ImageFont.load_default(size=max(12, image.width // 64))
-            text = f'TABO BOOKS | PREVIEW {page_number}'
-            box = draw.textbbox((0, 0), text, font=font)
-            padding = max(8, image.width // 100)
-            x = (image.width - (box[2] - box[0])) // 2
-            y = image.height - (box[3] - box[1]) - padding * 2
-            draw.rounded_rectangle((x - padding, y - padding, x + box[2] + padding, y + box[3] + padding), radius=4, fill='white')
-            draw.text((x, y), text, font=font, fill='#8b7949')
-            output = io.BytesIO()
-            image.save(output, format='JPEG', quality=86, optimize=True)
-            payload = output.getvalue()
-        finally:
-            image.close()
+        payload,_=media_sandbox.run('render',sample,{'page_number':page_number},
+            input_limit=pdf_limits.MAX_SOURCE_BYTES,output_limit=2*1024*1024)
         _IMAGE_CACHE[key] = (time.monotonic(), payload)
         _IMAGE_CACHE.move_to_end(key)
         while sum(len(value[1]) for value in _IMAGE_CACHE.values()) > _IMAGE_CACHE_BYTES:
             _IMAGE_CACHE.popitem(last=False)
         return payload
 
+
+
+def _render_page(sample, page_number, output_limit):
+    import pypdfium2 as pdfium
+    from PIL import ImageDraw, ImageFont
+    with pdfium.PdfDocument(sample) as document:
+        if not 1 <= page_number <= min(len(document), SAMPLE_PAGE_LIMIT):
+            raise IndexError('Page outside sample')
+        page = document[page_number - 1]
+        try:
+            width, height = page.get_size()
+            pdf_limits.check_page_size(width,height)
+            scale = min(1400 / width, 2000 / height, 2.5)
+            bitmap = page.render(scale=scale)
+            try:
+                image = bitmap.to_pil().convert('RGB')
+            finally:
+                bitmap.close()
+        finally:
+            page.close()
+    try:
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=max(12, image.width // 64))
+        text = f'TABO BOOKS | PREVIEW {page_number}'
+        box = draw.textbbox((0, 0), text, font=font)
+        padding = max(8, image.width // 100)
+        x = (image.width - (box[2] - box[0])) // 2
+        y = image.height - (box[3] - box[1]) - padding * 2
+        draw.rounded_rectangle((x - padding, y - padding, x + box[2] + padding, y + box[3] + padding), radius=4, fill='white')
+        draw.text((x, y), text, font=font, fill='#8b7949')
+        output = BoundedBuffer(output_limit)
+        image.save(output, format='JPEG', quality=86, optimize=True)
+        payload = output.getvalue()
+    finally:
+        image.close()
+    return payload
