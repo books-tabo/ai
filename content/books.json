@@ -1197,9 +1197,9 @@
       ]
     },
     "related": [
-      "book1",
+      "book21",
       "book16",
-      "book5"
+      "book1"
     ],
     "faq": {
       "ar": [
@@ -1208,8 +1208,8 @@
           "هو كتاب تثقيفي للزوجين البالغين، وليس بديلًا عن التشخيص أو العلاج أو الاستشارة الطبية المتخصصة."
         ],
         [
-          "هل تتوفر معاينة للسيجما وهل تشمله عروض الباقات؟",
-          "لا تتوفر معاينة لهذا الكتاب. له سعر مستقل ثابت في كل عملة، ولا يدخل في عدد كتب عروض الباقات."
+          "هل تتوفر معاينة للسيجما وهل تشمله خصومات السلة؟",
+          "لا تتوفر معاينة لهذا الكتاب، ولا يدخل في عدد كتب خصومات السلة. له سعر مستقل، مع عرض خاص يجمعه مع «السيجما: أنوثة طاغية» بسعر 20 دولار عند التسعير بالدولار."
         ]
       ],
       "en": [
@@ -1218,8 +1218,8 @@
           "It is educational reading for adult couples, not a substitute for professional assessment, diagnosis or treatment."
         ],
         [
-          "Is a sample available, and do bundle offers apply?",
-          "No sample is available. Sigma has a separate fixed price in each currency and is excluded from the ordinary bundle count."
+          "Is a sample available, and do quantity discounts apply?",
+          "No sample is available. This book has an independent price and does not count toward quantity discounts. A dedicated USD offer combines it with Sigma: Captivating Femininity for $20."
         ]
       ]
     },
@@ -1246,6 +1246,111 @@
       "الذكر الملكي — الفحولة التي لا تحتاج إلى إثبات"
     ],
     "imageWidth": 720,
-    "imageHeight": 1018
+    "imageHeight": 1018,
+    "primaryCategory": "marriage-family"
+  },
+  "book21": {
+    "name": "السيجما: أنوثة طاغية",
+    "enName": "Sigma: Captivating Femininity",
+    "image": "/covers/book21.webp",
+    "size": 10079348,
+    "fixedPrices": {
+      "EGP": 500,
+      "USD": 15.99
+    },
+    "bundleEligible": false,
+    "previewEnabled": false,
+    "short": "سيكولوجيا الرغبة وفنون الحميمية الزوجية: كتاب تثقيفي للنساء البالغات عن فهم الجسد والرغبة والتواصل والرضا المتبادل داخل الزواج.",
+    "enShort": "An educational book for adult women about the body, desire, communication and mutual well-being within marriage.",
+    "about": "«السيجما: أنوثة طاغية — سيكولوجيا الرغبة وفنون الحميمية الزوجية» يبدأ من الأسئلة التي قد يصعب على المرأة طرحها عن جسدها ورغبتها وتجربتها داخل الزواج. يناقش الفرق بين المعرفة والافتراض، وتأثير الصمت والخجل والتوقعات على فهم الذات والتواصل مع الشريك.\n\nعبر ثلاثة أبواب وخمسة عشر فصلًا، ينتقل الكتاب من فهم الجسد والاستجابة والرغبة ومخاوف ليلة الزفاف، إلى التهيئة الحميمة والتواصل والاختلافات الطبيعية والمشكلات التي تستدعي استشارة مختص، ثم يناقش صورة الذات والصدق والحميمية مع تغير العمر والظروف. يؤكد الرضا الحر والاحترام والحدود الشخصية، ويقدم تثقيفًا عامًا للبالغين لا يحل محل التشخيص أو العلاج المتخصص.",
+    "enAbout": "Sigma: Captivating Femininity explores questions adult women may find difficult to ask about their body, desire and married life. It considers the difference between knowledge and assumptions, and how silence, embarrassment and expectations affect self-understanding and communication.\n\nAcross three parts and fifteen chapters, the book moves from the body, sexual response and wedding-night concerns to intimacy, communication, natural differences and problems that warrant professional assessment. It also explores self-image, honesty and intimacy as age and circumstances change. It emphasizes freely given consent, respect and personal boundaries. This is general adult education, not a substitute for professional diagnosis or treatment.",
+    "adds": "يساعدك على مراجعة التصورات الشائعة، والتمييز بين الرغبة والاستجابة والرضا، والتعبير عن الاحتياجات والحدود بوضوح، وفهم متى تحتاج المشكلة إلى استشارة طبية أو نفسية متخصصة.",
+    "enAdds": "It helps you examine common assumptions, distinguish desire, response and satisfaction, communicate needs and boundaries, and recognize when professional medical or psychological advice is needed.",
+    "idea": "الأُنوثة الطاغية تبدأ بالوعي بالنفس وبناء حميمية آمنة ومتبادلة.",
+    "enIdea": "Self-awareness and safe, mutual intimacy are at the heart of the book.",
+    "audience": {
+      "ar": "للنساء البالغات، وبخاصة المتزوجات والمقبلات على الزواج، ممن يرغبن في فهم الجسد والرغبة والتواصل داخل العلاقة الزوجية.",
+      "en": "For adult women, especially married women and those preparing for marriage, seeking to understand the body, desire and communication within a relationship."
+    },
+    "primaryCategory": "marriage-family",
+    "topics": {
+      "ar": [
+        "فهم الجسد الأنثوي والرغبة والاستجابة",
+        "مخاوف ليلة الزفاف والتصورات الشائعة",
+        "التواصل والاحتياجات والرضا والحدود المتبادلة",
+        "الصحة والحميمية مع تغير العمر والظروف",
+        "صورة الذات والخجل والصمت داخل الزواج"
+      ],
+      "en": [
+        "Understanding the body, desire and response",
+        "Wedding-night concerns and common assumptions",
+        "Communication, needs, mutual consent and boundaries",
+        "Health and intimacy as age and circumstances change",
+        "Self-image, embarrassment and silence within marriage"
+      ]
+    },
+    "related": [
+      "book20",
+      "book16",
+      "book7"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "لمن يناسب كتاب أنوثة طاغية؟",
+          "للقارئات البالغات، خصوصًا المتزوجات والمقبلات على الزواج، وهو يتناول المعرفة والتواصل والحميمية داخل الزواج."
+        ],
+        [
+          "هل الكتاب بديل عن الاستشارة الطبية أو النفسية؟",
+          "لا. محتواه تثقيفي عام للبالغين، ولا يقدم تشخيصًا فرديًا أو علاجًا ولا يضمن نتائج محددة."
+        ],
+        [
+          "هل توجد معاينة أو خصومات عدد لهذا الكتاب؟",
+          "لا توجد معاينة، وسعره المستقل 500 جنيه في مصر أو 15.99 دولار عند التسعير بالدولار. لا يدخل في خصومات عدد الكتب."
+        ],
+        [
+          "ما عرض كتابَي السيجما؟",
+          "عند التسعير بالدولار، يحصل الكتابان «السيجما: أنوثة طاغية» و«السيجما: الذكر الملكي» معًا على سعر خاص قدره 20 دولار. لا يتغير سعر الكتاب منفردًا."
+        ]
+      ],
+      "en": [
+        [
+          "Who is Captivating Femininity for?",
+          "It is for adult women, particularly married women and those preparing for marriage, and discusses knowledge, communication and intimacy within marriage."
+        ],
+        [
+          "Does it replace professional medical or psychological advice?",
+          "No. It offers general adult education, not individual diagnosis or treatment, and does not guarantee specific outcomes."
+        ],
+        [
+          "Is a sample available, and do quantity discounts apply?",
+          "No sample is available. Its independent price is EGP 500 in Egypt or USD 15.99 when priced in dollars. It is excluded from quantity discounts."
+        ],
+        [
+          "What is the Sigma pair offer?",
+          "When priced in USD, Sigma: Captivating Femininity and Sigma: The Royal Male cost $20 together. Each book retains its independent price when purchased alone."
+        ]
+      ]
+    },
+    "pageCount": 471,
+    "chapters": [
+      "المرأة التي تعرف كل شيء إلا جسدها",
+      "خريطة الجسد الأنثوي وتشريح المتعة",
+      "هندسة الرغبة — كيف يستجيب جسد المرأة؟",
+      "ليلة الزفاف — الحقيقة خلف الأساطير",
+      "اللغة الأولى بين جسدين",
+      "قبل أن يبدأ الجسد — أسرار التهيئة الحميمة",
+      "فن الاستجابة — حين يتحدث الجسد",
+      "النشوة الأنثوية — المتعة التي يحيط بها الصمت",
+      "حين يتألم الجسد وتصمت الزوجة",
+      "الحميمية التي لا يقتلها الزمن",
+      "المرأة التي تخجل من رغبتها",
+      "زوجة تحب... لكنها لا ترغب",
+      "الصمت الجنسي — المرأة التي تخشى قول الحقيقة",
+      "أنوثة بلا أقنعة — الجاذبية تبدأ من الداخل",
+      "السيجما الحقيقية — امرأة تعرف رغبتها"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1080
   }
 }

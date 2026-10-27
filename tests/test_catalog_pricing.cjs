@@ -54,6 +54,12 @@ for (const currency of ['EGP', 'USD']) {
     assert.equal(nodes.get('fixedPriceNote').hidden, false);
     assert.match(nodes.get('price').textContent, currency === 'EGP' ? /500/ : /15\.90/);
     assert.equal(nodes.get('price').textContent, nodes.get('mobileBuyPrice').textContent);
+    const companion = product('book21', currency);
+    assert.equal(companion.get('previewLink').hidden, true);
+    assert.equal(companion.get('previewLink').href, undefined);
+    assert.equal(companion.get('previousPrice').hidden, true);
+    assert.match(companion.get('price').textContent, currency === 'EGP' ? /500/ : /15\.99/);
+    assert.equal(companion.get('price').textContent, companion.get('mobileBuyPrice').textContent);
     const ordinary = product('book19', currency);
     assert.equal(ordinary.get('previewLink').hidden, false);
     assert.equal(ordinary.get('previewLink').href, '/previews/book19');

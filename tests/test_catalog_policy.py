@@ -27,7 +27,7 @@ class CatalogPolicyTests(unittest.TestCase):
                 self.assertEqual(Decimal(str(catalog.total_for_items(ids, config))), subtotal)
 
     def test_known_mixed_totals_and_no_bundle_slot_for_sigma(self):
-        for country, expected in [('EG', [500, 699, 799, 2349]), ('KW', [15.9, 25.89, 33.89, 118.89])]:
+        for country, expected in [('EG', [500, 699, 799, 2849]), ('KW', [15.9, 25.89, 33.89, 122.99])]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             selections = [['book20'], ['book20', 'book1'], ['book1', 'book20', 'book2'], list(catalog.BOOKS)]
             self.assertEqual([catalog.total_for_items(ids, config) for ids in selections], expected)
@@ -48,16 +48,15 @@ class CatalogPolicyTests(unittest.TestCase):
 
 class NoSigmaPreviewHTTPTests(HTTPCase):
     def test_all_sigma_preview_routes_deny_access_before_reading_the_original(self):
-        token = app.book_previews.issue_session('book20', 'SyntheticBrowser/1')
-        headers = {'User-Agent': 'SyntheticBrowser/1', 'X-Tabo-Preview': '1',
-                   'Sec-Fetch-Site': 'same-origin', 'Sec-Fetch-Dest': 'empty',
-                   'Cookie': '__Secure-tabo_preview_book20=' + token}
         with patch.object(app.store, 'original') as original:
-            for path, expected in [('/previews/book20', 404), ('/previews/book20/info', 404),
-                                   ('/previews/book20/page/1', 404), ('/previews/book20/page/16', 404),
-                                   ('/previews/book20.pdf', 410)]:
-                with self.assertRaises(HTTPError) as caught:
-                    self.opener.open(Request(self.base + path, headers=headers), timeout=5)
-                self.assertEqual(caught.exception.code, expected)
-                self.assertNotIn('Set-Cookie', caught.exception.headers)
+            for book_id in ('book20', 'book21'):
+                token = app.book_previews.issue_session(book_id, 'SyntheticBrowser/1')
+                headers = {'User-Agent': 'SyntheticBrowser/1', 'X-Tabo-Preview': '1',
+                           'Sec-Fetch-Site': 'same-origin', 'Sec-Fetch-Dest': 'empty',
+                           'Cookie': '__Secure-tabo_preview_' + book_id + '=' + token}
+                for suffix, expected in [('', 404), ('/info', 404), ('/page/1', 404), ('/page/16', 404), ('.pdf', 410)]:
+                    with self.assertRaises(HTTPError) as caught:
+                        self.opener.open(Request(self.base + '/previews/' + book_id + suffix, headers=headers), timeout=5)
+                    self.assertEqual(caught.exception.code, expected)
+                    self.assertNotIn('Set-Cookie', caught.exception.headers)
             original.assert_not_called()

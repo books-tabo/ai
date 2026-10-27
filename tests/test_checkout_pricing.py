@@ -162,7 +162,7 @@ class QuoteHTTPTests(HTTPCase):
             self.assertEqual(q['chargeCurrency'], 'EGP')
 
     def test_sigma_mixed_quotes_keep_its_full_price_for_every_bundle_size(self):
-        ordinary=[book_id for book_id in app.BOOKS if book_id!='book20']
+        ordinary=[book_id for book_id in app.BOOKS if book_id not in app.catalog.FIXED_PRICES]
         for count in range(len(ordinary)+1):
             self.items=[{'id':book_id,'price':1} for book_id in ordinary[:count]+['book20']]
             q=self.quote()
@@ -172,7 +172,7 @@ class QuoteHTTPTests(HTTPCase):
         self.insert.assert_not_called()
 
     def test_sigma_egypt_orders_ignore_client_prices_and_bundle_position(self):
-        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(list(app.BOOKS),2349)]
+        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book20','book21'],1000),(list(app.BOOKS),2849)]
         with patch.object(app.Handler,'pricing_country',return_value='EG'), patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')):
             for ids,total in cases:
                 items=[{'id':book_id,'price':0.01,'bundleEligible':True} for book_id in ids]
@@ -182,7 +182,7 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(self.db.orders[data['order']['id']]['total'],total)
 
     def test_sigma_usd_orders_bind_fixed_price_to_actual_frozen_egp_charge(self):
-        cases=[(['book20'],Decimal('15.90')),(['book20','book1'],Decimal('25.89')),(['book1','book20','book2'],Decimal('33.89')),(list(app.BOOKS),Decimal('118.89'))]
+        cases=[(['book20'],Decimal('15.90')),(['book20','book1'],Decimal('25.89')),(['book1','book20','book2'],Decimal('33.89')),(['book21'],Decimal('15.99')),(['book20','book21'],Decimal('20')),(list(app.BOOKS),Decimal('122.99'))]
         with patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')) as gateway:
             for ids,total in cases:
                 self.items=[{'id':book_id} for book_id in ids]
@@ -198,8 +198,10 @@ class QuoteHTTPTests(HTTPCase):
     def test_curated_offer_orders_ignore_client_prices_and_keep_every_book(self):
         for country,currency in [('EG','EGP'),('KW','USD')]:
             for offer in app.catalog.OFFERS.values():
+                if currency not in offer['prices']: continue
                 ids=offer['books']
                 self.items=[{'id':bid,'price':0.01} for bid in ids]
+                app.RATE_LIMITER=app.SlidingWindowLimiter()
                 with patch.object(app.Handler,'pricing_country',return_value=country), patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')) as gateway:
                     q=self.quote() if currency=='USD' else None
                     if q:self.assertEqual(Decimal(q['displayTotal']),Decimal(str(offer['prices']['USD'])))
@@ -212,11 +214,12 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(gateway.call_args.args[0]['total'],order['total'])
 
     def test_curated_offer_quote_cannot_survive_removing_a_required_book(self):
-        self.items=[{'id':bid} for bid in app.catalog.OFFERS['self-growth']['books']]
-        q=self.quote()
-        with patch.object(app,'payment_checkout') as gateway:
-            status,body,_=self.post('/api/orders',{'items':self.items[:-1],'country':'KW','customer':self.customer,'quoteToken':q['token']})
-        self.assertEqual(status,409);self.assertEqual(body['code'],'QUOTE_REFRESH_REQUIRED');gateway.assert_not_called()
+        for offer_id in ('self-growth','sigma-couple'):
+            self.items=[{'id':bid} for bid in app.catalog.OFFERS[offer_id]['books']]
+            q=self.quote()
+            with patch.object(app,'payment_checkout') as gateway:
+                status,body,_=self.post('/api/orders',{'items':self.items[:-1],'country':'KW','customer':self.customer,'quoteToken':q['token']})
+            self.assertEqual(status,409);self.assertEqual(body['code'],'QUOTE_REFRESH_REQUIRED');gateway.assert_not_called()
 
     def test_adapter_preserves_quote_and_legacy_rows(self):
         row={'id':'synthetic','status':'PENDING','items':[],'total':541.16,'currency':'EGP',
