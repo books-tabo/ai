@@ -43,6 +43,41 @@ class PostgresTests(unittest.TestCase):
             return c.execute('SELECT public.apply_paypal_event(%s,%s,%s,%s,%s,%s,%s)',
                              (oid,'test',transaction,kind,20,f'PAYPALORDER{number:06d}','f'*64)).fetchone()[0]
 
+    def test_isolated_sandbox_transport_uses_real_payment_and_download_rpcs(self):
+        from testing.paypal_sandbox import NativeStore
+        from unittest.mock import patch
+        native=NativeStore(DSN)
+        oid='TABO-AABBCCDDEEFF0011'
+        order={'id':oid,'status':'PENDING','items':[{'id':'book20','name':'Synthetic title'}],
+               'total':20,'currency':'USD','paymentMethod':'PayPal','paymentMode':'test',
+               'statusKey':'f'*64,'country':'SA','checkoutSessionHash':'e'*64,
+               'buyer':{'name':'Must not persist visitor data','phone':'1234567890'}}
+        with patch.object(app.store,'request',native.request):
+            app.store.insert(order)
+            found=app.store.find('status_key','f'*64)
+            self.assertEqual(found['buyer'],{'name':'Synthetic Sandbox Buyer','phone':'01000000000'})
+            self.assertEqual(found['status'],'PENDING')
+            order=app.store.patch(oid,{'paymob_order_id':'PAYPALORDER000033'},{'status':'eq.PENDING'})
+            event={'transaction':'SBOXCAPTURE1234567','kind':'paid','amount':'20.00'}
+            self.assertEqual(app.store.apply_paypal_event(order,event,'d'*64)['status'],'PAID')
+            paid=app.store.find('id',oid)
+            self.assertIsNotNone(paid['paidAt'])
+            bound=app.store.patch(oid,{'download_session_hash':'a'*64,'download_device_hash':'b'*64,
+                                     'download_session_expires_at':'2099-01-01T00:00:00Z'},
+                                 {'status':'eq.PAID','download_session_hash':'is.null','checkout_session_hash':'eq.'+'e'*64})
+            self.assertEqual(bound['downloadSessionHash'],'a'*64)
+            for allowed in (True,True,False):
+                self.assertEqual(app.store.claim_download(oid,'book20','a'*64,'b'*64,1)['allowed'],allowed)
+            self.assertEqual(app.store.download_usage(oid),{'book20':2})
+            self.assertEqual(app.store.book_stats()['book20']['downloads'],2)
+            self.assertEqual(app.store.book_comments('book20'),{'comments':[],'total':0})
+            event['kind']='refund'
+            self.assertEqual(app.store.apply_paypal_event(order,event,'d'*64)['status'],'REFUNDED')
+            self.assertFalse(app.store.claim_download(oid,'book20','a'*64,'b'*64,1)['allowed'])
+            with self.assertRaises(ValueError):app.store.patch(oid,{'status':'PAID'})
+            with self.assertRaises(ValueError):native.request('/rest/v1/orders',params={'id; SELECT 1':'eq.bad'})
+            with self.assertRaises(ValueError):native.request('/rest/v1/rpc/apply_payment_event','POST',{})
+
     def test_paypal_concurrent_callbacks_mark_one_order_once_without_changing_kashier(self):
         oid=self.paypal_order();barrier=threading.Barrier(12)
         with self.connect() as c:

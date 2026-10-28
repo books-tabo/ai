@@ -121,7 +121,12 @@ passed in CI, most recently run `40731804848`. Sandbox and Live OAuth/webhook-li
 connectivity and the Live webhook registration were checked independently as
 described above. End-to-end Sandbox approval, capture, actual webhook delivery,
 refunds, merchant-ID matching and live merchant capability have **not** yet been
-validated. No isolated hosted test database is currently provisioned.
+validated. `testing/paypal-sandbox.Dockerfile` now provides a strictly guarded,
+disposable local PostgreSQL test database with synthetic PDFs and the real
+controller/payment/download SQL. Its native SQL transport is explicitly distinct
+from Supabase's HTTP gateway. This permits isolated provider tests from the same
+`books-tabo/ai` repository without creating another Supabase organization/project.
+See `testing/README.md`; no production credentials belong in that container.
 
 Official sources reviewed:
 - https://developer.paypal.com/api/orders/v2/orders-create

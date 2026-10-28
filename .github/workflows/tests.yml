@@ -60,4 +60,39 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements-dev.txt
       - run: python -m unittest discover -s tests/integration -v
+  paypal-sandbox-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f testing/paypal-sandbox.Dockerfile -t tabo-paypal-sandbox .
+      - run: docker run -d --name tabo-paypal-sandbox -p 127.0.0.1:18080:10000 tabo-paypal-sandbox
+      - name: Verify isolated startup, synthetic data and disabled checkout
+        run: |
+          python3 - <<'PY'
+          import json,time
+          from urllib.request import urlopen
+          deadline=time.monotonic()+90
+          while True:
+              try:
+                  with urlopen('http://127.0.0.1:18080/health',timeout=2) as r: assert r.status==200
+                  break
+              except Exception:
+                  if time.monotonic()>deadline: raise
+                  time.sleep(1)
+          with urlopen('http://127.0.0.1:18080/api/store-config?country=SA') as r:
+              data=json.load(r)
+              assert not data['checkoutEnabled'] and not data['paypalAvailable']
+          with urlopen('http://127.0.0.1:18080/') as r:
+              assert 'noindex' in r.headers['X-Robots-Tag']
+              html=r.read().decode()
+              assert 'data-paypal-sandbox="true"' in html
+              assert 'data-google-tag-id' not in html and 'data-pixel-id' not in html and 'data-snap-pixel-id' not in html
+          with urlopen('http://127.0.0.1:18080/api/book-stats') as r:
+              data=json.load(r)
+              assert len(data)==21 and all(v['pageCount']==1 and v['downloads']==0 for v in data.values())
+          PY
+      - if: always()
+        run: docker logs tabo-paypal-sandbox
+      - if: always()
+        run: docker rm -f tabo-paypal-sandbox
 
