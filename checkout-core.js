@@ -237,7 +237,7 @@ function currentCheckoutQuote(){
 function displayChargeQuote(){
     const note=document.getElementById('chargeCurrencyNote');
     const amount=new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(checkoutQuote.chargeTotal));
-    note.textContent=currentLanguage==='en'?`Kashier will charge EGP ${amount}. If your card uses another currency, your bank determines its conversion rate and any fees.`:`سيتم تحصيل ${amount} جنيه مصري عبر كاشير. عند اختلاف عملة بطاقتك، يحدد بنكك سعر التحويل وأي رسوم.`;
+    note.textContent=currentLanguage==='en'?`Cards/wallets: Kashier will charge EGP ${amount}. Your bank determines any currency conversion and fees.`:`البطاقات والمحافظ: سيتم تحصيل ${amount} جنيه مصري عبر كاشير؛ يحدد بنكك تحويل العملة وأي رسوم.`;
     note.style.display='block';
 }
 async function refreshCheckoutQuote(force=false){
@@ -285,7 +285,7 @@ function renderPayPalChoice(){
     const available=storeConfig.paypalAvailable===true&&storeConfig.currency==='USD'&&cart.length>0;
     button.hidden=note.hidden=!available;button.disabled=checkoutInFlight||!available;
     button.textContent=currentLanguage==='en'?'Pay with PayPal in USD':'الدفع عبر PayPal بالدولار';
-    note.textContent=currentLanguage==='en'?'PayPal will charge the displayed total in US dollars.':'سيتم تحصيل الإجمالي المعروض بالدولار الأمريكي عبر PayPal.';
+    note.textContent=currentLanguage==='en'?'PayPal: the displayed total is charged in US dollars.':'PayPal: سيتم تحصيل الإجمالي المعروض بالدولار الأمريكي.';
 }
 
 async function checkoutWithPaymentLink(){
