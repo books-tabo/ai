@@ -46,6 +46,7 @@ async function pendingCase(status,ready,activationFails=false){
   }};
  vm.createContext(c);vm.runInContext(source,c);await flush();await flush();
  if(status!=='PAID'||!ready){assert.equal(calls.length,1);assert.equal(redirects.length,0);return;}
+ assert.equal(nodes.get('payment').hidden,true);
  if(activationFails){assert.equal(redirects.length,0);assert.equal(timers.length,1);assert(timers[0].delay>=10000);timers[0].callback();await flush();await flush();}
  assert.deepEqual(redirects,['/success.html?order=TABO-0000000000000001']);
  assert(calls.some(call=>call.url==='/api/download-session'&&call.options.method==='POST'));
