@@ -71,6 +71,7 @@ jobs:
           python3 - <<'PY'
           import json,time
           from urllib.request import urlopen
+          from urllib.error import HTTPError
           deadline=time.monotonic()+90
           while True:
               try:
@@ -90,6 +91,10 @@ jobs:
           with urlopen('http://127.0.0.1:18080/api/book-stats') as r:
               data=json.load(r)
               assert len(data)==21 and all(v['pageCount']==1 and v['downloads']==0 for v in data.values())
+          for path,expected in (('/api/order-status?key='+'0'*64,403),('/api/autoseo/status',503)):
+              try: response=urlopen('http://127.0.0.1:18080'+path)
+              except HTTPError as error: response=error
+              with response: assert response.status==expected
           PY
       - if: always()
         run: docker logs tabo-paypal-sandbox

@@ -231,12 +231,30 @@ def main():
         # Increase only the isolated test admission budget; production is unchanged.
         app.POST_LIMITS['/api/orders'] = (30, 600)
         add_test_notice()
+        # Normal review pages deliberately block payment APIs. Permit only the
+        # isolated synthetic flow, per thread; HTML stays in nonindexable review
+        # mode and never gains advertising tags. Production does not load this.
+        review_mode = app.seo.review_mode
+        request_context = threading.local()
+        app.seo.review_mode = lambda: review_mode() and not getattr(request_context, 'synthetic_api', False)
         class SandboxHandler(app.Handler):
+            def synthetic_api(self, action):
+                request_context.synthetic_api = True
+                try: return action()
+                finally: request_context.synthetic_api = False
+            def do_GET(self):
+                if urlparse(self.path).path in ('/api/book-stats', '/api/order-status', '/api/downloads'):
+                    return self.synthetic_api(super().do_GET)
+                return super().do_GET()
             def do_POST(self):
                 path = urlparse(self.path).path
                 if path not in ('/api/orders', '/api/paypal/capture', '/api/paypal/webhook', '/api/download-session') and not re.fullmatch(r'/api/download/book[1-9][0-9]*', path):
                     return self.respond(403, {'ok': False, 'error': 'This isolated service accepts PayPal Sandbox tests only'})
-                return super().do_POST()
+                return self.synthetic_api(super().do_POST)
+            def respond(self, code, obj, extra_headers=None):
+                if urlparse(self.path).path == '/api/downloads' and isinstance(obj, dict):
+                    obj = {**obj, 'metaPurchase': None, 'googleAdsPurchase': None, 'snapPurchase': None}
+                return super().respond(code, obj, extra_headers)
         server = app.ThreadingHTTPServer(('0.0.0.0', int(os.environ.get('PORT', '10000'))), SandboxHandler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()

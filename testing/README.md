@@ -18,6 +18,9 @@ production hostnames and non-local/non-test database DSNs. Review mode disables
 indexing and advertising tags. The visible test notice is added only inside the
 container. Visitor name/phone values are replaced with synthetic values before
 database insertion. Other payment/admin/comment write routes are disabled.
+Only the selected synthetic payment/download APIs bypass the normal read-only
+review routing, using thread-local context. HTML remains in review mode and the
+download manifest explicitly omits all advertising Purchase payloads.
 
 Start without credentials for the CI health check. For actual provider testing,
 configure only these private runtime values on the isolated Render service:
