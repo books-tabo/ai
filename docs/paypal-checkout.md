@@ -4,21 +4,32 @@ Status: integration prepared but not activated. The live store remains on commit
 `8a1e37c05c5370bde5399a078eab30399f04b2ab` with Kashier unchanged. No live
 capture has been executed and this migration has not been applied to production.
 
-On 28 October 2026 the owner supplied application credentials independently.
-A read-only connectivity check authenticated against Sandbox OAuth (HTTP 200),
-while Live OAuth rejected the same keys (HTTP 401). Listing that Sandbox app's
-webhooks succeeded (HTTP 200) and returned no registrations. This confirms the
-keys' test environment, not merchant capability or a completed payment. No order,
-webhook, environment variable or production resource was created or changed.
-Rotate the secret shared in chat and store its replacement privately; neither
-credentials nor OAuth tokens belong in this repository or review comments.
+On 28 October 2026 the owner supplied Sandbox and then separate Live application
+credentials independently. The first set authenticated only against Sandbox
+OAuth; the second authenticated only against Live OAuth (HTTP 200). Listing
+webhooks succeeded for both applications. These are connectivity checks, not
+proof of merchant capability or a completed payment.
 
-The owner's requested login reached PayPal's WhatsApp verification screen.
-Automatic approval review rejected the secure OTP fill because it represented
-six separate digit inputs incorrectly. The user-facing browser handoff then
-reported “page unavailable”. Do not bypass that rejection, request OTPs/passwords
-in chat, or assume a login in the owner's local browser signs in the cloud browser.
-Merchant onboarding and real Sandbox validation remain prerequisites.
+With the owner's explicit authorization, the Live application now has one
+webhook registered at `https://tabobooks.com/api/paypal/webhook` for
+`PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED` and
+`PAYMENT.CAPTURE.REVERSED`. Registration was independently retrieved and verified;
+actual event delivery has not been tested. The callback implementation remains
+on this review branch and is not yet deployed to the live store.
+
+The four Live configuration values and `PAYPAL_MODE=live` were saved through
+Render's merge operation on the existing service. All three PayPal enablement,
+capability and schema-readiness flags remain `0`; other payment settings were
+not changed. The provided merchant ID has not yet been independently matched
+to a completed provider transaction. No credential values or OAuth tokens are
+included in the source, fixtures, review comments or local configuration files.
+
+Saving through the Render connector initiated a redeploy of the unchanged
+production commit. Deploy `dep-dbh2s5vf3r2c73eoch50` reached `live` at
+`2026-10-28T17:18:04.635436Z`. Public checks confirmed that Kashier checkout
+remains enabled and no PayPal option is exposed. No PayPal order or capture was
+created. Isolated Sandbox validation and merchant capability checks remain
+prerequisites to activation.
 
 ## Behavior
 
@@ -106,11 +117,11 @@ webhooks, capture duplicates, URL cleanup and no premature Purchase. Disposable
 PostgreSQL integration tests cover races, capture uniqueness, refund-before-paid,
 private journal permissions and unchanged existing Kashier orders/statistics.
 The 148-test Python suite, frontend checks and 19 disposable PostgreSQL tests
-passed in CI run `40727264819`. Sandbox OAuth and webhook-list connectivity were
-then checked independently as described above. End-to-end Sandbox approval,
-capture, actual webhook delivery, refunds and merchant-ID matching have **not**
-yet been validated. Live credentials and live merchant capability remain
-unverified. No isolated hosted test database is currently provisioned.
+passed in CI, most recently run `40731804848`. Sandbox and Live OAuth/webhook-list
+connectivity and the Live webhook registration were checked independently as
+described above. End-to-end Sandbox approval, capture, actual webhook delivery,
+refunds, merchant-ID matching and live merchant capability have **not** yet been
+validated. No isolated hosted test database is currently provisioned.
 
 Official sources reviewed:
 - https://developer.paypal.com/api/orders/v2/orders-create
