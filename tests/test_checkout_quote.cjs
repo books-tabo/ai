@@ -3,12 +3,13 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const html=fs.readFileSync('index.html','utf8');
+const core=fs.readFileSync('checkout-core.js','utf8');
 for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){
     if(!/application\/ld\+json/.test(match[1]))new vm.Script(match[2]);
 }
-const quoteSource=html.split('/* EGP quote start */')[1].split('/* EGP quote end */')[0];
-const checkoutSource=html.split('async function checkoutWithPaymentLink(){')[1].split('window.TABO_CHECKOUT_READY=false;')[0];
-assert.match(html, /id="chargeCurrencyNote"[^>]*font-size:13px/);
+const quoteSource=core.split('/* EGP quote start */')[1].split('/* EGP quote end */')[0];
+const checkoutSource=core.split('async function checkoutWithPaymentLink(){')[1].split('window.TABO_CHECKOUT_READY=false;')[0];
+assert.match(fs.readFileSync("checkout.html","utf8"), /id="chargeCurrencyNote"[^>]*font-size:13px/);
 function boot(){
     const nodes={
         chargeCurrencyNote:{style:{},textContent:''},checkoutBtn:{disabled:false},
@@ -94,6 +95,7 @@ function boot(){
         assert.equal(events[0][1].currency,'EGP');
         assert.equal(events[0][1].value,541.16);
         assert.equal(redirects.length,1);
+        assert.equal(redirects[0],'https://payments.kashier.io/session/synthetic');
     }
     console.log('4 checkout quote groups passed; all inline storefront JavaScript parsed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
