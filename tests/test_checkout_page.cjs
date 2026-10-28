@@ -5,7 +5,7 @@ const html=fs.readFileSync('checkout.html','utf8'),core=fs.readFileSync('checkou
 const fixtures=JSON.parse(execFileSync('python3',['-c',`import json,catalog,localization,seo
 print(json.dumps({'books':[{'id':key,**{k:b[k] for k in ('name','enName','fixedPrices','bundleEligible','previewEnabled') if k in b}} for key,b in seo.BOOKS.items()], 'usd':localization.pricing_for_country(catalog.PRICES,'KW'),'egp':localization.pricing_for_country(catalog.PRICES,'EG')}))`],{encoding:'utf8'}));
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-function node(){return {textContent:'',hidden:false,disabled:false,value:'',style:{},parentElement:{},classList:{toggle(){},add(){}},events:{},setAttribute(){},addEventListener(name,callback){this.events[name]=callback;}};}
+function node(){return {textContent:'',hidden:false,disabled:false,value:'',style:{},attributes:{},parentElement:{},classList:{toggle(){},add(){}},events:{},setAttribute(key,value){this.attributes[key]=value;},focus(){this.focused=true;},addEventListener(name,callback){this.events[name]=callback;}};}
 async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}])){
  const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(match=>[match[1],node()]));
  nodes['checkout-catalog'].textContent=JSON.stringify(fixtures.books);
@@ -52,6 +52,23 @@ async function pendingCase(status,ready,activationFails=false){
  assert(calls.some(call=>call.url==='/api/download-session'&&call.options.method==='POST'));
 }
 (async()=>{
+ {
+  const {nodes,calls}=await boot();
+  nodes.checkoutPhone.value='٠٠٩٦٦ (٥٠) ١٢٣-٤٥٦٧';nodes.checkoutPhone.events.blur({target:nodes.checkoutPhone});
+  assert.equal(nodes.checkoutPhone.value,'+966501234567');
+  await nodes.checkoutBtn.events.click();
+  const request=calls.find(call=>call.url==='/api/orders');
+  assert.equal(JSON.parse(request.options.body).customer.phone,'+966501234567');
+ }
+ {
+  const {nodes,calls,alerts}=await boot();
+  nodes.checkoutName.value='م';nodes.checkoutEmail.value='bad';nodes.checkoutPhone.value='abc';
+  await nodes.paypalCheckoutBtn.events.click();
+  assert(!calls.some(call=>call.url==='/api/orders'));assert.equal(alerts.length,0);
+  for(const key of ['Name','Email','Phone']){assert.equal(nodes['checkout'+key+'Error'].hidden,false);assert.equal(nodes['checkout'+key].attributes['aria-invalid'],'true');}
+  assert.equal(nodes.checkoutName.focused,true);
+  nodes.checkoutEmail.events.input();assert.equal(nodes.checkoutEmailError.hidden,true);
+ }
  for(const method of ['card','paypal']){
   const {nodes,calls,redirects,events,session}=await boot();
   assert.equal(nodes.checkoutContent.hidden,false);assert.equal(nodes.emptyCart.hidden,true);

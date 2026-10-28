@@ -4,6 +4,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const html=fs.readFileSync('index.html','utf8');
 const core=fs.readFileSync('checkout-core.js','utf8');
+const fields=core.split('/* Customer fields start */')[1].split('/* Customer fields end */')[0];
 for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){
     if(!/application\/ld\+json/.test(match[1]))new vm.Script(match[2]);
 }
@@ -36,7 +37,7 @@ function boot(){
         calls.push({url,options});
         return {ok:true,json:async()=>({ok:true,quote:quote()})};
     };
-    vm.runInContext(quoteSource+'\nasync function checkoutWithPaymentLink(){'+checkoutSource,c);
+    vm.runInContext(fields+quoteSource+'\nasync function checkoutWithPaymentLink(){'+checkoutSource,c);
     return {c,nodes,calls,alerts,events,redirects,quote};
 }
 (async()=>{
