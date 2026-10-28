@@ -222,6 +222,38 @@ function renderCart(){
 
 
 
+/* Customer fields start */
+let checkoutVisibleErrors={};
+function normalizeCheckoutPhone(value){
+    const digits='٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹';
+    let phone=String(value||'').replace(/[٠-٩۰-۹]/g,c=>String(digits.indexOf(c)%10)).replace(/[\s().\-\u200e\u200f\u061c]/g,'');
+    return phone.startsWith('00')?'+'+phone.slice(2):phone;
+}
+function checkoutFieldErrors(customer){
+    const errors={};
+    if(customer.name.length<2||customer.name.length>100||/[\x00-\x1f]/.test(customer.name))errors.name='invalid';
+    if(customer.email.length>254||!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(customer.email)||/[\x00-\x1f]/.test(customer.email))errors.email='invalid';
+    if(!/^\+?[0-9]{8,15}$/.test(customer.phone))errors.phone='invalid';
+    return errors;
+}
+function showCheckoutErrors(errors,focus=true){
+    checkoutVisibleErrors=errors;
+    const copy=currentLanguage==='en'?{name:'Enter your full name (2–100 characters).',email:'Enter a valid email, such as name@example.com.',phone:'Enter a valid phone number (8–15 digits), with the country code if needed.'}:{name:'أدخل اسمك الكامل من حرفين إلى 100 حرف.',email:'أدخل بريدًا صحيحًا، مثل name@example.com.',phone:'أدخل رقم هاتف صحيحًا من 8 إلى 15 رقمًا، مع مفتاح الدولة عند الحاجة.'};
+    let first=null,inline=false;
+    for(const key of ['name','email','phone']){
+        const field=document.getElementById('checkout'+key[0].toUpperCase()+key.slice(1)),note=document.getElementById('checkout'+key[0].toUpperCase()+key.slice(1)+'Error');
+        if(note){inline=true;note.hidden=!errors[key];note.textContent=errors[key]?copy[key]:'';field.setAttribute('aria-invalid',errors[key]?'true':'false');}
+        if(errors[key]&&!first)first=field;
+    }
+    if(first&&focus){if(inline)first.focus?.();else alert(t('invalidCustomer'));}
+}
+function checkoutStatus(message){
+    const node=document.getElementById('checkoutStatus');
+    if(node){node.textContent=String(message||'').slice(0,220);node.hidden=!message;}
+    else if(message)alert(message);
+}
+/* Customer fields end */
+
 /* EGP quote start */
 let checkoutQuote=null, checkoutQuoteKey="", checkoutQuotePending="", checkoutQuoteRequest=0, checkoutInFlight=false;
 
@@ -298,17 +330,18 @@ async function checkoutWithPaymentLink(){
     }
     const pricing=calculatePricing();
     if(!pricing.count) return;
-    if(useQuote && !currentCheckoutQuote()){
-        if(await refreshCheckoutQuote())alert(currentLanguage==='en'?'The EGP amount has been updated. Please review it and press Continue to payment.':'تم تحديث المقابل بالجنيه. راجعه ثم اضغط متابعة الدفع.');
-        return;
-    }
+    checkoutStatus('');
     const customer={
         name:document.getElementById('checkoutName').value.trim(),
         email:document.getElementById('checkoutEmail').value.trim(),
-        phone:document.getElementById('checkoutPhone').value.trim()
+        phone:normalizeCheckoutPhone(document.getElementById('checkoutPhone').value)
     };
-    if(customer.name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)||!/^\+?[0-9]{8,15}$/.test(customer.phone)){
-        alert(t('invalidCustomer'));return;
+    const fieldErrors=checkoutFieldErrors(customer);showCheckoutErrors(fieldErrors);
+    if(Object.keys(fieldErrors).length)return;
+    document.getElementById('checkoutPhone').value=customer.phone;
+    if(useQuote && !currentCheckoutQuote()){
+        if(await refreshCheckoutQuote())checkoutStatus(currentLanguage==='en'?'The EGP amount has been updated. Please review it and press Continue to payment.':'تم تحديث المقابل بالجنيه. راجعه ثم اضغط متابعة الدفع.');
+        return;
     }
     const button=document.getElementById('checkoutBtn'),paypalButton=document.getElementById('paypalCheckoutBtn');
     checkoutInFlight=true;button.disabled=true;if(paypalButton)paypalButton.disabled=true;
@@ -323,7 +356,9 @@ async function checkoutWithPaymentLink(){
         const data=await response.json();
         if(!response.ok||!data.ok){
             if(data.code==='QUOTE_REFRESH_REQUIRED')await refreshCheckoutQuote(true);
-            throw new Error(data.error||'تعذر إنشاء الطلب.');
+            const error=new Error(data.error||t('checkoutError'));
+            if(data.code==='INVALID_CUSTOMER'&&data.fields)error.fieldErrors=data.fields;
+            throw error;
         }
         window.TaboTracking?.track('InitiateCheckout',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency});
         const orderId=data.order.id;
@@ -331,7 +366,7 @@ async function checkoutWithPaymentLink(){
         const key=new URL(data.tracking_url,location.origin).searchParams.get('key');
         sessionStorage.setItem('taboPayment:'+key,data.payment_url);
         window.location.assign(data.payment_url);
-    } catch(error){checkoutInFlight=false;alert(error.message||t('checkoutError'));button.disabled=!window.TABO_CHECKOUT_READY;if(paypalButton)paypalButton.disabled=storeConfig.paypalAvailable!==true;['countrySelect','languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{const field=document.getElementById(id);if(field)field.disabled=false;});}
+    } catch(error){checkoutInFlight=false;button.disabled=!window.TABO_CHECKOUT_READY;if(paypalButton)paypalButton.disabled=storeConfig.paypalAvailable!==true;['countrySelect','languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{const field=document.getElementById(id);if(field)field.disabled=false;});if(error.fieldErrors)showCheckoutErrors(error.fieldErrors);else checkoutStatus(error.message||t('checkoutError'));}
 }
 
 window.TABO_CHECKOUT_READY=false;

@@ -11,8 +11,8 @@ try{
     cart=[...new Map(cart.map(item=>[item.id,item])).values()];
 }catch(_){cart=[];}
 const CHECKOUT_COPY={
- ar:{title:'سلة الكتب وإتمام الدفع',country:'الدولة',original:'السعر السابق',final:'الإجمالي',checkout:'الدفع بالبطاقات والمحافظ',delete:'حذف',emptyCart:'السلة فارغة حاليًا.',browse:'تصفح الكتب',name:'الاسم الكامل',email:'البريد الإلكتروني',phone:'رقم الهاتف بالأرقام الإنجليزية',loading:'جارٍ تحميل الأسعار ووسائل الدفع…',configError:'تعذر تحميل الأسعار الآن. أعد المحاولة قبل الدفع.',retry:'إعادة المحاولة',preview:'الدفع بالبطاقات والمحافظ غير متاح حاليًا.',currencyPending:'الدفع بالبطاقات والمحافظ غير متاح بهذه العملة حاليًا.',invalidCustomer:'أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.',checkoutError:'تعذر الاتصال بخادم الدفع.',delivery:'بعد تأكيد الدفع، تنتقل تلقائيًا لتحميل كتبك.'},
- en:{title:'Your cart and checkout',country:'Country',original:'Previous price',final:'Total',checkout:'Pay by card or wallet',delete:'Remove',emptyCart:'Your cart is empty.',browse:'Browse books',name:'Full name',email:'Email address',phone:'Phone number in English digits',loading:'Loading prices and payment options…',configError:'Could not load prices. Retry before paying.',retry:'Retry',preview:'Card and wallet payments are temporarily unavailable.',currencyPending:'Card and wallet payment is unavailable for this currency.',invalidCustomer:'Enter a valid name, email address and phone number to continue.',checkoutError:'Could not connect to checkout.',delivery:'After payment confirmation, you go straight to your book downloads.'}
+ ar:{title:'سلة الكتب وإتمام الدفع',country:'الدولة',original:'السعر السابق',final:'الإجمالي',checkout:'الدفع بالبطاقات والمحافظ',delete:'حذف',emptyCart:'السلة فارغة حاليًا.',browse:'تصفح الكتب',name:'الاسم الكامل',email:'البريد الإلكتروني',phone:'رقم الهاتف',loading:'جارٍ تحميل الأسعار ووسائل الدفع…',configError:'تعذر تحميل الأسعار الآن. أعد المحاولة قبل الدفع.',retry:'إعادة المحاولة',preview:'الدفع بالبطاقات والمحافظ غير متاح حاليًا.',currencyPending:'الدفع بالبطاقات والمحافظ غير متاح بهذه العملة حاليًا.',invalidCustomer:'أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.',checkoutError:'تعذر الاتصال بخادم الدفع.',delivery:'بعد تأكيد الدفع، تنتقل تلقائيًا لتحميل كتبك.'},
+ en:{title:'Your cart and checkout',country:'Country',original:'Previous price',final:'Total',checkout:'Pay by card or wallet',delete:'Remove',emptyCart:'Your cart is empty.',browse:'Browse books',name:'Full name',email:'Email address',phone:'Phone number',loading:'Loading prices and payment options…',configError:'Could not load prices. Retry before paying.',retry:'Retry',preview:'Card and wallet payments are temporarily unavailable.',currencyPending:'Card and wallet payment is unavailable for this currency.',invalidCustomer:'Enter a valid name, email address and phone number to continue.',checkoutError:'Could not connect to checkout.',delivery:'After payment confirmation, you go straight to your book downloads.'}
 };
 function t(key){return CHECKOUT_COPY[currentLanguage][key]||key;}
 function localizedBook(book){return {...book,name:currentLanguage==='en'?book.enName:book.name};}
@@ -30,7 +30,12 @@ function applyCopy(){
     Object.entries(labels).forEach(([id,key])=>{document.getElementById(id).textContent=t(key);});
     document.getElementById('countrySelect').setAttribute('aria-label',t('country'));
     document.getElementById('languageToggle').textContent=currentLanguage==='ar'?'English':'العربية';
+    document.getElementById('checkoutPhoneHelp').textContent=currentLanguage==='ar'?'لتحديد صاحب الطلب ومساعدتك عند الحاجة. نقبل الأرقام العربية والإنجليزية.':'Used to identify your order and help when needed. Arabic and English digits are accepted.';
+    renderEmailHelp();showCheckoutErrors(checkoutVisibleErrors,false);
     renderCountryOptions();updateCart();
+}
+function renderEmailHelp(){
+    document.getElementById('checkoutEmailHelp').textContent=storeConfig.receiptEmailEnabled===true?(currentLanguage==='ar'?'سنرسل تأكيد الشراء ورابط الرجوع لطلبك إلى هذا البريد.':'We will send your purchase confirmation and order link to this email.'):(currentLanguage==='ar'?'راجع البريد لسهولة التواصل بخصوص طلبك.':'Check your email address so we can help with your order.');
 }
 async function loadStoreConfig(country=browserCountryHint()){
     const request=++configRequest;
@@ -46,7 +51,7 @@ async function loadStoreConfig(country=browserCountryHint()){
         storeConfig=data;PRICING_LADDER=data.prices;configLoaded=true;
         localStorage.setItem('taboCountry',data.country);
         window.TABO_CHECKOUT_READY=data.checkoutEnabled===true&&data.checkoutSupported===true;
-        notice.hidden=true;renderCountryOptions();updateCart();
+        notice.hidden=true;renderEmailHelp();renderCountryOptions();updateCart();
         const unavailable=document.getElementById('checkoutNotice');unavailable.hidden=window.TABO_CHECKOUT_READY;
         unavailable.textContent=data.checkoutSupported?t('preview'):t('currencyPending');
     }catch(_){if(request===configRequest){notice.textContent=t('configError');document.getElementById('retryConfig').hidden=false;}}
@@ -60,6 +65,11 @@ document.getElementById('cartItems').addEventListener('click',event=>{
 document.getElementById('countrySelect').addEventListener('change',event=>{if(!checkoutInFlight)loadStoreConfig(event.target.value);});
 document.getElementById('languageToggle').addEventListener('click',()=>{currentLanguage=currentLanguage==='ar'?'en':'ar';localStorage.setItem('taboLanguage',currentLanguage);applyCopy();});
 document.getElementById('retryConfig').addEventListener('click',()=>loadStoreConfig());
+for(const key of ['name','email','phone']){
+    const field=document.getElementById('checkout'+key[0].toUpperCase()+key.slice(1));
+    field.addEventListener('input',()=>{const errors={...checkoutVisibleErrors};delete errors[key];showCheckoutErrors(errors,false);});
+}
+document.getElementById('checkoutPhone').addEventListener('blur',event=>{event.target.value=normalizeCheckoutPhone(event.target.value);});
 document.getElementById('checkoutBtn').addEventListener('click',()=>checkoutWithPaymentLink());
 document.getElementById('paypalCheckoutBtn').addEventListener('click',()=>checkoutWithPaymentLink('paypal'));
 window.addEventListener('pageshow',event=>{

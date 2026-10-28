@@ -206,3 +206,13 @@ def apply_paypal_event(order, event, digest):
         'p_amount':event['amount'],'p_provider_order_id':order['paymobOrderId'],'p_digest':digest})
     if not isinstance(result,dict):raise StoreUnavailable()
     return result
+
+
+def claim_receipt(lease):
+    return request('/rest/v1/rpc/claim_order_receipt', 'POST', {'p_lease': lease})
+
+
+def finish_receipt(order_id, lease, state, provider_id, retry_seconds, reason):
+    return request('/rest/v1/rpc/finish_order_receipt', 'POST', {
+        'p_order_id': order_id, 'p_lease': lease, 'p_state': state,
+        'p_provider_id': provider_id, 'p_retry_seconds': retry_seconds, 'p_reason': reason})

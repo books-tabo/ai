@@ -24,7 +24,7 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
                       (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
@@ -42,6 +42,76 @@ class PostgresTests(unittest.TestCase):
             if barrier:barrier.wait(timeout=15)
             return c.execute('SELECT public.apply_paypal_event(%s,%s,%s,%s,%s,%s,%s)',
                              (oid,'test',transaction,kind,20,f'PAYPALORDER{number:06d}','f'*64)).fetchone()[0]
+
+    def receipt_order(self, number=2, mode='live', requested=True):
+        oid=self.paypal_order(number)
+        with self.connect() as c:
+            c.execute("UPDATE public.orders SET payment_mode=%s,buyer=%s WHERE id=%s",
+                      (mode,json.dumps({'name':'Synthetic Reader','phone':'01000000000','email':'reader@example.invalid','language':'ar','receiptRequested':requested}),oid))
+        return oid
+
+    def receipt_payment(self, oid, number=2, mode='live', barrier=None):
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            if barrier:barrier.wait(timeout=15)
+            return c.execute('SELECT public.apply_paypal_event(%s,%s,%s,%s,%s,%s,%s)',
+                             (oid,mode,f'RECEIPTCAP{number:08d}','paid',20,f'PAYPALORDER{number:06d}','f'*64)).fetchone()[0]
+
+    def test_receipt_enqueue_is_atomic_future_paid_only_and_duplicate_safe(self):
+        oid=self.receipt_order();barrier=threading.Barrier(8)
+        with self.connect() as c:self.assertEqual(c.execute('SELECT count(*) FROM public.order_receipts').fetchone()[0],0)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            results=list(pool.map(lambda _:self.receipt_payment(oid,barrier=barrier),range(8)))
+        self.assertTrue(all(r['status']=='PAID' for r in results))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT order_id,state,attempts FROM public.order_receipts').fetchall(),[(oid,'pending',0)])
+            c.execute("UPDATE public.orders SET buyer=%s WHERE id='TABO-0000000000000001'",(json.dumps({'email':'old@example.invalid','receiptRequested':True}),))
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_receipts').fetchone()[0],1)
+        test=self.receipt_order(3,mode='test');self.receipt_payment(test,number=3,mode='test')
+        opted_out=self.receipt_order(4,requested=False);self.receipt_payment(opted_out,number=4)
+        with self.connect() as c:self.assertEqual(c.execute('SELECT count(*) FROM public.order_receipts').fetchone()[0],1)
+
+    def test_receipt_queue_leases_retries_and_completion_are_concurrent_safe(self):
+        oid=self.receipt_order();self.receipt_payment(oid)
+        def claim(index):
+            with self.connect() as c:
+                c.execute('SET ROLE service_role')
+                return index,c.execute('SELECT public.claim_order_receipt(%s)',(f'{index:064x}',)).fetchone()[0]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:results=list(pool.map(claim,range(1,9)))
+        claimed=[(i,r) for i,r in results if r]
+        self.assertEqual(len(claimed),1);index,value=claimed[0]
+        self.assertEqual(value['order_id'],oid);self.assertEqual(value['attempts'],1)
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            args=(oid,f'{index:064x}','retry',None,30,'transient')
+            self.assertFalse(c.execute('SELECT public.finish_order_receipt(%s,%s,%s,%s,%s,%s)',(oid,'0'*64,'sent','synthetic',30,None)).fetchone()[0])
+            self.assertTrue(c.execute('SELECT public.finish_order_receipt(%s,%s,%s,%s,%s,%s)',args).fetchone()[0])
+            self.assertIsNone(c.execute('SELECT public.claim_order_receipt(%s)',('a'*64,)).fetchone()[0])
+        with self.connect() as c:c.execute("UPDATE public.order_receipts SET next_attempt_at=now()-interval '1 second'")
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            self.assertEqual(c.execute('SELECT public.claim_order_receipt(%s)',('a'*64,)).fetchone()[0]['attempts'],2)
+            self.assertFalse(c.execute('SELECT public.finish_order_receipt(%s,%s,%s,%s,%s,%s)',(oid,f'{index:064x}','sent','synthetic',30,None)).fetchone()[0])
+            self.assertTrue(c.execute('SELECT public.finish_order_receipt(%s,%s,%s,%s,%s,%s)',(oid,'a'*64,'sent','synthetic',30,None)).fetchone()[0])
+            self.assertIsNone(c.execute('SELECT public.claim_order_receipt(%s)',('b'*64,)).fetchone()[0])
+
+    def test_receipt_queue_stops_before_provider_deduplication_expiry(self):
+        oid=self.receipt_order();self.receipt_payment(oid)
+        with self.connect() as c:c.execute("UPDATE public.order_receipts SET created_at=now()-interval '21 hours'")
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            self.assertIsNone(c.execute('SELECT public.claim_order_receipt(%s)',('c'*64,)).fetchone()[0])
+            self.assertEqual(c.execute('SELECT state,reason FROM public.order_receipts').fetchone(),('failed','expired'))
+
+    def test_receipt_data_and_functions_are_server_only(self):
+        with self.connect() as c:
+            self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid='public.order_receipts'::regclass").fetchone()[0])
+            for role in ('anon','authenticated'):
+                for privilege in ('SELECT','INSERT','UPDATE','DELETE'):
+                    self.assertFalse(c.execute("SELECT has_table_privilege(%s,'public.order_receipts',%s)",(role,privilege)).fetchone()[0])
+                for signature in ('public.claim_order_receipt(text)','public.finish_order_receipt(text,text,text,text,integer,text)','public.enqueue_order_receipt()'):
+                    self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,signature)).fetchone()[0])
+            self.assertEqual(c.execute("SELECT count(*) FROM pg_proc WHERE proname IN ('enqueue_order_receipt','claim_order_receipt','finish_order_receipt') AND prosecdef").fetchone()[0],0)
 
     def test_isolated_sandbox_transport_uses_real_payment_and_download_rpcs(self):
         from testing.paypal_sandbox import NativeStore

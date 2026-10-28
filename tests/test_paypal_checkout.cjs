@@ -2,6 +2,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync('index.html','utf8');
 const core=fs.readFileSync('checkout-core.js','utf8');
+const fields=core.split('/* Customer fields start */')[1].split('/* Customer fields end */')[0];
 const quote=core.split('/* EGP quote start */')[1].split('/* EGP quote end */')[0];
 const choice='function renderPayPalChoice(){'+core.split('function renderPayPalChoice(){')[1].split('async function checkoutWithPaymentLink(){')[0];
 const checkout='async function checkoutWithPaymentLink(){'+core.split('async function checkoutWithPaymentLink(){')[1].split('window.TABO_CHECKOUT_READY=false;')[0];
@@ -16,7 +17,7 @@ function boot(){
  localStorage:{setItem(){}},sessionStorage:{setItem(){}},alert:value=>alerts.push(value),t:value=>value,
  URL,JSON,Date,Number,Intl,AbortController,setTimeout:()=>1,clearTimeout(){}};
  context.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({ok:true,order:{id:'TABO-0000000000000002',total:20,currency:'USD',items:[{id:'book20'},{id:'book21'}]},payment_url:'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567',tracking_url:'/pending.html?key='+'2'.repeat(64)})}};
- vm.createContext(context);vm.runInContext(quote+choice+checkout,context);return {context,nodes,calls,events,alerts,redirects};
+ vm.createContext(context);vm.runInContext(fields+quote+choice+checkout,context);return {context,nodes,calls,events,alerts,redirects};
 }
 (async()=>{
  {

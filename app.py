@@ -3,6 +3,8 @@ import json, os, re, secrets, hmac, hashlib, ipaddress, threading, time, unicode
 import media_sandbox
 import reader_comments
 import paypal_checkout
+import checkout_fields
+import order_receipts
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -811,9 +813,10 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(200,{'ok':True,'quote':quote_data})
                 paymob_method_id=(localization.payment_method_for(currency)
                                   if selected=='paymob' else None)
-                customer=data.get('customer')
-                if not isinstance(customer,dict) or not isinstance(customer.get('name'),str) or not 2<=len(customer['name'].strip())<=100 or not isinstance(customer.get('phone'),str) or not re.fullmatch(r'\+?[0-9]{8,15}',customer['phone']) or not isinstance(customer.get('email'),str) or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',customer['email']):
-                    return self.respond(400,{'ok':False,'error':'الاسم والبريد الإلكتروني ورقم الهاتف مطلوبة للدفع.'})
+                customer,field_errors=checkout_fields.customer(data.get('customer'))
+                if field_errors:
+                    return self.respond(400,{'ok':False,'code':'INVALID_CUSTOMER','fields':field_errors,
+                                             'error':'راجع بيانات التواصل الموضحة قبل الدفع.'})
                 pricing_quote=None
                 if conversion:
                     pricing_quote=checkout_pricing.verify(data.get('quoteToken'),ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
@@ -825,7 +828,8 @@ class Handler(BaseHTTPRequestHandler):
                        'paymobMethodId':paymob_method_id,'paymentMode':paypal_checkout.mode() if using_paypal else payment_mode(),
                        'paymentMethod':'PayPal' if using_paypal else ('Kashier' if payment_provider()=='kashier' else 'Paymob'),
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
-                       'token':None,'buyer':{'name':customer['name'].strip(),'phone':customer['phone']},
+                       'token':None,'buyer':{**customer,'language':'en' if data.get('language')=='en' else 'ar',
+                                             'receiptRequested':order_receipts.enabled()},
                        'transactionId':None,'statusKey':secrets.token_hex(32),
                        'checkoutSessionHash':hash_secret(checkout_secret)}
                 store.insert(order)
@@ -1246,6 +1250,7 @@ class Handler(BaseHTTPRequestHandler):
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=payment_currency_supported(config['currency'])
             config['paypalAvailable']=paypal_ready(config['currency'])
+            config['receiptEmailEnabled']=order_receipts.enabled()
             config['paymentProvider']=payment_provider()
             config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']
             return self.respond(200,config)
@@ -1291,6 +1296,7 @@ if __name__=='__main__':
     print(f'TABO BOOKS listening on {host}:{port}',flush=True)
     missing=[name for name,ready in checkout_readiness().items() if not ready]
     print('Checkout readiness: '+('ready' if not missing else 'blocked: '+','.join(missing)),flush=True)
+    order_receipts.start_worker()
     ThreadingHTTPServer((host,port),Handler).serve_forever()
 
 
