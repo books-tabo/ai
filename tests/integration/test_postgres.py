@@ -24,10 +24,59 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
                       (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
+
+    def paypal_order(self, number=2):
+        oid=f'TABO-{number:016X}'
+        with self.connect() as c:
+            c.execute("INSERT INTO public.orders(id,status,items,total,currency,payment_method,status_key,payment_mode,paymob_order_id,buyer,checkout_session_hash) VALUES(%s,'PENDING',%s,20,'USD','PayPal',%s,'test',%s,%s,%s)",
+                (oid,json.dumps([{'id':'book20'},{'id':'book21'}]),f'{number:064x}',f'PAYPALORDER{number:06d}',json.dumps({'name':'Synthetic','phone':'01000000000'}),'a'*64))
+        return oid
+
+    def paypal_event(self, oid, kind='paid', transaction='CAPTURE12345678901', number=2, barrier=None):
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            if barrier:barrier.wait(timeout=15)
+            return c.execute('SELECT public.apply_paypal_event(%s,%s,%s,%s,%s,%s,%s)',
+                             (oid,'test',transaction,kind,20,f'PAYPALORDER{number:06d}','f'*64)).fetchone()[0]
+
+    def test_paypal_concurrent_callbacks_mark_one_order_once_without_changing_kashier(self):
+        oid=self.paypal_order();barrier=threading.Barrier(12)
+        with self.connect() as c:
+            before=c.execute("SELECT row_to_json(o) FROM public.orders o WHERE id='TABO-0000000000000001'").fetchone()[0]
+            stats=c.execute('SELECT row_to_json(s) FROM public.book_stats s ORDER BY book_id').fetchall()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+            results=list(pool.map(lambda _:self.paypal_event(oid,barrier=barrier),range(12)))
+        self.assertTrue(all(result['ok'] and result['status']=='PAID' for result in results))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.paypal_payment_events').fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT count(*) FROM public.payment_events').fetchone()[0],0)
+            self.assertEqual(c.execute('SELECT row_to_json(s) FROM public.book_stats s ORDER BY book_id').fetchall(),stats)
+            self.assertEqual(c.execute("SELECT row_to_json(o) FROM public.orders o WHERE id='TABO-0000000000000001'").fetchone()[0],before)
+
+    def test_paypal_capture_is_unique_across_orders_and_refund_remains_terminal(self):
+        first=self.paypal_order();second=self.paypal_order(3)
+        self.assertTrue(self.paypal_event(first)['ok'])
+        conflict=self.paypal_event(second,number=3)
+        self.assertFalse(conflict['ok']);self.assertEqual(conflict['reason'],'transaction_conflict')
+        self.assertEqual(self.paypal_event(first,'refund')['status'],'REFUNDED')
+        self.assertEqual(self.paypal_event(first)['status'],'REFUNDED')
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT status,checkout_session_hash,download_session_hash FROM public.orders WHERE id=%s',(first,)).fetchone(),('REFUNDED',None,None))
+
+    def test_paypal_refund_before_paid_never_reactivates_and_unauthorized_roles_cannot_write(self):
+        oid=self.paypal_order()
+        self.assertEqual(self.paypal_event(oid,'review_notice')['status'],'REVIEW')
+        self.assertEqual(self.paypal_event(oid)['status'],'REVIEW')
+        with self.connect() as c:
+            for role in ('anon','authenticated'):
+                self.assertFalse(c.execute("SELECT has_table_privilege(%s,'public.paypal_payment_events','SELECT')",(role,)).fetchone()[0])
+                self.assertFalse(c.execute("SELECT has_function_privilege(%s,'public.apply_paypal_event(text,text,text,text,numeric,text,text)','EXECUTE')",(role,)).fetchone()[0])
+            self.assertFalse(c.execute("SELECT has_table_privilege('service_role','public.paypal_payment_events','INSERT')").fetchone()[0])
+            self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid='public.paypal_payment_events'::regclass").fetchone()[0])
 
     def comment(self, email='c'*64, order_hash=None, body='Synthetic honest opinion', barrier=None):
         with self.connect() as c:

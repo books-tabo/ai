@@ -197,3 +197,12 @@ def submit_comment(comment, verified_order_hash=None):
 def book_comments(book_id, offset=0):
     return request('/rest/v1/rpc/list_reader_comments', 'POST', {
         'p_book_id':book_id, 'p_offset':offset})
+
+
+def apply_paypal_event(order, event, digest):
+    result=request('/rest/v1/rpc/apply_paypal_event','POST',{
+        'p_order_id':order['id'],'p_mode':order['paymentMode'],
+        'p_transaction_id':event['transaction'],'p_kind':event['kind'],
+        'p_amount':event['amount'],'p_provider_order_id':order['paymobOrderId'],'p_digest':digest})
+    if not isinstance(result,dict):raise StoreUnavailable()
+    return result

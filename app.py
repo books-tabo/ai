@@ -2,6 +2,7 @@
 import json, os, re, secrets, hmac, hashlib, ipaddress, threading, time, unicodedata
 import media_sandbox
 import reader_comments
+import paypal_checkout
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -68,6 +69,8 @@ class SlidingWindowLimiter:
 RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
     '/api/autoseo/webhook': (60, 60),
+    '/api/paypal/capture': (12, 600),
+    '/api/paypal/webhook': (180, 60),
     '/api/ratings': (12, 600),
     '/api/book-comments': (5, 600),
     '/api/orders': (6, 600),
@@ -189,6 +192,20 @@ def checkout_readiness():
 def checkout_ready():
     """Never accept payment unless originals and durable order storage are ready."""
     return all(checkout_readiness().values())
+
+def paypal_ready(currency):
+    checks=checkout_readiness()
+    required=('checkout_enabled','persistent_storage_confirmed','supabase_configured',
+              'originals_verified','session_binding_key_configured','public_url_valid')
+    return all(checks[key] for key in required) and paypal_checkout.available(currency)
+
+
+def record_paypal_event(order,event,proof):
+    result=store.apply_paypal_event(order,event,hash_secret(proof))
+    if result.get('ok') is not True:
+        raise store.StoreUnavailable()
+    return result.get('status')=='PAID'
+
 
 def now(): return datetime.now(timezone.utc).isoformat()
 
@@ -647,7 +664,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store')
         for name,value in (extra_headers or {}).items():
             self.send_header(name,value)
-        if filename in ('pending.html','success.html','preview.html'):
+        if filename in ('pending.html','success.html','preview.html','paypal-return.html'):
             self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
 
@@ -674,10 +691,61 @@ class Handler(BaseHTTPRequestHandler):
             if not self.enforce_rate_limit(route,'POST'): return
             if route == autoseo.ENDPOINT:
                 return self.autoseo_webhook()
-            if (route in ('/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
+            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
+            if route=='/api/paypal/capture':
+                key=data.get('key')
+                if not isinstance(key,str) or not re.fullmatch(r'[0-9a-f]{64}',key):
+                    return self.respond(403,{'ok':False,'error':'Invalid payment session'})
+                order=store.find('status_key',key) if store.ready() else None
+                if (not order or order.get('paymentMethod')!='PayPal' or order.get('paymentMode')!=paypal_checkout.mode()
+                        or not order.get('checkoutSessionHash') or not paypal_checkout.configured()):
+                    return self.respond(403,{'ok':False,'error':'Invalid payment session'})
+                cookie=self.cookie(checkout_cookie_name(order['id']))
+                if not cookie or not hmac.compare_digest(hash_secret(cookie),order['checkoutSessionHash']):
+                    return self.respond(403,{'ok':False,'error':'Return to the original purchasing browser'})
+                if data.get('token')!=order.get('paymobOrderId'):
+                    return self.respond(400,{'ok':False,'error':'Payment reference mismatch'})
+                if order['status']!='PENDING':
+                    return self.respond(200,{'ok':True,'paid':order['status']=='PAID'})
+                try:
+                    event=paypal_checkout.capture(order)
+                    paid=record_paypal_event(order,event,json.dumps(event,sort_keys=True)) if event else False
+                    return self.respond(200,{'ok':True,'paid':paid})
+                except paypal_checkout.PaymentMismatch:
+                    return self.respond(409,{'ok':False,'error':'Payment verification failed'})
+                except paypal_checkout.PayPalUnavailable:
+                    return self.respond(503,{'ok':False,'error':'PayPal confirmation temporarily unavailable'})
+            if route=='/api/paypal/webhook':
+                if not store.ready() or not paypal_checkout.configured():
+                    return self.respond(503,{'ok':False,'error':'PayPal reconciliation unavailable'})
+                try:
+                    if not paypal_checkout.verify_webhook(data,self.headers):
+                        return self.respond(401,{'ok':False,'error':'Invalid PayPal signature'})
+                    capture_id=paypal_checkout.webhook_capture_id(data)
+                    if not capture_id:return self.respond(200,{'ok':True,'ignored':True})
+                    captured=paypal_checkout.api('/v2/payments/captures/'+capture_id)
+                    provider_id=captured.get('supplementary_data',{}).get('related_ids',{}).get('order_id')
+                    reference=captured.get('custom_id') or captured.get('invoice_id')
+                    if isinstance(reference,str) and re.fullmatch(r'TABO-[A-F0-9]{16}',reference):
+                        order=store.find('id',reference)
+                    elif isinstance(provider_id,str) and paypal_checkout.IDS.fullmatch(provider_id):
+                        order=store.find('paymob_order_id',provider_id)
+                    else:raise store.StoreUnavailable()
+                    if not order or order.get('paymentMethod')!='PayPal' or order.get('paymentMode')!=paypal_checkout.mode():
+                        return self.respond(200,{'ok':True,'ignored':True})
+                    event=paypal_checkout.reconcile(order)
+                    if not event or event['transaction']!=capture_id:raise store.StoreUnavailable()
+                    if data.get('event_type') in ('PAYMENT.CAPTURE.REFUNDED','PAYMENT.CAPTURE.REVERSED') and event['kind']=='paid':
+                        raise store.StoreUnavailable()
+                    paid=record_paypal_event(order,event,json.dumps(data,sort_keys=True))
+                    return self.respond(200,{'ok':True,'paid':paid})
+                except paypal_checkout.PaymentMismatch:
+                    return self.respond(409,{'ok':False,'error':'Payment verification failed'})
+                except paypal_checkout.PayPalUnavailable:
+                    return self.respond(503,{'ok':False,'error':'PayPal reconciliation temporarily unavailable'})
             if route=='/api/book-comments':
                 if not store.ready():
                     return self.respond(503,{'ok':False,'error':'Comments temporarily unavailable'})
@@ -708,7 +776,11 @@ class Handler(BaseHTTPRequestHandler):
                 headers={'Set-Cookie':f'__Host-tabo_rating_id={rating_id}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Strict; Priority=High'}
                 return self.respond(200,{'ok':True,'rating':rating,'stats':stats},headers)
             if route in ('/api/orders','/api/checkout-quote'):
-                if not checkout_ready():
+                selected=data.get('paymentProvider') or payment_provider()
+                if selected not in (payment_provider(),'paypal'):
+                    return self.respond(400,{'ok':False,'error':'Invalid payment provider'})
+                using_paypal=selected=='paypal'
+                if not (paypal_ready('USD') if using_paypal else checkout_ready()):
                     return self.respond(503,{'ok':False,'error':'الشراء غير متاح حاليًا. يرجى العودة قريبًا.'})
                 items=data.get('items')
                 if not isinstance(items,list) or not 1<=len(items)<=len(BOOKS):
@@ -720,16 +792,16 @@ class Handler(BaseHTTPRequestHandler):
                 price_config=localization.pricing_for_country(PRICES,country)
                 total=catalog.total_for_items(ids,price_config)
                 currency=price_config['currency']
-                if not payment_currency_supported(currency):
+                if not (paypal_ready(currency) if using_paypal else payment_currency_supported(currency)):
                     return self.respond(503,{'ok':False,'error':'الدفع بهذه العملة غير متاح حاليًا.'})
-                conversion=payment_provider()=='kashier' and currency=='USD'
+                conversion=selected=='kashier' and currency=='USD'
                 if route=='/api/checkout-quote':
                     if not conversion:
                         return self.respond(200,{'ok':True,'quote':None})
                     quote_data=checkout_pricing.issue(ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
                     return self.respond(200,{'ok':True,'quote':quote_data})
                 paymob_method_id=(localization.payment_method_for(currency)
-                                  if payment_provider()=='paymob' else None)
+                                  if selected=='paymob' else None)
                 customer=data.get('customer')
                 if not isinstance(customer,dict) or not isinstance(customer.get('name'),str) or not 2<=len(customer['name'].strip())<=100 or not isinstance(customer.get('phone'),str) or not re.fullmatch(r'\+?[0-9]{8,15}',customer['phone']) or not isinstance(customer.get('email'),str) or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',customer['email']):
                     return self.respond(400,{'ok':False,'error':'الاسم والبريد الإلكتروني ورقم الهاتف مطلوبة للدفع.'})
@@ -741,16 +813,16 @@ class Handler(BaseHTTPRequestHandler):
                 checkout_secret=secrets.token_urlsafe(32)
                 order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':BOOKS[i][0]} for i in ids],
                        'total':total,'currency':currency,'country':country,'pricingQuote':pricing_quote,
-                       'paymobMethodId':paymob_method_id,'paymentMode':payment_mode(),
-                       'paymentMethod':'Kashier' if payment_provider()=='kashier' else 'Paymob',
+                       'paymobMethodId':paymob_method_id,'paymentMode':paypal_checkout.mode() if using_paypal else payment_mode(),
+                       'paymentMethod':'PayPal' if using_paypal else ('Kashier' if payment_provider()=='kashier' else 'Paymob'),
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
                        'token':None,'buyer':{'name':customer['name'].strip(),'phone':customer['phone']},
                        'transactionId':None,'statusKey':secrets.token_hex(32),
                        'checkoutSessionHash':hash_secret(checkout_secret)}
                 store.insert(order)
-                try: link,provider_order_id=payment_checkout(order,customer)
+                try: link,provider_order_id=paypal_checkout.create(order) if using_paypal else payment_checkout(order,customer)
                 except Exception as exc:
-                    log_payment_gateway_error(payment_provider(),exc)
+                    log_payment_gateway_error(selected,exc)
                     return self.respond(503,{'ok':False,'error':'تعذر إنشاء صفحة الدفع الآن. حاول مرة أخرى بعد قليل.'})
                 stored=store.patch(order['id'],{'paymob_order_id':provider_order_id},{'status':'eq.PENDING'})
                 if not stored: raise store.StoreUnavailable()
@@ -1133,6 +1205,7 @@ class Handler(BaseHTTPRequestHandler):
         optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
         if optimized_cover and optimized_cover.group(1) in BOOKS:
             return self.asset('covers/'+optimized_cover.group(1)+'.webp','image/webp')
+        if route=='/paypal-return.html': return self.html('paypal-return.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
         detail_match=re.fullmatch(r'/books/(book[1-9][0-9]*)',route)
@@ -1160,6 +1233,7 @@ class Handler(BaseHTTPRequestHandler):
             config=localization.pricing_for_country(PRICES,country)
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=payment_currency_supported(config['currency'])
+            config['paypalAvailable']=paypal_ready(config['currency'])
             config['paymentProvider']=payment_provider()
             config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']
             return self.respond(200,config)
