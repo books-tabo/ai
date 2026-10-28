@@ -1,9 +1,17 @@
 # Optional PayPal Checkout — prepared, not activated
 
-Status: code and isolated tests only. The live store remains on commit
-`8a1e37c05c5370bde5399a078eab30399f04b2ab` with Kashier unchanged. No PayPal
-merchant credentials have been retrieved, no live capture has been executed,
-and this migration has not been applied to production.
+Status: integration prepared but not activated. The live store remains on commit
+`8a1e37c05c5370bde5399a078eab30399f04b2ab` with Kashier unchanged. No live
+capture has been executed and this migration has not been applied to production.
+
+On 28 October 2026 the owner supplied application credentials independently.
+A read-only connectivity check authenticated against Sandbox OAuth (HTTP 200),
+while Live OAuth rejected the same keys (HTTP 401). Listing that Sandbox app's
+webhooks succeeded (HTTP 200) and returned no registrations. This confirms the
+keys' test environment, not merchant capability or a completed payment. No order,
+webhook, environment variable or production resource was created or changed.
+Rotate the secret shared in chat and store its replacement privately; neither
+credentials nor OAuth tokens belong in this repository or review comments.
 
 The owner's requested login reached PayPal's WhatsApp verification screen.
 Automatic approval review rejected the secure OTP fill because it represented
@@ -97,7 +105,12 @@ API failures, stable idempotency, cookies, cross-origin requests, spoofed/laggin
 webhooks, capture duplicates, URL cleanup and no premature Purchase. Disposable
 PostgreSQL integration tests cover races, capture uniqueness, refund-before-paid,
 private journal permissions and unchanged existing Kashier orders/statistics.
-Real Sandbox and Live merchant connectivity have **not** yet been validated.
+The 148-test Python suite, frontend checks and 19 disposable PostgreSQL tests
+passed in CI run `40727264819`. Sandbox OAuth and webhook-list connectivity were
+then checked independently as described above. End-to-end Sandbox approval,
+capture, actual webhook delivery, refunds and merchant-ID matching have **not**
+yet been validated. Live credentials and live merchant capability remain
+unverified. No isolated hosted test database is currently provisioned.
 
 Official sources reviewed:
 - https://developer.paypal.com/api/orders/v2/orders-create
