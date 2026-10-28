@@ -1,8 +1,22 @@
-# Optional PayPal Checkout — prepared, not activated
+# Optional PayPal Checkout — owner-approved live activation
 
-Status: integration prepared but not activated. The live store remains on commit
-`8a1e37c05c5370bde5399a078eab30399f04b2ab` with Kashier unchanged. No live
-capture has been executed and this migration has not been applied to production.
+The owner explicitly declined completing the Sandbox transaction on 28 October
+2026, requested live activation and will perform the first real payment himself.
+No agent-created real payment or capture is authorized by this release.
+
+Live activation requires `TABO_PAYPAL_LIVE_APPROVED=1`, separately from schema
+readiness and the checkout enable switch. The Sandbox verification flag remains
+`0` on production: owner approval is not recorded as a successful test. Amount,
+seller, capture, session and webhook verification remains enforced for every
+actual payment. Sandbox still uses its existing verification gate.
+
+At release preparation, production still serves baseline commit
+`8a1e37c05c5370bde5399a078eab30399f04b2ab`. The additive migration
+`20261028192913_optional_paypal_events.sql` has been applied to TABO Books.
+Catalog inspection confirmed the existing payment and download RPC definitions
+are unchanged. The new journal has RLS, no public/client read access and no
+direct backend insert privilege; only the backend can execute its transition
+function. Source deployment and activation are the remaining release steps.
 
 On 28 October 2026 the owner supplied Sandbox and then separate Live application
 credentials independently. The first set authenticated only against Sandbox
@@ -28,8 +42,8 @@ Saving through the Render connector initiated a redeploy of the unchanged
 production commit. Deploy `dep-dbh2s5vf3r2c73eoch50` reached `live` at
 `2026-10-28T17:18:04.635436Z`. Public checks confirmed that Kashier checkout
 remains enabled and no PayPal option is exposed. No PayPal order or capture was
-created. Isolated Sandbox validation and merchant capability checks remain
-prerequisites to activation.
+created. Those connectivity checks do not prove a completed payment. The owner
+has subsequently elected to complete the real payment check himself after release.
 
 ## Behavior
 
@@ -69,6 +83,7 @@ Keep `TABO_PAYMENT_PROVIDER=kashier`. Do not switch the default provider.
 | --- | --- |
 | `TABO_PAYPAL_ENABLED` | Explicitly enables new PayPal checkouts only when `1` |
 | `TABO_PAYPAL_CAPABILITY_VERIFIED` | Set `1` only after actual merchant/Sandbox checks |
+| `TABO_PAYPAL_LIVE_APPROVED` | Owner approval to activate Live; does not claim completed Sandbox testing |
 | `TABO_PAYPAL_SCHEMA_READY` | Set `1` only after applying the matching migration |
 | `PAYPAL_MODE` | `test` for Sandbox or `live` for the real merchant |
 | `PAYPAL_SANDBOX_CLIENT_ID` / `PAYPAL_LIVE_CLIENT_ID` | REST application ID |
@@ -81,25 +96,23 @@ Never paste secrets into chat, source, screenshots or public files. Do not expos
 credentials through browser configuration. Production cannot run `test` mode;
 a Sandbox service must use `TABO_ENV=paypal-sandbox` and a different public host.
 
-## Before activation
+## Live rollout
 
-1. Complete merchant login/onboarding using an accessible, approved sign-in flow,
-   or have the owner create the REST app and configure credentials independently.
-   Verify business-account capability and merchant country; do not infer them
-   from browser locale or the owner's location.
-2. Apply `20261028133509_optional_paypal_events.sql` to a disposable test database.
-   Its new table/RPC do not replace or alter the existing Kashier/Paymob journal,
-   constraints or payment function. Only new PayPal orders can be transitioned.
-3. Use an isolated Sandbox web service/database, test credentials and a Sandbox
-   buyer. Register `/api/paypal/webhook` on that REST app for
-   `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED`,
-   `PAYMENT.CAPTURE.REVERSED`. Verify success, cancellation, pending capture,
-   invalid signatures, retries, full/partial refunds and the purchasing-device
-   download flow. Never send synthetic Purchase events to production pixels.
-4. Only after those checks: configure separate Live credentials, verify the live
-   webhook and seller, apply the reviewed additive journal migration, then enable
-   the optional flag. Actual financial test transactions require the appropriate
-   user authorization; do not charge a real card merely to test.
+1. Use the owner's supplied Live app credentials and merchant ID. OAuth and
+   webhook registration were checked; completed payment and merchant capability
+   must not be inferred from them or from the browser locale.
+2. The journal migration passed disposable PostgreSQL tests and is now applied
+   to production. It does not replace existing Kashier/Paymob tables, constraints
+   or functions. Its repository version matches the production migration record.
+3. Run automated regression checks, merge only this PayPal change into the
+   existing service branch, and deploy. Preserve all existing provider settings.
+4. Set `PAYPAL_MODE=live`, `TABO_PAYPAL_SCHEMA_READY=1`,
+   `TABO_PAYPAL_LIVE_APPROVED=1` and `TABO_PAYPAL_ENABLED=1` on the existing
+   service. Keep `TABO_PAYPAL_CAPABILITY_VERIFIED=0`. Verify configuration and
+   checkout without creating an order or submitting a real payment.
+5. The owner will perform the first real payment and check order activation and
+   delivery. Actual Sandbox approval/capture, signed event delivery and refunds
+   remain unverified; the separate test service remains available.
 
 Disable only `TABO_PAYPAL_ENABLED` to stop new PayPal checkouts; authenticated
 capture/reconciliation for existing PayPal orders still uses the configured
@@ -161,8 +174,10 @@ visitor checkout. Preview `robots.txt` intentionally allows crawling so robots
 can read the noindex response headers.
 
 Actual approval, capture, signed webhook delivery, refund and browser download
-delivery remain unverified. No real payment, paid-book download, production
-schema migration or production source deployment was performed.
+delivery remain unverified. At that Sandbox checkpoint no real payment,
+paid-book download, production schema migration or production source deployment
+had occurred. The later owner-approved live rollout and additive production
+migration are described at the top of this document.
 
 Official sources reviewed:
 - https://developer.paypal.com/api/orders/v2/orders-create

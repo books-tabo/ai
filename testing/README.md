@@ -38,5 +38,6 @@ unconfigured here; the actual PayPal option is independently gated in a USD cart
 Use a Sandbox personal buyer (not the Sandbox seller) and fictional contact data.
 Never charge a real card or send synthetic Purchase events to production tags.
 
-All live-service PayPal flags stay off until provider approval/capture, signed
-webhook delivery, refunds and synthetic download delivery have been reviewed.
+Live activation is a separate owner release decision, recorded with
+`TABO_PAYPAL_LIVE_APPROVED`; it does not mark Sandbox testing complete. The owner
+elected to perform the real payment check himself. See `docs/paypal-checkout.md`.

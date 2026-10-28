@@ -60,8 +60,12 @@ def configured():
 
 
 def available(currency):
+    # Live activation is an explicit merchant decision, not evidence that an
+    # end-to-end Sandbox payment has been completed. Keep that fact separate.
+    approval = ('TABO_PAYPAL_LIVE_APPROVED' if mode() == 'live'
+                else 'TABO_PAYPAL_CAPABILITY_VERIFIED')
     return (currency=='USD' and os.environ.get('TABO_PAYPAL_ENABLED')=='1' and
-            os.environ.get('TABO_PAYPAL_CAPABILITY_VERIFIED')=='1' and configured())
+            os.environ.get(approval)=='1' and configured())
 
 
 def _transport(path,method,payload,headers):

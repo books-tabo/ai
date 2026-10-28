@@ -70,6 +70,25 @@ class PayPalClientTests(unittest.TestCase):
             with patch.object(paypal,'api',return_value={'id':PID,'links':[{'rel':'approve','href':url}]}):
                 with self.assertRaises(paypal.PaymentMismatch):paypal.create(order())
 
+    def test_live_release_needs_owner_approval_without_claiming_sandbox_completion(self):
+        live = {'PAYPAL_MODE':'live','TABO_ENV':'production','TABO_PUBLIC_URL':'https://tabobooks.com',
+                'PAYPAL_LIVE_CLIENT_ID':'synthetic_live_client_id_12345',
+                'PAYPAL_LIVE_CLIENT_SECRET':'synthetic_live_secret_12345678',
+                'PAYPAL_LIVE_MERCHANT_ID':'MERCHANT123456',
+                'PAYPAL_LIVE_WEBHOOK_ID':'WEBHOOK12345678',
+                'TABO_PAYPAL_CAPABILITY_VERIFIED':'0'}
+        with patch.dict(os.environ,live):
+            self.assertFalse(paypal.available('USD'))
+            with patch.dict(os.environ,{'TABO_PAYPAL_CAPABILITY_VERIFIED':'1'}):
+                self.assertFalse(paypal.available('USD'))
+            with patch.dict(os.environ,{'TABO_PAYPAL_LIVE_APPROVED':'1'}):
+                self.assertTrue(paypal.available('USD'))
+                self.assertFalse(paypal.available('EGP'))
+                self.assertEqual(os.environ['TABO_PAYPAL_CAPABILITY_VERIFIED'],'0')
+                with patch.dict(os.environ,{'TABO_PAYPAL_ENABLED':'0'}):
+                    self.assertFalse(paypal.available('USD'))
+                    self.assertTrue(paypal.configured())
+
     def test_completed_capture_is_reconciled_against_amount_merchant_and_reference(self):
         with patch.object(paypal,'api',side_effect=[remote(),capture_data()]):
             self.assertEqual(paypal.reconcile(order()),{'transaction':CID,'kind':'paid','amount':20})
