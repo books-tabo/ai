@@ -116,8 +116,10 @@ API failures, stable idempotency, cookies, cross-origin requests, spoofed/laggin
 webhooks, capture duplicates, URL cleanup and no premature Purchase. Disposable
 PostgreSQL integration tests cover races, capture uniqueness, refund-before-paid,
 private journal permissions and unchanged existing Kashier orders/statistics.
-The 148-test Python suite, frontend checks and 19 disposable PostgreSQL tests
-passed in CI, most recently run `40731804848`. Sandbox and Live OAuth/webhook-list
+The 152-test Python suite (Python 3.12 and 3.14.3), frontend checks, 8192 pricing
+comparisons, 20 disposable PostgreSQL tests and the Docker startup/isolation
+smoke test passed in CI run `40746826120` at commit
+`9228a58e4d3bd00b46e0c1a292d2963f369a8361`. Sandbox and Live OAuth/webhook-list
 connectivity and the Live webhook registration were checked independently as
 described above. End-to-end Sandbox approval, capture, actual webhook delivery,
 refunds, merchant-ID matching and live merchant capability have **not** yet been
@@ -127,6 +129,40 @@ controller/payment/download SQL. Its native SQL transport is explicitly distinct
 from Supabase's HTTP gateway. This permits isolated provider tests from the same
 `books-tabo/ai` repository without creating another Supabase organization/project.
 See `testing/README.md`; no production credentials belong in that container.
+
+## Isolated Sandbox deployment — 28 October 2026
+
+The free Render test service `srv-dbh45ks9v7es739a89s0` is running the tested
+commit at https://tabo-paypal-sandbox-20261028.onrender.com/ . Deployment
+`dep-dbh46denk5ns738tubq0` reached `live`. This is a separate disposable service,
+not the production storefront. It contains its own PostgreSQL database and only
+one-page synthetic PDF originals. All three PayPal test flags are enabled only
+there; the production PayPal flags remain zero.
+
+The Sandbox app's actual seller ID was confirmed by an independently retrieved
+unpaid provider order. A Sandbox webhook was registered for completed captures,
+refunds and reversals at the test service's `/api/paypal/webhook`; its URL and
+subscriptions were independently retrieved and matched.
+
+The browser flow successfully selected Saudi Arabia, applied the existing Sigma
+pair offer at USD 20, created a synthetic pending order and opened the genuine
+PayPal Sandbox approval page. PayPal then rejected the buyer sign-in credentials
+with its incorrect-details message. No approval or capture took place. A valid
+Sandbox Personal buyer sign-in is the current blocker to end-to-end validation;
+the real merchant login and REST app credentials are different credentials.
+
+Public test pages returned 200 with `noindex, nofollow, noarchive`, a visible
+synthetic-test warning and no advertising tag identifiers. An unsigned synthetic
+webhook was rejected with 401. The Saudi configuration exposes PayPal in USD and
+leaves the unconfigured default Kashier route disabled in this test service.
+Requesting Egypt from the non-Egyptian test location retained the existing
+server-side geographic pricing restriction; it did not demonstrate an Egyptian
+visitor checkout. Preview `robots.txt` intentionally allows crawling so robots
+can read the noindex response headers.
+
+Actual approval, capture, signed webhook delivery, refund and browser download
+delivery remain unverified. No real payment, paid-book download, production
+schema migration or production source deployment was performed.
 
 Official sources reviewed:
 - https://developer.paypal.com/api/orders/v2/orders-create
