@@ -144,7 +144,7 @@ class NativeStore:
                 raise ValueError('Unsupported test write')
         except psycopg.Error as error:
             if error.sqlstate == '23505': raise supabase_store.UniqueConflict(409, '23505') from None
-            raise supabase_store.StoreUnavailable(503) from None
+            raise supabase_store.StoreUnavailable(503, error.sqlstate) from None
 
 
 def synthetic_pdf():
@@ -223,6 +223,9 @@ def main():
         pdf = synthetic_pdf()
         prepare_database(dsn, pdf)
         install_synthetic_store(dsn, pdf)
+        stats = app.store.book_stats()
+        if len(stats) != len(app.BOOKS) or not all(value['pageCount'] == 1 for value in stats.values()):
+            raise RuntimeError('Synthetic database readiness failed')
         os.environ.update({'TABO_CHECKOUT_ENABLED': '1', 'TABO_PERSISTENT_STORAGE_READY': '1', 'TABO_ORIGINALS_VERIFIED': '1', 'TABO_SESSION_BINDING_KEY': secrets.token_urlsafe(48), 'TABO_PAYMENT_PROVIDER': 'kashier'})
         os.environ.setdefault('TABO_PUBLIC_URL', 'https://paypal-sandbox.invalid')
         # Increase only the isolated test admission budget; production is unchanged.
@@ -256,5 +259,9 @@ if __name__ == '__main__':
     try: main()
     except Exception as error:
         # No provider responses, credentials, SQL arguments or visitor data in logs.
-        print('Isolated Sandbox startup stopped: ' + type(error).__name__, flush=True)
+        code = getattr(error, 'code', None)
+        detail = code if isinstance(code, str) and re.fullmatch(r'[A-Za-z0-9]{1,8}', code) else ''
+        if isinstance(error, ValueError) and str(error) in ('Unsupported test RPC', 'Unsupported test table', 'Unsupported test fields', 'Unsupported test filter', 'Unsupported test order', 'Unsupported test limit'):
+            detail = str(error)
+        print('Isolated Sandbox startup stopped: ' + type(error).__name__ + ' ' + detail, flush=True)
         raise SystemExit(1) from None

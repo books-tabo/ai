@@ -62,18 +62,18 @@ class PostgresTests(unittest.TestCase):
             self.assertEqual(app.store.apply_paypal_event(order,event,'d'*64)['status'],'PAID')
             paid=app.store.find('id',oid)
             self.assertIsNotNone(paid['paidAt'])
-            bound=app.store.patch(oid,{'download_session_hash':'a'*64,'download_device_hash':'b'*64,
+            bound=app.store.patch(oid,{'download_session_hash':'c'*64,'download_device_hash':'d'*64,
                                      'download_session_expires_at':'2099-01-01T00:00:00Z'},
                                  {'status':'eq.PAID','download_session_hash':'is.null','checkout_session_hash':'eq.'+'e'*64})
-            self.assertEqual(bound['downloadSessionHash'],'a'*64)
+            self.assertEqual(bound['downloadSessionHash'],'c'*64)
             for allowed in (True,True,False):
-                self.assertEqual(app.store.claim_download(oid,'book20','a'*64,'b'*64,1)['allowed'],allowed)
+                self.assertEqual(app.store.claim_download(oid,'book20','c'*64,'d'*64,1)['allowed'],allowed)
             self.assertEqual(app.store.download_usage(oid),{'book20':2})
             self.assertEqual(app.store.book_stats()['book20']['downloads'],2)
             self.assertEqual(app.store.book_comments('book20'),{'comments':[],'total':0})
             event['kind']='refund'
             self.assertEqual(app.store.apply_paypal_event(order,event,'d'*64)['status'],'REFUNDED')
-            self.assertFalse(app.store.claim_download(oid,'book20','a'*64,'b'*64,1)['allowed'])
+            self.assertFalse(app.store.claim_download(oid,'book20','c'*64,'d'*64,1)['allowed'])
             with self.assertRaises(ValueError):app.store.patch(oid,{'status':'PAID'})
             with self.assertRaises(ValueError):native.request('/rest/v1/orders',params={'id; SELECT 1':'eq.bad'})
             with self.assertRaises(ValueError):native.request('/rest/v1/rpc/apply_payment_event','POST',{})
