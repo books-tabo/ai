@@ -62,4 +62,15 @@ document.getElementById('languageToggle').addEventListener('click',()=>{currentL
 document.getElementById('retryConfig').addEventListener('click',()=>loadStoreConfig());
 document.getElementById('checkoutBtn').addEventListener('click',()=>checkoutWithPaymentLink());
 document.getElementById('paypalCheckoutBtn').addEventListener('click',()=>checkoutWithPaymentLink('paypal'));
+window.addEventListener('pageshow',event=>{
+    if(!event.persisted)return;
+    checkoutInFlight=false;
+    ['languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{document.getElementById(id).disabled=false;});
+    try{
+        const saved=JSON.parse(localStorage.getItem('taboBooksCart')||'[]');
+        cart=Array.isArray(saved)?saved.map(item=>({type:'book',id:item?.id||BOOKS.find(book=>book.name===item?.name)?.id})).filter(item=>BOOKS.some(book=>book.id===item.id)):[];
+        cart=[...new Map(cart.map(item=>[item.id,item])).values()];
+    }catch(_){cart=[];}
+    loadStoreConfig();
+});
 applyCopy();loadStoreConfig();

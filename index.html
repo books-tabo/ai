@@ -2906,6 +2906,18 @@ let cart =
 cart=cart.map(item=>({type:"book",id:item.id||BOOK_IDS[item.name]})).filter(item=>BOOKS.some(book=>book.id===item.id));
 cart=[...new Map(cart.map(item=>[item.id,item])).values()];
 
+/* Cart restoration start */
+function restoreStorefrontCart(){
+    try{
+        const saved=JSON.parse(localStorage.getItem('taboBooksCart')||'[]');
+        cart=Array.isArray(saved)?saved.map(item=>({type:'book',id:item?.id||BOOK_IDS[item?.name]})).filter(item=>BOOKS.some(book=>book.id===item.id)):[];
+        cart=[...new Map(cart.map(item=>[item.id,item])).values()];
+    }catch(_){cart=[];}
+    updateCart();
+}
+window.addEventListener('pageshow',event=>{if(event.persisted)restoreStorefrontCart();});
+/* Cart restoration end */
+
 
 
 

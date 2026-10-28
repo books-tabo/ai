@@ -11,11 +11,11 @@ async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}])){
  nodes['checkout-catalog'].textContent=JSON.stringify(fixtures.books);
  nodes.checkoutName.value='Synthetic Buyer';nodes.checkoutEmail.value='fixture@example.invalid';nodes.checkoutPhone.value='01000000000';
  const values=new Map([['taboBooksCart',saved],['taboLanguage','ar'],['taboCountry','KW']]);
- const calls=[],redirects=[],events=[],alerts=[],session=new Map();
+ const calls=[],redirects=[],events=[],alerts=[],session=new Map(),handlers={};
  const c={document:{documentElement:{},getElementById:id=>nodes[id]},navigator:{language:'ar-KW'},
   localStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)},
   sessionStorage:{setItem:(key,value)=>session.set(key,value)},location:{origin:'https://synthetic.invalid',search:'?utm_source=instagram&fbclid=synthetic'},
-  window:{location:{assign:value=>redirects.push(value)},TaboTracking:{track:(...args)=>events.push(args)}},
+  window:{addEventListener:(name,callback)=>{handlers[name]=callback;},location:{assign:value=>redirects.push(value)},TaboTracking:{track:(...args)=>events.push(args)}},
   Date,Intl,Number,JSON,URL,URLSearchParams,AbortController,setTimeout:()=>1,clearTimeout(){},alert:message=>alerts.push(message)};
  c.fetch=async(url,options)=>{
   calls.push({url,options});
@@ -31,7 +31,7 @@ async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}])){
   throw Error('Unexpected synthetic request');
  };
  vm.createContext(c);vm.runInContext(fs.readFileSync('offer-pricing.js','utf8')+'\n'+core+'\n'+fs.readFileSync('checkout-page.js','utf8'),c);
- await flush();await flush();await flush();return {c,nodes,calls,redirects,events,alerts,values,session};
+ await flush();await flush();await flush();return {c,nodes,calls,redirects,events,alerts,values,session,handlers};
 }
 async function pendingCase(status,ready,activationFails=false){
  const source=fs.readFileSync('pending.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
@@ -69,6 +69,18 @@ async function pendingCase(status,ready,activationFails=false){
   nodes.languageToggle.events.click();assert.equal(c.document.documentElement.lang,'en');
  }
  for(const saved of ['not-json','null','{}','[]']){const {nodes,calls}=await boot(saved);assert.equal(nodes.emptyCart.hidden,false);assert.equal(nodes.checkoutContent.hidden,true);assert(!calls.some(call=>call.url==='/api/orders'));}
+ {
+  const {c,nodes,values,handlers,calls}=await boot();vm.runInContext('checkoutInFlight=true',c);nodes.checkoutName.disabled=true;
+  values.set('taboBooksCart','[]');handlers.pageshow({persisted:true});await flush();await flush();
+  assert.equal(nodes.checkoutName.disabled,false);assert.equal(nodes.emptyCart.hidden,false);assert(!calls.some(call=>call.url==='/api/orders'));
+ }
+ {
+  const source=fs.readFileSync('index.html','utf8').split('/* Cart restoration start */')[1].split('/* Cart restoration end */')[0];
+  const handlers={};let saved=JSON.stringify([{id:'book1'},{id:'book1'}]),updates=0;
+  const c={BOOKS:fixtures.books,BOOK_IDS:{},cart:[{id:'book20'}],localStorage:{getItem:()=>saved},updateCart:()=>updates++,window:{addEventListener:(name,callback)=>{handlers[name]=callback;}}};
+  vm.createContext(c);vm.runInContext(source,c);handlers.pageshow({persisted:true});assert.deepEqual(JSON.parse(JSON.stringify(c.cart)),[{type:'book',id:'book1'}]);assert.equal(updates,1);
+  saved='not-json';handlers.pageshow({persisted:true});assert.equal(c.cart.length,0);
+ }
  {
   const source=fs.readFileSync('index.html','utf8').split('/* Checkout navigation start */')[1].split('/* Checkout navigation end */')[0];
   const redirects=[];const c={URLSearchParams,location:{search:'?cart=1&offer=sigma-couple&utm_source=facebook&utm_campaign=checkout&fbclid=a%2Bb&utm_term=one&utm_term=two'},window:{location:{assign:url=>redirects.push(url)}}};
