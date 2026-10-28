@@ -88,4 +88,4 @@ class OfferPageTests(HTTPCase):
         home=self.get('/')[2]
         self.assertIn('data-add-offer="change-starter"',home)
         self.assertIn('height:auto',home)
-        self.assertIn('id="cartOfferSummary"',home)
+        self.assertIn('id="cartOfferSummary"',self.get('/checkout')[2])
