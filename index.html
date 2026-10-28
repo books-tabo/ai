@@ -2189,6 +2189,9 @@ html[lang="en"] #heroDescription{white-space:pre-line}
             </button>
 
 
+            <button type="button" class="btn btn-dark" id="paypalCheckoutBtn" hidden>الدفع عبر PayPal بالدولار</button>
+            <p id="paypalCheckoutNote" hidden style="font-size:13px;line-height:1.7;width:100%;text-align:start">سيتم تحصيل الإجمالي بالدولار عبر PayPal.</p>
+
             <button
                 class="btn btn-gold"
                 id="checkoutBtn"
@@ -3523,6 +3526,7 @@ function renderCart(){
         ).disabled =
             true;
 
+        renderPayPalChoice();
         refreshCheckoutQuote();
 
         return;
@@ -3530,7 +3534,7 @@ function renderCart(){
     }
 
 
-    document.getElementById("checkoutBtn").disabled = !window.TABO_CHECKOUT_READY;
+    document.getElementById("checkoutBtn").disabled = !window.TABO_CHECKOUT_READY||checkoutInFlight;
 
 
     container.innerHTML =
@@ -3597,6 +3601,7 @@ function renderCart(){
     document.getElementById("cartNextMessage").textContent=nextMessage;
     document.getElementById("cartOriginal").parentElement.hidden=pricing.discount===0;
 
+    renderPayPalChoice();
     refreshCheckoutQuote();
 }
 
@@ -3810,7 +3815,7 @@ function closeBookDetails(
 ========================================================= */
 
 /* EGP quote start */
-let checkoutQuote=null, checkoutQuoteKey="", checkoutQuotePending="", checkoutQuoteRequest=0;
+let checkoutQuote=null, checkoutQuoteKey="", checkoutQuotePending="", checkoutQuoteRequest=0, checkoutInFlight=false;
 
 function needsEgpQuote(){
     return storeConfig.paymentProvider==='kashier' && storeConfig.currency==='USD' && cart.length>0;
@@ -3861,19 +3866,31 @@ async function refreshCheckoutQuote(force=false){
         return false;
     }finally{
         clearTimeout(timeout);
-        if(request===checkoutQuoteRequest){checkoutQuotePending='';button.disabled=!window.TABO_CHECKOUT_READY;}
+        if(request===checkoutQuoteRequest){checkoutQuotePending='';button.disabled=!window.TABO_CHECKOUT_READY||checkoutInFlight;}
     }
 }
 /* EGP quote end */
 
+function renderPayPalChoice(){
+    const button=document.getElementById('paypalCheckoutBtn'),note=document.getElementById('paypalCheckoutNote');
+    if(!button||!note)return;
+    const available=storeConfig.paypalAvailable===true&&storeConfig.currency==='USD'&&cart.length>0;
+    button.hidden=note.hidden=!available;button.disabled=checkoutInFlight||!available;
+    button.textContent=currentLanguage==='en'?'Pay with PayPal in USD':'الدفع عبر PayPal بالدولار';
+    note.textContent=currentLanguage==='en'?'PayPal will charge the displayed total in US dollars.':'سيتم تحصيل الإجمالي المعروض بالدولار الأمريكي عبر PayPal.';
+}
+
 async function checkoutWithPaymentLink(){
-    if(!window.TABO_CHECKOUT_READY){
+    const selected=arguments[0]==='paypal'?'paypal':storeConfig.paymentProvider;
+    if(checkoutInFlight)return;
+    const useQuote=selected!=='paypal'&&needsEgpQuote();
+    if(selected==='paypal'?storeConfig.paypalAvailable!==true||storeConfig.currency!=='USD':!window.TABO_CHECKOUT_READY){
         alert(storeConfig.checkoutSupported?t('preview'):t('currencyPending'));
         return;
     }
     const pricing=calculatePricing();
     if(!pricing.count) return;
-    if(needsEgpQuote() && !currentCheckoutQuote()){
+    if(useQuote && !currentCheckoutQuote()){
         if(await refreshCheckoutQuote())alert(currentLanguage==='en'?'The EGP amount has been updated. Please review it and press Continue to payment.':'تم تحديث المقابل بالجنيه. راجعه ثم اضغط متابعة الدفع.');
         return;
     }
@@ -3885,14 +3902,14 @@ async function checkoutWithPaymentLink(){
     if(customer.name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)||!/^\+?[0-9]{8,15}$/.test(customer.phone)){
         alert(t('invalidCustomer'));return;
     }
-    const button=document.getElementById('checkoutBtn');
-    button.disabled=true;
+    const button=document.getElementById('checkoutBtn'),paypalButton=document.getElementById('paypalCheckoutBtn');
+    checkoutInFlight=true;button.disabled=true;if(paypalButton)paypalButton.disabled=true;
     try {
         const response=await fetch(`${BACKEND_URL}/api/orders`,{
             method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({items:cart.map(item=>({id:item.id})),customer,
-                country:storeConfig.country,language:currentLanguage,
-                quoteToken:needsEgpQuote()?checkoutQuote.token:undefined})
+                country:storeConfig.country,language:currentLanguage,paymentProvider:selected,
+                quoteToken:useQuote?checkoutQuote.token:undefined})
         });
         const data=await response.json();
         if(!response.ok||!data.ok){
@@ -3905,7 +3922,7 @@ async function checkoutWithPaymentLink(){
         const key=new URL(data.tracking_url,location.origin).searchParams.get('key');
         sessionStorage.setItem('taboPayment:'+key,data.payment_url);
         window.location.assign(data.tracking_url);
-    } catch(error){alert(error.message||t('checkoutError'));button.disabled=false;}
+    } catch(error){checkoutInFlight=false;alert(error.message||t('checkoutError'));button.disabled=!window.TABO_CHECKOUT_READY;if(paypalButton)paypalButton.disabled=storeConfig.paypalAvailable!==true;}
 }
 
 window.TABO_CHECKOUT_READY=false;
@@ -4059,6 +4076,7 @@ document.addEventListener(
         document.getElementById("cartModal")?.addEventListener("click",event=>closeCart(event));
         document.getElementById("continueShoppingBtn")?.addEventListener("click",continueShopping);
         document.getElementById("checkoutBtn")?.addEventListener("click",checkoutWithPaymentLink);
+        document.getElementById("paypalCheckoutBtn")?.addEventListener("click",()=>checkoutWithPaymentLink("paypal"));
         document.getElementById("booksGrid")?.addEventListener("click",event=>{
             const button=event.target.closest("[data-book-id]");
             if(button) addBookToCart(button.dataset.bookId);
