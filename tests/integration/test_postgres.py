@@ -33,7 +33,7 @@ class PostgresTests(unittest.TestCase):
         oid=f'TABO-{number:016X}'
         with self.connect() as c:
             c.execute("INSERT INTO public.orders(id,status,items,total,currency,payment_method,status_key,payment_mode,paymob_order_id,buyer,checkout_session_hash) VALUES(%s,'PENDING',%s,20,'USD','PayPal',%s,'test',%s,%s,%s)",
-                (oid,json.dumps([{'id':'book20'},{'id':'book21'}]),f'{number:064x}',f'PAYPALORDER{number:06d}',json.dumps({'name':'Synthetic','phone':'01000000000'}),'a'*64))
+                (oid,json.dumps([{'id':'book20'},{'id':'book21'}]),f'{number:064x}',f'PAYPALORDER{number:06d}',json.dumps({'name':'Synthetic','phone':'01000000000'}),f'{number:064x}'))
         return oid
 
     def paypal_event(self, oid, kind='paid', transaction='CAPTURE12345678901', number=2, barrier=None):
