@@ -635,6 +635,15 @@ class Handler(BaseHTTPRequestHandler):
     def html(self, filename, extra_headers=None, public_path=None):
         nonce=secrets.token_urlsafe(24)
         source=(ROOT/filename).read_text(encoding='utf-8')
+        if filename == 'checkout.html':
+            books=[{'id':bid,'name':book['name'],'enName':book['enName'],
+                    **{key:book[key] for key in ('fixedPrices','bundleEligible','previewEnabled') if key in book}}
+                   for bid,book in seo.BOOKS.items()]
+            source=source.replace('__CHECKOUT_BOOKS__',seo.safe_json(books))
+        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js'):
+            if 'src="/'+asset+'"' in source:
+                version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
+                source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
         if filename in ('index.html','book.html','info.html','offers.html'):
             source=seo.render(source,public_path or urlparse(self.path).path,self.headers.get('Host',''),filename)
             if source is None:
@@ -643,17 +652,17 @@ class Handler(BaseHTTPRequestHandler):
             source = source.replace('<div class="footer-links">',
                 '<div class="footer-links"><a href="/blog">المقالات · Blog</a>', 1)
         pixel_id=meta_tracking.pixel_id()
-        self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','success.html','offers.html'))
+        self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','success.html','offers.html'))
         if self._meta_enabled:
             version=hashlib.sha256((ROOT/'meta-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'" data-pixel-id="'+pixel_id+'"></script></head>',1)
         google_id=google_ads_tracking.tag_id()
-        self._google_enabled=bool(google_id and not seo.review_mode() and filename in ('index.html','book.html','info.html','offers.html','success.html'))
+        self._google_enabled=bool(google_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','info.html','offers.html','success.html'))
         if self._google_enabled:
             version=hashlib.sha256((ROOT/'google-ads-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/google-ads-tracking.js?v='+version+'" data-google-tag-id="'+google_id+'" data-google-conversion-label="'+google_ads_tracking.CONVERSION_LABEL+'"></script></head>',1)
         snap_id=snap_tracking.pixel_id()
-        self._snap_enabled=bool(snap_id and not seo.review_mode() and filename in ('index.html','book.html','offers.html','success.html'))
+        self._snap_enabled=bool(snap_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','offers.html','success.html'))
         if self._snap_enabled:
             version=hashlib.sha256((ROOT/'snap-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/snap-tracking.js?v='+version+'" data-snap-pixel-id="'+snap_id+'"></script></head>',1)
@@ -664,7 +673,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store')
         for name,value in (extra_headers or {}).items():
             self.send_header(name,value)
-        if filename in ('pending.html','success.html','preview.html','paypal-return.html'):
+        if filename in ('checkout.html','pending.html','success.html','preview.html','paypal-return.html'):
             self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
 
@@ -1202,10 +1211,13 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/snap-tracking.js': return self.asset('snap-tracking.js','text/javascript; charset=utf-8')
         if route=='/seo.js': return self.asset('seo.js','text/javascript; charset=utf-8')
         if route=='/seo.css': return self.asset('seo.css','text/css; charset=utf-8')
+        if route in ('/checkout-core.js','/checkout-page.js','/offer-pricing.js'):
+            return self.asset(route.lstrip('/'),'text/javascript; charset=utf-8')
         optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
         if optimized_cover and optimized_cover.group(1) in BOOKS:
             return self.asset('covers/'+optimized_cover.group(1)+'.webp','image/webp')
         if route=='/paypal-return.html': return self.html('paypal-return.html')
+        if route=='/checkout': return self.html('checkout.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
         detail_match=re.fullmatch(r'/books/(book[1-9][0-9]*)',route)

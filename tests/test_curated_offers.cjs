@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const {execFileSync}=require('node:child_process');
 const rendered=require('./rendered_template.cjs');
 const html=rendered('index.html');
-const pricing=html.split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
+const pricing=fs.readFileSync('checkout-core.js','utf8').split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
 const actions=html.split('/* Curated offer actions start */')[1].split('/* Curated offer actions end */')[0];
 const books=html.match(/const BOOKS = (\[[^\n]*\]);/)[1];
 const engine=fs.readFileSync('offer-pricing.js','utf8');

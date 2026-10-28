@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>إتمام الطلب | TABO BOOKS</title><link rel="canonical" href="https://tabobooks.com/checkout">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f4f0;color:#171717;font:16px/1.85 Tahoma,Arial,sans-serif}
+.brand{text-align:center;letter-spacing:5px;font-weight:800;padding:25px 12px 18px}.brand span{color:#aa8321}
+main{max-width:700px;margin:0 auto 40px;padding:30px;background:white;border:1px solid #e6e0d2;border-radius:16px}
+h1{font-size:25px;margin:0 0 20px}.settings{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px;font-size:13px}
+select,.language{border:1px solid #d4cfbf;border-radius:7px;background:white;padding:8px;font:inherit;color:#333}
+.cart-item{display:flex;justify-content:space-between;gap:16px;align-items:center;border-bottom:1px solid #eee;padding:18px 0}
+.cart-item-name{font-weight:700}.cart-item-price{font-size:14px;color:#666}.fixed-price-note{font-size:12px;color:#80621d;margin-top:5px}
+.delete-item{border:0;background:#f1f1ef;border-radius:7px;min-width:36px;min-height:36px;cursor:pointer;color:#333}
+.offer-applied{padding:12px;background:#fbf7e8;border:1px solid #dfd1a1;border-radius:8px;margin-top:16px}
+#cartNextMessage{font-size:13px;color:#665b41;margin:14px 0}.cart-summary{border-top:2px solid #161616;padding-top:18px;margin:22px 0}
+.summary-row{display:flex;justify-content:space-between;gap:16px;align-items:center;margin:8px 0}.summary-final{font-size:24px;font-weight:800}.summary-final strong{font-size:34px;direction:ltr;unicode-bidi:isolate}
+#checkoutFields{display:grid;gap:13px;margin-bottom:24px}label{display:block;font-size:14px}input{display:block;width:100%;border:1px solid #aaa;border-radius:7px;background:#fff;color:#111;padding:13px;margin-top:5px;font:inherit;min-height:48px}
+input[type=email],input[type=tel]{direction:ltr;text-align:start}.payment-methods{display:flex;flex-direction:column;gap:11px}
+.payment-button{width:100%;border:0;border-radius:9px;padding:15px 16px;min-height:52px;font:700 16px/1.5 Tahoma,Arial,sans-serif;cursor:pointer;color:white}
+.card-payment{background:#15803d}.card-payment:hover{background:#166534}.paypal-payment{background:#111}.paypal-payment:hover{background:#333}
+button:disabled{opacity:.55;cursor:wait}.payment-note{font-size:13px;line-height:1.8;color:#555;margin:0 0 12px}.notice{background:#faf6e9;padding:13px;border-radius:8px}.delivery-note{color:#666;font-size:12px;text-align:center;margin:20px 0 0}
+#emptyCart{text-align:center;padding:25px 0}#emptyCart a{color:#775c17}#retryConfig{border:1px solid #b69a46;background:white;border-radius:6px;padding:10px 18px;cursor:pointer}
+[hidden]{display:none!important}@media(max-width:600px){.brand{padding:20px 10px 14px}main{margin:0 12px 24px;padding:22px 18px;border-radius:12px}h1{font-size:22px}.summary-final{font-size:21px}.summary-final strong{font-size:31px}}
+</style></head><body>
+<header class="brand">TABO <span>BOOKS</span></header>
+<main>
+<h1 id="cartTitle">سلة الكتب وإتمام الدفع</h1>
+<div class="settings"><label id="countryLabel" for="countrySelect">الدولة</label><select id="countrySelect" aria-label="الدولة" disabled></select><button type="button" class="language" id="languageToggle">English</button></div>
+<p id="configNotice" class="notice" role="status">جارٍ تحميل الأسعار ووسائل الدفع…</p><button id="retryConfig" type="button" hidden>إعادة المحاولة</button>
+<section id="emptyCart" hidden><p id="emptyCartText">السلة فارغة حاليًا.</p><a id="emptyCartLink" href="/">تصفح الكتب</a></section>
+<section id="checkoutContent" hidden>
+<div id="cartItems"></div><div id="cartOfferSummary" class="offer-applied" role="status" hidden></div><p id="cartNextMessage"></p>
+<div class="cart-summary"><div class="summary-row"><span id="originalPriceLabel">السعر السابق</span><strong id="cartOriginal"></strong></div><div class="summary-row summary-final" id="cartFinalRow"><span id="finalPriceLabel">الإجمالي</span><strong id="cartFinal"></strong></div></div>
+<div id="checkoutFields"><label for="checkoutName"><span id="nameLabel">الاسم الكامل</span><input id="checkoutName" autocomplete="name" maxlength="100" required></label><label for="checkoutEmail"><span id="emailLabel">البريد الإلكتروني</span><input id="checkoutEmail" type="email" autocomplete="email" required></label><label for="checkoutPhone"><span id="phoneLabel">رقم الهاتف بالأرقام الإنجليزية</span><input id="checkoutPhone" type="tel" inputmode="tel" autocomplete="tel" required></label></div>
+<div class="payment-methods">
+<button type="button" class="payment-button card-payment" id="checkoutBtn" disabled>الدفع بالبطاقات والمحافظ</button>
+<p id="chargeCurrencyNote" class="payment-note" role="status" style="display:none;font-size:13px"></p><p id="checkoutNotice" class="payment-note" role="status" hidden></p>
+<p id="paypalCheckoutNote" class="payment-note" hidden>سيتم تحصيل الإجمالي بالدولار الأمريكي عبر PayPal.</p>
+<button type="button" class="payment-button paypal-payment" id="paypalCheckoutBtn" hidden>الدفع عبر PayPal بالدولار</button>
+</div><p class="delivery-note" id="deliveryNote">بعد تأكيد الدفع سيتم توجيهك تلقائيًا لصفحة تحميل كتبك.</p>
+</section><noscript>يرجى تفعيل JavaScript لإتمام الطلب وعرض السعر الصحيح.</noscript>
+</main>
+<script type="application/json" id="checkout-catalog">__CHECKOUT_BOOKS__</script>
+<script src="/offer-pricing.js"></script><script src="/checkout-core.js"></script><script src="/checkout-page.js"></script>
+</body></html>

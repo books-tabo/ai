@@ -7,6 +7,15 @@ history.replaceState({},'',location.pathname);
 const state=document.getElementById('state'),retry=document.getElementById('retry'),track=document.getElementById('track');
 document.getElementById('title').textContent=c.title;retry.textContent=c.retry;track.textContent=c.track;
 let busy=false;
-async function confirmPayment(){if(busy)return;if(!/^[0-9a-f]{64}$/.test(key||'')||!/^[A-Z0-9]{10,32}$/.test(token||'')){state.textContent=c.invalid;return}busy=true;retry.hidden=true;state.textContent=c.checking;track.href='/pending.html?key='+encodeURIComponent(key);track.hidden=false;try{const response=await fetch('/api/paypal/capture',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,token})});const data=await response.json();if(!response.ok||data.ok!==true)throw Error();if(data.paid===true){location.replace(track.href);return}state.textContent=c.pending;retry.hidden=false}catch(_){state.textContent=c.failed;retry.hidden=false}finally{busy=false}}
+async function confirmPayment(){if(busy)return;if(!/^[0-9a-f]{64}$/.test(key||'')||!/^[A-Z0-9]{10,32}$/.test(token||'')){state.textContent=c.invalid;return}busy=true;retry.hidden=true;state.textContent=c.checking;track.href='/pending.html?key='+encodeURIComponent(key);track.hidden=false;try{const response=await fetch('/api/paypal/capture',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,token})});const data=await response.json();if(!response.ok||data.ok!==true)throw Error();if(data.paid===true){
+    try{
+        const activation=await fetch('/api/download-session',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});
+        const download=await activation.json();
+        if(!activation.ok||download.ok!==true||!download.success_url)throw Error();
+        sessionStorage.removeItem('taboPayment:'+key);
+        location.replace(download.success_url);
+    }catch(_){location.replace(track.href);}
+    return;
+}state.textContent=c.pending;retry.hidden=false}catch(_){state.textContent=c.failed;retry.hidden=false}finally{busy=false}}
 retry.addEventListener('click',confirmPayment);confirmPayment();
 </script></body></html>

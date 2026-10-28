@@ -185,7 +185,7 @@ def install_synthetic_store(dsn, pdf):
 
 def add_test_notice():
     notice = '<aside data-paypal-sandbox="true" role="status" style="background:#fff1ad;color:#111;padding:14px;text-align:center">اختبار PayPal فقط — أموال افتراضية وملف تجريبي، وليس كتابًا مدفوعًا. PayPal Sandbox: synthetic files only.</aside>'
-    for name in ('index.html', 'book.html', 'info.html', 'offers.html', 'pending.html', 'success.html', 'paypal-return.html'):
+    for name in ('index.html', 'book.html', 'checkout.html', 'info.html', 'offers.html', 'pending.html', 'success.html', 'paypal-return.html'):
         path = ROOT / name
         source = path.read_text()
         if 'data-paypal-sandbox="true"' not in source:

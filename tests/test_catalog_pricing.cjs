@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const rendered = require('./rendered_template.cjs');
 const html = rendered('index.html');
 const booksSource = html.match(/const BOOKS = (\[[^\n]*\]);/)[1];
-const source = html.split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
+const source = fs.readFileSync('checkout-core.js','utf8').split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
 const egp = Object.fromEntries(Array.from({length: 19}, (_, i) => [String(i + 1), 199 + i * 100]));
 const usd = {1: 9.99, 2: 17.99, 3: 24.99, ...Object.fromEntries(Array.from({length: 16}, (_, i) => [String(i + 4), Number((29.99 + i * 5).toFixed(2))]))};
 const context = vm.createContext({storeConfig: {}, PRICING_LADDER: {}, currentLanguage: 'ar', cart: []});
