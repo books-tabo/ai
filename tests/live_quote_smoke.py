@@ -37,7 +37,7 @@ def main():
     assert pricing['chargeCurrency'] == 'EGP'
     assert pricing['checkoutSupported'] is True
     assert Decimal(str(pricing['prices']['1'])) == Decimal('9.99')
-    page = read('/')[0].decode()
+    page = read('/checkout')[0].decode()
     note = page.split('id="chargeCurrencyNote"', 1)[1].split('>', 1)[0]
     assert 'font-size:13px' in note
     raw, headers = read('/api/checkout-quote', {'country': 'KW', 'items': [{'id': 'book1'}]})
