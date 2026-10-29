@@ -2727,7 +2727,7 @@ function categoryBooks(categoryId=selectedCategory){
 }
 function renderNavigation(){
     const categories=document.getElementById("categoryLinks"),authors=document.getElementById("additionalAuthorLinks");
-    if(categories) categories.innerHTML=BOOK_CATEGORIES.map(category=>`<button type="button" class="drawer-card" data-category="${category.id}" aria-pressed="${selectedCategory===category.id}"><span class="drawer-card-icon" aria-hidden="true">${category.id==="all"?"≡":"▤"}</span><span><strong>${category[currentLanguage]}</strong><small>${currentLanguage==="ar"?"الكتب المتاحة":"Available books"}: ${categoryBooks(category.id).length}</small></span></button>`).join("");
+    if(categories) categories.innerHTML=BOOK_CATEGORIES.map(category=>`<button type="button" class="drawer-card" data-category="${category.id}" aria-pressed="${selectedCategory===category.id}"><span class="drawer-card-icon" aria-hidden="true">${category.id==="all"?"≡":"▤"}</span><span><strong>${category[currentLanguage]}</strong><small>${category.id==="courses"?(currentLanguage==="ar"?"الكورسات المتاحة":"Available courses"):(currentLanguage==="ar"?"الكتب المتاحة":"Available books")}: ${categoryBooks(category.id).length}</small></span></button>`).join("");
     if(authors) authors.innerHTML=ADDITIONAL_AUTHORS.map(author=>`<a class="drawer-card" href="/authors#${author.id}"><span class="drawer-card-icon" aria-hidden="true">${author.initials}</span><span><strong>${author[currentLanguage]}</strong><small>${currentLanguage==="ar"?"تعرّف على المؤلف":"About the author"}</small></span></a>`).join("");
 }
 function selectBookCategory(categoryId){
@@ -2997,7 +2997,7 @@ function renderBooks(){
     document.getElementById("clearCategoryButton").textContent=BOOK_CATEGORIES[0][currentLanguage];
     const empty=document.getElementById("catalogEmpty");
     empty.hidden=visibleBooks.length>0;
-    empty.textContent=currentLanguage==="ar"?"لا توجد إصدارات متاحة في هذا القسم حاليًا.":"No titles are available in this category yet.";
+    empty.textContent=category.id==="courses"?(currentLanguage==="ar"?"لا توجد كورسات متاحة حاليًا.":"No courses are available yet."):(currentLanguage==="ar"?"لا توجد إصدارات متاحة في هذا القسم حاليًا.":"No titles are available in this category yet.");
 
     const container =
         document.getElementById(

@@ -310,7 +310,7 @@ def render(source, path, host, filename):
         source = source.replace('const BOOKS = []; /* SSR_HOME_BOOKS */','const BOOKS = ' + safe_json(home_books) + ';')
         source = source.replace('const BOOK_TRANSLATIONS = {}; /* SSR_HOME_TRANSLATIONS */','const BOOK_TRANSLATIONS = ' + safe_json(translations) + ';')
         categories = [{'id':'all','ar':'كل الكتب','en':'All books'}] + [{'id':key,'ar':cat['ar'],'en':cat['en'],'books':cat['books']} for key,cat in CATEGORIES.items()]
-        categories += [{'id':'novels','ar':'روايات','en':'Novels','books':[]},{'id':'articles','ar':'مقالات','en':'Articles','books':[]}]
+        categories += [{'id':'novels','ar':'روايات','en':'Novels','books':[]},{'id':'articles','ar':'مقالات','en':'Articles','books':[]},{'id':'courses','ar':'الكورسات','en':'Courses','books':[]}]
         source = source.replace('const BOOK_CATEGORIES = []; /* SSR_CATEGORIES */','const BOOK_CATEGORIES = ' + safe_json(categories) + ';')
         grid = re.compile(r'(<div\s+class="books-grid"\s+id="booksGrid"\s*>)[\s\S]*?</div>')
         cards = ''.join(book_card(key, home=True, position=i) for i, key in enumerate(current_books()))
