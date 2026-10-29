@@ -117,7 +117,7 @@ GRANT EXECUTE ON FUNCTION public.resend_order_help_receipt(text,text,text) TO se
 
 CREATE FUNCTION public.claim_order_help_message(p_lease text) RETURNS jsonb
 LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
-DECLARE v public.order_help_messages%ROWTYPE; c public.order_help_challenges%ROWTYPE;
+DECLARE v public.order_help_messages%ROWTYPE; v_challenge public.order_help_challenges%ROWTYPE;
 BEGIN
  IF p_lease IS NULL OR p_lease !~ '^[0-9a-f]{64}$' THEN RETURN NULL; END IF;
  UPDATE public.order_help_messages m SET state='skipped',reason='expired',lease=NULL
@@ -131,11 +131,11 @@ BEGIN
  ORDER BY CASE WHEN m.kind='otp' THEN 0 ELSE 1 END,m.next_attempt_at,m.challenge_id
  FOR UPDATE OF m SKIP LOCKED LIMIT 1;
  IF NOT FOUND THEN RETURN NULL; END IF;
- SELECT * INTO c FROM public.order_help_challenges WHERE id=v.challenge_id;
+ SELECT * INTO v_challenge FROM public.order_help_challenges WHERE id=v.challenge_id;
  UPDATE public.order_help_messages SET state='sending',attempts=attempts+1,lease=p_lease,
   next_attempt_at=now()+interval '2 minutes' WHERE challenge_id=v.challenge_id AND kind=v.kind;
- RETURN jsonb_build_object('challenge_id',v.challenge_id,'kind',v.kind,'order_id',c.order_id,
-  'email_hash',c.email_hash,'language',c.language,'created_at',v.created_at,'attempts',v.attempts+1);
+ RETURN jsonb_build_object('challenge_id',v.challenge_id,'kind',v.kind,'order_id',v_challenge.order_id,
+  'email_hash',v_challenge.email_hash,'language',v_challenge.language,'created_at',v.created_at,'attempts',v.attempts+1);
 END;
 $$;
 REVOKE ALL ON FUNCTION public.claim_order_help_message(text) FROM PUBLIC,anon,authenticated;

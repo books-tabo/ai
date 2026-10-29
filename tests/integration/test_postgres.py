@@ -85,7 +85,7 @@ class PostgresTests(unittest.TestCase):
         cid=f'{1:064x}';self.assertTrue(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
         self.assertEqual(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64))['reason'],'not_paid')
         with self.connect() as c:
-            c.execute("UPDATE public.orders SET status='PAID',transaction_id='SYNTHETIC' WHERE id=%s",(orders[0],))
+            c.execute("UPDATE public.orders SET status='PAID',transaction_id='SYNTHETIC',paid_at=now() WHERE id=%s",(orders[0],))
         self.assertTrue(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64))['accepted'])
         for attempt in range(2,5):
             with self.connect() as c:
@@ -98,7 +98,7 @@ class PostgresTests(unittest.TestCase):
         # A separate fresh challenge proves the 10-minute cooldown independently of the daily cap.
         oid=orders[1]
         with self.connect() as c:
-            c.execute("UPDATE public.orders SET status='PAID',transaction_id='SYNTHETIC2' WHERE id=%s",(oid,))
+            c.execute("UPDATE public.orders SET status='PAID',transaction_id='SYNTHETIC2',paid_at=now() WHERE id=%s",(oid,))
         self.assertTrue(self.help_request(oid,number=50));cid=f'{50:064x}'
         self.assertTrue(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
         self.assertTrue(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64))['accepted'])
