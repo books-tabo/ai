@@ -24,10 +24,116 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
                       (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
+
+    def help_request(self, oid, number=1, email='reader@example.invalid', email_hash='e'*64, client_hash='f'*64):
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            return c.execute('SELECT public.request_order_help(%s,%s,%s,%s,%s,%s,%s,%s)',
+                (f'{number:064x}',oid,email,email_hash,client_hash,'d'*64,'c'*64,'ar')).fetchone()[0]
+
+    def help_rpc(self, name, args):
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            return c.execute('SELECT public.'+name+'('+','.join(['%s']*len(args))+')',args).fetchone()[0]
+
+    def test_help_unknown_email_privacy_atomic_cooldown_and_attempt_limit(self):
+        oid=self.receipt_order(requested=False)
+        self.assertFalse(self.help_request(oid,email='wrong@example.invalid'))
+        self.assertFalse(self.help_request('TABO-FFFFFFFFFFFFFFFF'))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            results=list(pool.map(lambda n:self.help_request(oid,number=n),range(1,9)))
+        self.assertEqual(sum(results),1)
+        with self.connect() as c:
+            cid=c.execute('SELECT id FROM public.order_help_challenges').fetchone()[0]
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_help_messages').fetchone()[0],1)
+        self.assertFalse(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'0'*64)))
+        for _ in range(5):self.assertFalse(self.help_rpc('verify_order_help',(cid,'0'*64,'a'*64,'d'*64)))
+        self.assertFalse(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
+        self.assertIsNone(self.help_rpc('order_help_order',(cid,'a'*64,'d'*64)))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT attempts FROM public.order_help_challenges').fetchone()[0],5)
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_downloads').fetchone()[0],0)
+
+    def test_help_verification_one_use_expiry_session_and_receipt_idempotency(self):
+        oid=self.receipt_order(requested=False);self.receipt_payment(oid)
+        self.assertTrue(self.help_request(oid));cid=f'{1:064x}'
+        self.assertTrue(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
+        self.assertFalse(self.help_rpc('verify_order_help',(cid,'c'*64,'b'*64,'d'*64)))
+        self.assertEqual(self.help_rpc('order_help_order',(cid,'a'*64,'d'*64)),oid)
+        self.assertIsNone(self.help_rpc('order_help_order',(cid,'a'*64,'0'*64)))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            results=list(pool.map(lambda _:self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64)),range(8)))
+        self.assertTrue(all(r['accepted'] for r in results))
+        with self.connect() as c:
+            self.assertEqual(c.execute("SELECT count(*) FROM public.order_help_messages WHERE kind='receipt'").fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_receipts').fetchone()[0],0)
+            self.assertFalse(c.execute("SELECT (buyer->>'receiptRequested')::boolean FROM public.orders WHERE id=%s",(oid,)).fetchone()[0])
+            c.execute("UPDATE public.order_help_challenges SET session_expires_at=now()-interval '1 second'")
+        self.assertIsNone(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64)))
+        self.assertIsNone(self.help_rpc('order_help_order',(cid,'a'*64,'d'*64)))
+
+    def test_help_durable_hourly_and_resend_limits_and_paid_only(self):
+        orders=[self.receipt_order(n,requested=False) for n in range(2,14)]
+        for index,oid in enumerate(orders[:5]):self.assertTrue(self.help_request(oid,number=index+1))
+        self.assertFalse(self.help_request(orders[5],number=6))
+        for index,oid in enumerate(orders[5:10]):self.assertTrue(self.help_request(oid,number=index+6,email_hash='a'*64))
+        self.assertFalse(self.help_request(orders[10],number=11,email_hash='b'*64))
+        cid=f'{1:064x}';self.assertTrue(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
+        self.assertEqual(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64))['reason'],'not_paid')
+        with self.connect() as c:
+            c.execute("UPDATE public.orders SET status='PAID',transaction_id='SYNTHETIC',paid_at=now() WHERE id=%s",(orders[0],))
+        self.assertTrue(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64))['accepted'])
+        for attempt in range(2,5):
+            with self.connect() as c:
+                c.execute("UPDATE public.order_help_challenges SET created_at=now()-interval '2 hours'")
+                c.execute("UPDATE public.order_help_messages SET created_at=now()-interval '11 minutes'")
+            self.assertTrue(self.help_request(orders[0],number=20+attempt,email_hash='e'*64))
+            current=f'{20+attempt:064x}';self.assertTrue(self.help_rpc('verify_order_help',(current,'c'*64,'a'*64,'d'*64)))
+            result=self.help_rpc('resend_order_help_receipt',(current,'a'*64,'d'*64))
+            self.assertEqual(result.get('reason'),'rate_limited' if attempt==4 else None)
+        # A separate fresh challenge proves the 10-minute cooldown independently of the daily cap.
+        oid=orders[1]
+        with self.connect() as c:
+            c.execute("UPDATE public.orders SET status='PAID',transaction_id='SYNTHETIC2',paid_at=now() WHERE id=%s",(oid,))
+        self.assertTrue(self.help_request(oid,number=50));cid=f'{50:064x}'
+        self.assertTrue(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
+        self.assertTrue(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64))['accepted'])
+        with self.connect() as c:c.execute("UPDATE public.order_help_challenges SET created_at=now()-interval '2 hours'")
+        self.assertTrue(self.help_request(oid,number=51));cid=f'{51:064x}'
+        self.assertTrue(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
+        self.assertEqual(self.help_rpc('resend_order_help_receipt',(cid,'a'*64,'d'*64))['reason'],'rate_limited')
+
+    def test_help_concurrent_queue_leases_expiry_and_private_permissions(self):
+        oid=self.receipt_order();self.assertTrue(self.help_request(oid));cid=f'{1:064x}'
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            results=list(pool.map(lambda n:(n,self.help_rpc('claim_order_help_message',(f'{n:064x}',))),range(1,9)))
+        claims=[(n,r) for n,r in results if r];self.assertEqual(len(claims),1);lease,claim=claims[0]
+        self.assertEqual(claim['kind'],'otp');self.assertNotIn('email',claim)
+        self.assertFalse(self.help_rpc('finish_order_help_message',(cid,'otp','0'*64,'sent','synthetic',30,None)))
+        self.assertTrue(self.help_rpc('finish_order_help_message',(cid,'otp',f'{lease:064x}','retry',None,30,'transient')))
+        self.assertIsNone(self.help_rpc('claim_order_help_message',('a'*64,)))
+        with self.connect() as c:c.execute("UPDATE public.order_help_messages SET next_attempt_at=now()-interval '1 second'")
+        self.assertEqual(self.help_rpc('claim_order_help_message',('a'*64,))['attempts'],2)
+        self.assertFalse(self.help_rpc('finish_order_help_message',(cid,'otp',f'{lease:064x}','sent','synthetic',30,None)))
+        with self.connect() as c:
+            c.execute("UPDATE public.order_help_challenges SET expires_at=now()-interval '1 second'")
+            c.execute("UPDATE public.order_help_messages SET next_attempt_at=now()-interval '1 second'")
+        self.assertFalse(self.help_rpc('verify_order_help',(cid,'c'*64,'a'*64,'d'*64)))
+        self.assertIsNone(self.help_rpc('claim_order_help_message',('b'*64,)))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT state,reason FROM public.order_help_messages').fetchone(),('skipped','expired'))
+            for role in ('anon','authenticated'):
+                for table in ('order_help_challenges','order_help_messages'):
+                    self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid=%s::regclass",('public.'+table,)).fetchone()[0])
+                    for privilege in ('SELECT','INSERT','UPDATE','DELETE'):
+                        self.assertFalse(c.execute('SELECT has_table_privilege(%s,%s,%s)',(role,'public.'+table,privilege)).fetchone()[0])
+                for signature in ('request_order_help(text,text,text,text,text,text,text,text)','verify_order_help(text,text,text,text)','order_help_order(text,text,text)','resend_order_help_receipt(text,text,text)','claim_order_help_message(text)','finish_order_help_message(text,text,text,text,text,integer,text)'):
+                    self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,'public.'+signature)).fetchone()[0])
+            self.assertEqual(c.execute("SELECT count(*) FROM pg_proc WHERE proname LIKE '%order_help%' AND prosecdef").fetchone()[0],0)
 
     def paypal_order(self, number=2):
         oid=f'TABO-{number:016X}'

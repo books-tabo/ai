@@ -31,17 +31,21 @@
         loading = new Promise(resolve => {
             window.dataLayer = window.dataLayer || [];
             window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
-            window.gtag('js', new Date());
+            if (!window.TaboGoogleTagInitialized) { window.gtag('js', new Date()); window.TaboGoogleTagInitialized = true; }
             window.gtag('config', tagId, {
                 page_location: safeUrl(location.href), page_referrer: safeUrl(document.referrer)
             });
-            const script = document.createElement('script');
-            script.async = true;
-            script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(tagId);
-            script.nonce = tag.nonce;
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.head.appendChild(script);
+            if (window.TaboGoogleTagReady) { window.TaboGoogleTagReady.then(resolve); return; }
+            window.TaboGoogleTagReady = new Promise(done => {
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(tagId);
+                script.nonce = tag.nonce;
+                script.onload = () => done(true);
+                script.onerror = () => done(false);
+                document.head.appendChild(script);
+            });
+            window.TaboGoogleTagReady.then(resolve);
         });
         return loading;
     }

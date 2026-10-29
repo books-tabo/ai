@@ -365,6 +365,7 @@ async function checkoutWithPaymentLink(){
         localStorage.setItem('taboLastOrderId',orderId);
         const key=new URL(data.tracking_url,location.origin).searchParams.get('key');
         sessionStorage.setItem('taboPayment:'+key,data.payment_url);
+        try{window.TaboAnalytics?.track('PaymentInfo',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency,payment_type:data.order.paymentMethod|| (selected==='paypal'?'PayPal':'Kashier')});}catch(_){/* Measurement never blocks the payment redirect. */}
         window.location.assign(data.payment_url);
     } catch(error){checkoutInFlight=false;button.disabled=!window.TABO_CHECKOUT_READY;if(paypalButton)paypalButton.disabled=storeConfig.paypalAvailable!==true;['countrySelect','languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{const field=document.getElementById(id);if(field)field.disabled=false;});if(error.fieldErrors)showCheckoutErrors(error.fieldErrors);else checkoutStatus(error.message||t('checkoutError'));}
 }
