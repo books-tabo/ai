@@ -60,6 +60,7 @@ class CatalogEditTests(unittest.TestCase):
   with patch.object(editor,'rpc',return_value=None):
    with self.assertRaises(PermissionError):editor.read(AUTH)
  def test_draft_covers_not_public_and_missing_covers_not_published(self):
+  with self.assertRaises(ValueError):editor.validate({'books':{'book1':{'imageWidth':'invalid'}}})
   with editor.context({}),patch.object(editor.store,'request') as request:
    self.assertIsNone(editor.cover('f'*64));request.assert_not_called()
   with patch.object(editor.store,'request',return_value=[]):

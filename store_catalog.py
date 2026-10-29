@@ -51,6 +51,8 @@ def published(with_revision=False):
         if _CACHE and time.monotonic()-_CACHE[0] < 5:
             return (_CACHE[1],_CACHE[3]) if with_revision else _CACHE[1]
         rows = store.request('/rest/v1/store_catalog_state', params={'id':'eq.true','select':'published,reminders_enabled,revision','limit':1})
+        if not rows:
+            raise store.StoreUnavailable()
         value = validate(rows[0]['published']) if rows else {}
         _CACHE = (time.monotonic(), value, rows[0]['reminders_enabled'] if rows else False,rows[0]['revision'] if rows else 0)
         return (value,_CACHE[3]) if with_revision else value
@@ -116,6 +118,8 @@ def validate(value):
         for field, limit in TEXT_FIELDS.items():
             if field in fields and (not isinstance(fields[field],str) or not fields[field].strip() or len(fields[field])>limit or any(ord(c)<32 and c not in '\n\t' for c in fields[field])):
                 raise ValueError('راجع النصوص؛ بعض الحقول فارغة أو أطول من المسموح.')
+        if set(fields)&{'imageWidth','imageHeight'} and 'image' not in fields:
+            raise ValueError('أبعاد الغلاف تُحفظ مع صورة مرفوعة فقط.')
         if 'image' in fields:
             if not re.fullmatch(r'/catalog-covers/[a-f0-9]{64}\.webp',str(fields['image'])):
                 raise ValueError('ارفع الغلاف من زر رفع الغلاف.')
