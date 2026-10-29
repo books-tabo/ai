@@ -105,6 +105,7 @@ class ReceiptTests(unittest.TestCase):
             requests=[call.args[0] for call in transport.call_args_list]
             self.assertEqual(requests[0].get_header('Idempotency-key'),requests[1].get_header('Idempotency-key'))
             self.assertEqual(requests[0].full_url,'https://api.resend.com/emails')
+            self.assertEqual(requests[0].get_header('User-agent'),'TABO-Books/1.0 (+https://tabobooks.com)')
             self.assertEqual(json.loads(requests[0].data)['to'],['reader@example.invalid'])
             self.assertIsNone(receipts.NoRedirect().redirect_request(None,None,302,'',{},'https://other.invalid'))
         for status, retryable in ((302,False),(422,False),(429,True),(503,True)):

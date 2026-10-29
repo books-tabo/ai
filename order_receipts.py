@@ -108,6 +108,7 @@ def message(order):
 def send(payload, order_id):
     req = Request(SEND_URL, method='POST', data=json.dumps(payload).encode(), headers={
         'Authorization': 'Bearer ' + os.environ['RESEND_API_KEY'],
+        'User-Agent': 'TABO-Books/1.0 (+https://tabobooks.com)',
         'Content-Type': 'application/json', 'Idempotency-Key': 'paid-receipt/' + order_id})
     try:
         with OPEN(req, timeout=10) as response:
