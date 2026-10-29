@@ -35,3 +35,7 @@ The unsubscribe URL displays a confirmation page; only POST records the email op
 5. Verify public pricing is unchanged, unchecked consent is visible, the owner editor script is present, anonymous editing/cover access is denied, and recovery pages are noindex/no-store. Do not create fake paid orders, send customer reminders or spend download entitlements as a production smoke test.
 
 Rollback: disable the two new flags and redeploy, retaining additive records. No payment configuration or shared session key needs changing. Published catalog overrides become inactive if catalog administration is disabled, so deliberately review the original catalog prices before using that rollback after the owner has changed prices.
+
+## Idle-service scheduling
+
+The additive hosted-only `reminder_scheduler` migration enables pg_cron/pg_net and adds a named five-minute job. It issues a public `/health` GET **only when due consented work exists**, waking an idle free web service so its normal worker runs. No contacts, tokens or credentials leave the database in this request. The sender still uses the durable claim, consent/payment/opt-out checks and provider idempotency above. Empty queues cause no wake traffic. Cold starts and the five-minute schedule can delay a due reminder slightly. Anonymous roles cannot access the new net tables/functions. On stock PostgreSQL without the hosted extensions, this infrastructure step is skipped; the application SQL tests still run. Disable the named cron job when retiring reminder infrastructure.
