@@ -24,10 +24,114 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
                       (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
+
+    def owner_rpc(self,name,*args):
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            return c.execute('SELECT public.'+name+'('+','.join(['%s']*len(args))+')',args).fetchone()[0]
+
+    def owner_auth(self):
+        cid='a'*64
+        self.assertTrue(self.owner_rpc('owner_login_request',cid,'e'*64,'f'*64,'d'*64,'c'*64))
+        self.assertTrue(self.owner_rpc('owner_login_verify',cid,'e'*64,'d'*64,'c'*64,'b'*64))
+        return (cid,'e'*64,'d'*64,'b'*64)
+
+    def owner_report(self,auth,country=None,status=None,query=None,offset=0):
+        from datetime import datetime,timedelta,timezone
+        current=datetime.now(timezone.utc)
+        return self.owner_rpc('owner_dashboard_report',*auth,(current-timedelta(days=31)).isoformat(),(current+timedelta(days=1)).isoformat(),country,status,query,offset)
+
+    def test_owner_auth_atomic_cooldown_guess_limit_expiry_logout_and_roles(self):
+        def request(n):return self.owner_rpc('owner_login_request',f'{n:064x}','e'*64,'f'*64,'d'*64,'c'*64)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:results=list(pool.map(request,range(1,9)))
+        self.assertEqual(sum(results),1)
+        with self.connect() as c:cid=c.execute('SELECT id FROM public.owner_dashboard_logins').fetchone()[0]
+        self.assertFalse(self.owner_rpc('owner_login_verify',cid,'e'*64,'0'*64,'c'*64,'b'*64))
+        for _ in range(5):self.assertFalse(self.owner_rpc('owner_login_verify',cid,'e'*64,'d'*64,'0'*64,'b'*64))
+        self.assertFalse(self.owner_rpc('owner_login_verify',cid,'e'*64,'d'*64,'c'*64,'b'*64))
+        with self.connect() as c:c.execute("UPDATE public.owner_dashboard_logins SET created_at=now()-interval '2 minutes'")
+        self.assertTrue(request(20));cid=f'{20:064x}'
+        self.assertTrue(self.owner_rpc('owner_login_verify',cid,'e'*64,'d'*64,'c'*64,'b'*64))
+        self.assertFalse(self.owner_rpc('owner_login_verify',cid,'e'*64,'d'*64,'c'*64,'0'*64))
+        self.assertTrue(self.owner_rpc('owner_session_valid',cid,'e'*64,'d'*64,'b'*64))
+        self.assertFalse(self.owner_rpc('owner_session_valid',cid,'1'*64,'d'*64,'b'*64))
+        self.assertTrue(self.owner_rpc('owner_session_logout',cid,'e'*64,'d'*64,'b'*64))
+        self.assertFalse(self.owner_rpc('owner_session_valid',cid,'e'*64,'d'*64,'b'*64))
+        with self.connect() as c:
+            for role in ('anon','authenticated'):
+                for table in ('owner_dashboard_logins','owner_store_sessions','owner_order_sources'):
+                    self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid=%s::regclass",('public.'+table,)).fetchone()[0])
+                    for privilege in ('SELECT','INSERT','UPDATE','DELETE'):
+                        self.assertFalse(c.execute('SELECT has_table_privilege(%s,%s,%s)',(role,'public.'+table,privilege)).fetchone()[0])
+                funcs=c.execute("SELECT p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname LIKE 'owner_%'").fetchall()
+                self.assertEqual(len(funcs),9)
+                for (oid,) in funcs:self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,oid)).fetchone()[0])
+            self.assertEqual(c.execute("SELECT count(*) FROM pg_proc WHERE proname LIKE 'owner_%' AND prosecdef").fetchone()[0],0)
+
+    def test_owner_reports_paid_live_separate_currencies_private_allowlist_and_filters(self):
+        auth=self.owner_auth();usd=self.receipt_order(2);self.receipt_payment(usd,number=2)
+        egp=self.receipt_order(3);self.receipt_payment(egp,number=3)
+        refund=self.receipt_order(4);self.receipt_payment(refund,number=4)
+        self.receipt_order(5)
+        with self.connect() as c:
+            c.execute("UPDATE public.orders SET country='SA' WHERE id=%s",(usd,))
+            c.execute("UPDATE public.orders SET total=500,currency='EGP' WHERE id=%s",(egp,))
+            c.execute("UPDATE public.orders SET status='REFUNDED' WHERE id=%s",(refund,))
+            c.execute("INSERT INTO public.order_downloads(order_id,book_id,download_count) VALUES(%s,'book20',1)",(egp,))
+        result=self.owner_report(auth)
+        self.assertEqual(result['paidOrders'],2);self.assertEqual(result['pendingOrders'],1)
+        self.assertEqual({x['currency']:x['amount'] for x in result['revenue']},{'EGP':'500','USD':'20'})
+        self.assertEqual({x['book_id']:x['units'] for x in result['books']},{'book20':2,'book21':2})
+        self.assertEqual(result['followup']['withoutDownloads'],1)
+        encoded=json.dumps(result)
+        for forbidden in ('status_key','download_token','checkout_session_hash','transaction_id','reader@example.invalid','Synthetic Reader','01000000000'):
+            self.assertNotIn(forbidden,encoded)
+        self.assertEqual(self.owner_report(auth,country='SA')['paidOrders'],1)
+        filtered=self.owner_report(auth,status='REFUNDED');self.assertEqual(filtered['orderCount'],1);self.assertEqual(filtered['orders'][0]['id'],refund)
+        self.assertEqual(self.owner_report(auth,query=usd)['orderCount'],1)
+        self.assertEqual(self.owner_report(auth,offset=20)['orders'],[])
+        self.assertIsNone(self.owner_report(('0'*64,*auth[1:])))
+        with self.connect() as c:self.assertEqual(c.execute('SELECT sum(download_count) FROM public.order_downloads').fetchone()[0],1)
+
+    def test_owner_sessions_idempotent_steps_cannot_claim_purchase_and_source_binding(self):
+        auth=self.owner_auth();sid='1'*64;device='d'*64
+        self.assertEqual(self.owner_rpc('owner_insight_start',None,sid,device,'f'*64,'google','paid','SA','/books/book20')['ttl'],1800)
+        resumed=self.owner_rpc('owner_insight_start',sid,'2'*64,device,'f'*64,'direct','direct','EG','/checkout');self.assertTrue(resumed['resumed'])
+        for step in ('product','cart','checkout'):
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+                self.assertTrue(all(pool.map(lambda _:self.owner_rpc('owner_insight_event',sid,device,step),range(5))))
+        self.assertFalse(self.owner_rpc('owner_insight_event',sid,device,'Purchase'))
+        self.assertFalse(self.owner_rpc('owner_insight_event',sid,'0'*64,'cart'))
+        self.assertEqual(self.owner_report(auth)['funnel'],{'sessions':1,'product':1,'cart':1,'checkout':1,'paid':0})
+        oid=self.receipt_order(2);self.assertTrue(self.owner_rpc('owner_insight_order',sid,device,oid))
+        self.assertFalse(self.owner_rpc('owner_insight_order',sid,device,oid))
+        self.receipt_payment(oid,number=2)
+        result=self.owner_report(auth);self.assertEqual(result['funnel']['paid'],1);self.assertEqual(result['sources'][0]['source'],'google');self.assertEqual(result['pageViews'],2)
+        with self.connect() as c:
+            c.execute("UPDATE public.orders SET status='REFUNDED' WHERE id=%s",(oid,))
+            c.execute("UPDATE public.owner_store_sessions SET expires_at=now()-interval '1 second'")
+        self.assertEqual(self.owner_report(auth)['funnel']['paid'],0)
+        self.assertFalse(self.owner_rpc('owner_insight_event',sid,device,'cart'))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.owner_order_sources').fetchone()[0],1)
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_downloads').fetchone()[0],0)
+
+    def test_owner_login_hour_limit_and_pruning_never_changes_orders(self):
+        for n in range(1,6):
+            self.assertTrue(self.owner_rpc('owner_login_request',f'{n:064x}','e'*64,'f'*64,'d'*64,'c'*64))
+            with self.connect() as c:c.execute("UPDATE public.owner_dashboard_logins SET created_at=created_at-interval '2 minutes'")
+        self.assertFalse(self.owner_rpc('owner_login_request','9'*64,'e'*64,'f'*64,'d'*64,'c'*64))
+        with self.connect() as c:
+            count=c.execute('SELECT count(*) FROM public.orders').fetchone()[0]
+            c.execute("UPDATE public.owner_dashboard_logins SET created_at=now()-interval '3 days'")
+        self.owner_rpc('owner_dashboard_prune')
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.owner_dashboard_logins').fetchone()[0],0)
+            self.assertEqual(c.execute('SELECT count(*) FROM public.orders').fetchone()[0],count)
 
     def help_request(self, oid, number=1, email='reader@example.invalid', email_hash='e'*64, client_hash='f'*64):
         with self.connect() as c:

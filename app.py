@@ -6,6 +6,7 @@ import paypal_checkout
 import checkout_fields
 import order_receipts
 import order_help
+import owner_dashboard
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -72,6 +73,11 @@ class SlidingWindowLimiter:
 
 RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
+    '/api/admin-dashboard/request': (5, 600),
+    '/api/admin-dashboard/verify': (15, 600),
+    '/api/admin-dashboard/logout': (20, 600),
+    '/api/store-insights/session': (120, 600),
+    '/api/store-insights/event': (180, 600),
     '/api/order-help/request': (5, 600),
     '/api/order-help/verify': (15, 600),
     '/api/order-help/resend': (5, 600),
@@ -91,6 +97,8 @@ POST_LIMITS = {
     '/api/kashier/webhook': (180, 60),
 }
 GET_LIMITS = {
+    '/api/admin-dashboard/session': (30, 600),
+    '/api/admin-dashboard/report': (30, 600),
     '/api/order-help/status': (60, 600),
     '/api/book-comments': (120, 600),
     '/previews/view': (30, 600),
@@ -645,12 +653,15 @@ class Handler(BaseHTTPRequestHandler):
     def html(self, filename, extra_headers=None, public_path=None):
         nonce=secrets.token_urlsafe(24)
         source=(ROOT/filename).read_text(encoding='utf-8')
+        if filename == 'admin-dashboard.html':
+            version=hashlib.sha256((ROOT/'admin-dashboard.css').read_bytes()).hexdigest()[:12]
+            source=source.replace('href="/admin-dashboard.css"','href="/admin-dashboard.css?v='+version+'"')
         if filename == 'checkout.html':
             books=[{'id':bid,'name':book['name'],'enName':book['enName'],
                     **{key:book[key] for key in ('fixedPrices','bundleEligible','previewEnabled') if key in book}}
                    for bid,book in seo.BOOKS.items()]
             source=source.replace('__CHECKOUT_BOOKS__',seo.safe_json(books))
-        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js'):
+        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js','admin-dashboard.js'):
             if 'src="/'+asset+'"' in source:
                 version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
                 source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
@@ -678,6 +689,9 @@ class Handler(BaseHTTPRequestHandler):
             names={bid:book['name'] for bid,book in seo.BOOKS.items()}
             names_attr=__import__('html').escape(json.dumps(names,ensure_ascii=False),quote=True)
             source=source.replace('</head>','<script src="/ga4-tracking.js?v='+version+'" data-ga4-id="'+ga4_id+'" data-ga4-catalog="'+names_attr+'"></script></head>',1)
+        if owner_dashboard.enabled() and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','info.html','offers.html'):
+            version=hashlib.sha256((ROOT/'store-insights.js').read_bytes()).hexdigest()[:12]
+            source=source.replace('</head>','<script src="/store-insights.js?v='+version+'"></script></head>',1)
         snap_id=snap_tracking.pixel_id()
         self._snap_enabled=bool(snap_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','offers.html','success.html'))
         if self._snap_enabled:
@@ -690,7 +704,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store')
         for name,value in (extra_headers or {}).items():
             self.send_header(name,value)
-        if filename in ('checkout.html','pending.html','success.html','preview.html','paypal-return.html','order-help.html'):
+        if filename in ('checkout.html','pending.html','success.html','preview.html','paypal-return.html','order-help.html','admin-dashboard.html'):
             self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
 
@@ -717,10 +731,34 @@ class Handler(BaseHTTPRequestHandler):
             if not self.enforce_rate_limit(route,'POST'): return
             if route == autoseo.ENDPOINT:
                 return self.autoseo_webhook()
-            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or route.startswith('/api/order-help/') or
+            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or route.startswith(('/api/order-help/','/api/admin-dashboard/','/api/store-insights/')) or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
+            if route.startswith('/api/admin-dashboard/'):
+                if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
+                if route=='/api/admin-dashboard/request':
+                    challenge=owner_dashboard.login_request(data,self.client_id(),self.device_hash())
+                    return self.respond(202,{'challenge':challenge})
+                if route=='/api/admin-dashboard/verify':
+                    cookie=owner_dashboard.login_verify(data,self.device_hash())
+                    if not cookie:return self.respond(403,{'error':'رمز التحقق غير صحيح أو انتهت صلاحيته.'})
+                    return self.respond(200,{'ok':True},{'Set-Cookie':secure_cookie(owner_dashboard.COOKIE,cookie,28800)})
+                if route=='/api/admin-dashboard/logout':
+                    owner_dashboard.logout(self.cookie(owner_dashboard.COOKIE),self.device_hash())
+                    return self.respond(200,{'ok':True},{'Set-Cookie':secure_cookie(owner_dashboard.COOKIE,'',0)})
+                return self.respond(404,{'error':'Not found'})
+            if route.startswith('/api/store-insights/'):
+                if not owner_dashboard.enabled():return self.respond(503,{'error':'Unavailable'})
+                if route=='/api/store-insights/session':
+                    result=owner_dashboard.insight_start(data,self.cookie(owner_dashboard.INSIGHT_COOKIE),self.device_hash(),self.client_id(),self.pricing_country(data.get('country')))
+                    if not result:return self.respond(429,{'error':'Please try later'})
+                    token,ttl=result
+                    return self.respond(200,{'ok':True},{'Set-Cookie':secure_cookie(owner_dashboard.INSIGHT_COOKIE,token,ttl)})
+                if route=='/api/store-insights/event':
+                    owner_dashboard.insight_event(data,self.cookie(owner_dashboard.INSIGHT_COOKIE),self.device_hash())
+                    return self.respond(200,{'ok':True})
+                return self.respond(404,{'error':'Not found'})
             if route=='/api/paypal/capture':
                 key=data.get('key')
                 if not isinstance(key,str) or not re.fullmatch(r'[0-9a-f]{64}',key):
@@ -865,6 +903,7 @@ class Handler(BaseHTTPRequestHandler):
                        'transactionId':None,'statusKey':secrets.token_hex(32),
                        'checkoutSessionHash':hash_secret(checkout_secret)}
                 store.insert(order)
+                owner_dashboard.link_order_async(self.cookie(owner_dashboard.INSIGHT_COOKIE),self.device_hash(),order['id'])
                 try: link,provider_order_id=paypal_checkout.create(order) if using_paypal else payment_checkout(order,customer)
                 except Exception as exc:
                     log_payment_gateway_error(selected,exc)
@@ -1151,6 +1190,24 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(503 if catalog.preview_enabled(book_id) else 404,
                                 {'ok':False,'error':'Preview originals are not connected to the review environment'})
         if not self.enforce_rate_limit(route,'GET'): return
+        if route in ('/admin','/admin/'):
+            return self.html('admin-dashboard.html')
+        if route=='/admin-dashboard.js':return self.asset('admin-dashboard.js','text/javascript; charset=utf-8')
+        if route=='/admin-dashboard.css':return self.asset('admin-dashboard.css','text/css; charset=utf-8')
+        if route=='/store-insights.js':return self.asset('store-insights.js','text/javascript; charset=utf-8')
+        if route.startswith('/api/admin-dashboard/'):
+            if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
+            try:
+                if route=='/api/admin-dashboard/session':
+                    if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+                    return self.respond(200,{'ok':True})
+                if route=='/api/admin-dashboard/report':
+                    result=owner_dashboard.report(self.cookie(owner_dashboard.COOKIE),self.device_hash(),parse_qs(parsed.query,keep_blank_values=True))
+                    if result is None:return self.respond(403,{'error':'انتهت جلسة الدخول. سجّل الدخول من جديد.'})
+                    return self.respond(200,result)
+                return self.respond(404,{'error':'Not found'})
+            except ValueError:return self.respond(400,{'error':'راجع الفترة والفلاتر؛ أقصى فترة 93 يومًا.'})
+            except Exception:return self.respond(503,{'error':'تعذر قراءة البيانات الآن. حاول مرة أخرى.'})
         if route=='/api/book-comments':
             book_id=parse_qs(parsed.query).get('book_id',[''])[0]
             raw_offset=parse_qs(parsed.query).get('offset',['0'])[0]
@@ -1344,6 +1401,7 @@ if __name__=='__main__':
     print('Checkout readiness: '+('ready' if not missing else 'blocked: '+','.join(missing)),flush=True)
     order_receipts.start_worker()
     order_help.start_worker()
+    owner_dashboard.start_pruner()
     ThreadingHTTPServer((host,port),Handler).serve_forever()
 
 
