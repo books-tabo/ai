@@ -39,9 +39,34 @@ def enabled():
 
 
 class DeliveryError(Exception):
-    def __init__(self, retryable):
+    def __init__(self, retryable, status=None, reason='transport'):
         self.retryable = retryable
+        self.status = status if isinstance(status, int) and 100 <= status <= 599 else None
+        self.reason = reason if reason in {'transport', 'api_key', 'sender_unverified', 'test_recipient', 'quota', 'rate_limit', 'provider_rejected'} else 'provider_rejected'
         super().__init__('Receipt delivery unavailable')
+
+
+def provider_failure(error):
+    """Reduce provider errors to fixed categories; never retain response text."""
+    reason = 'provider_rejected'
+    try:
+        raw = error.read(8193)
+        detail = json.loads(raw) if len(raw) <= 8192 else {}
+        message = str(detail.get('message', '')).lower() if isinstance(detail, dict) else ''
+        name = detail.get('name', '') if isinstance(detail, dict) else ''
+        if 'api key' in message or name in ('missing_api_key', 'restricted_api_key', 'suspended_api_key'):
+            reason = 'api_key'
+        elif 'domain is not verified' in message or 'domain is not verified' in message.replace('`', ''):
+            reason = 'sender_unverified'
+        elif 'only send testing emails' in message:
+            reason = 'test_recipient'
+        elif name in ('daily_quota_exceeded', 'monthly_quota_exceeded'):
+            reason = 'quota'
+        elif name == 'rate_limit_exceeded':
+            reason = 'rate_limit'
+    except (ValueError, OSError, TypeError):
+        pass
+    return DeliveryError(error.code in (408, 429) or error.code >= 500, error.code, reason)
 
 
 def message(order):
@@ -94,8 +119,7 @@ def send(payload, order_id):
                 raise DeliveryError(True)
             return data['id'][:100]
     except HTTPError as exc:
-        # Never persist/log provider bodies: they can contain addresses or secrets.
-        raise DeliveryError(exc.code in (408, 429) or exc.code >= 500) from None
+        raise provider_failure(exc) from None
     except (URLError, OSError, TimeoutError, ValueError):
         raise DeliveryError(True) from None
 

@@ -2,6 +2,7 @@
 import copy
 import json
 import os
+import io
 import unittest
 from datetime import datetime, timezone, timedelta
 from unittest.mock import patch
@@ -50,6 +51,23 @@ class ReceiptTests(unittest.TestCase):
                        {'TABO_RECEIPT_SENDER_VERIFIED':'0'},{'TABO_RECEIPT_FROM':'someone@another.invalid'}):
             with patch.dict(os.environ,change),patch.object(receipts.store,'claim_receipt') as claim:
                 self.assertFalse(receipts.process_one());claim.assert_not_called()
+
+    def test_provider_diagnostics_are_fixed_and_do_not_expose_private_details(self):
+        cases = [
+            (401, 'validation_error', 'API key is invalid re_private', 'api_key'),
+            (403, 'validation_error', 'The secret.invalid domain is not verified. Please, add and verify your domain.', 'sender_unverified'),
+            (403, 'validation_error', 'You can only send testing emails to private@example.invalid', 'test_recipient'),
+            (429, 'daily_quota_exceeded', 'private quota', 'quota'),
+            (429, 'rate_limit_exceeded', 'private rate', 'rate_limit'),
+            (422, 'validation_error', 'private@example.invalid rejected', 'provider_rejected'),
+        ]
+        for status, name, message, reason in cases:
+            error = HTTPError(receipts.SEND_URL,status,'private detail',{},io.BytesIO(json.dumps({'name':name,'message':message}).encode()))
+            with patch.object(receipts,'OPEN',side_effect=error):
+                with self.assertRaises(receipts.DeliveryError) as caught:receipts.send({},'synthetic')
+            self.assertEqual(caught.exception.status,status)
+            self.assertEqual(caught.exception.reason,reason)
+            self.assertNotIn('private',str(caught.exception.__dict__))
 
     def test_bilingual_receipt_uses_paid_amount_safe_links_and_escaped_names(self):
         value=paid();value['buyer']['name']='<Synthetic & Reader>'

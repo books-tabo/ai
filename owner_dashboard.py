@@ -54,8 +54,13 @@ def login_request(data,client,device):
         payload={'from':'TABO BOOKS <'+os.environ['TABO_RECEIPT_FROM']+'>','to':[owner()],
                  'reply_to':'taponoor@gmail.com','subject':'رمز دخول لوحة إدارة TABO BOOKS','text':text,
                  'html':'<!doctype html><html lang="ar" dir="rtl"><body><h2>TABO BOOKS</h2><p>رمز دخول لوحة الإدارة</p><p style="font-size:32px;letter-spacing:6px">'+code+'</p><p>صالح لمدة 10 دقائق. لا تشاركه مع أي شخص.</p></body></html>'}
-        try:order_receipts.send(payload,'owner-login-'+challenge)
-        except order_receipts.DeliveryError:pass  # Same generic response; never log addresses/codes.
+        try:
+            order_receipts.send(payload,'owner-login-'+challenge)
+            print('Owner login mail: provider accepted',flush=True)
+        except order_receipts.DeliveryError as exc:
+            # Same generic browser response. Fixed diagnostics only; no codes,
+            # addresses, provider bodies, challenge IDs or credentials in logs.
+            print('Owner login mail: failed status='+str(exc.status or 'unknown')+' reason='+exc.reason,flush=True)
     return challenge
 
 
