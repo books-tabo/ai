@@ -59,7 +59,7 @@ class ReceiptTests(unittest.TestCase):
             self.assertEqual(payload['to'],['reader@example.invalid'])
             self.assertIn('560.59 EGP',payload['text']);self.assertIn('9.99 USD',payload['text'])
             self.assertIn('/pending.html?key='+value['statusKey'],payload['text'])
-            self.assertIn('/contact',payload['text'])
+            self.assertIn('/order-help',payload['text'])
             self.assertIn('&lt;Synthetic &amp; Reader&gt;',payload['html'])
             self.assertNotIn('attachments',payload);self.assertNotIn('/api/download',payload['html'])
             self.assertNotIn('reader@example.invalid',payload['html'])

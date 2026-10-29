@@ -216,3 +216,30 @@ def finish_receipt(order_id, lease, state, provider_id, retry_seconds, reason):
     return request('/rest/v1/rpc/finish_order_receipt', 'POST', {
         'p_order_id': order_id, 'p_lease': lease, 'p_state': state,
         'p_provider_id': provider_id, 'p_retry_seconds': retry_seconds, 'p_reason': reason})
+
+
+# Backend-only order assistance RPCs; no buyer data is exposed by these adapters.
+def help_request(challenge, oid, email, email_hash, request_hash, device, code_hash, language):
+    return request('/rest/v1/rpc/request_order_help', 'POST', {
+        'p_id':challenge,'p_order_id':oid,'p_email':email,'p_email_hash':email_hash,
+        'p_request_hash':request_hash,'p_device_hash':device,'p_code_hash':code_hash,'p_language':language})
+
+def help_verify(challenge, code_hash, session_hash, device):
+    return request('/rest/v1/rpc/verify_order_help', 'POST', {
+        'p_id':challenge,'p_code_hash':code_hash,'p_session_hash':session_hash,'p_device_hash':device})
+
+def help_order(challenge, session_hash, device):
+    return request('/rest/v1/rpc/order_help_order', 'POST', {
+        'p_id':challenge,'p_session_hash':session_hash,'p_device_hash':device})
+
+def help_resend(challenge, session_hash, device):
+    return request('/rest/v1/rpc/resend_order_help_receipt', 'POST', {
+        'p_id':challenge,'p_session_hash':session_hash,'p_device_hash':device})
+
+def help_claim(lease):
+    return request('/rest/v1/rpc/claim_order_help_message', 'POST', {'p_lease':lease})
+
+def help_finish(challenge, kind, lease, state, provider_id, retry_seconds, reason):
+    return request('/rest/v1/rpc/finish_order_help_message', 'POST', {
+        'p_id':challenge,'p_kind':kind,'p_lease':lease,'p_state':state,
+        'p_provider_id':provider_id,'p_retry_seconds':retry_seconds,'p_reason':reason})

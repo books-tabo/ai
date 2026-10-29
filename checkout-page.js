@@ -21,7 +21,7 @@ function updateCart(){
     const hasItems=configLoaded&&cart.length>0;
     document.getElementById('checkoutContent').hidden=!hasItems;
     document.getElementById('emptyCart').hidden=!configLoaded||hasItems;
-    if(configLoaded)renderCart();
+    if(configLoaded){renderCart();if(cart.length){const p=calculatePricing();window.TaboAnalytics?.track('InitiateCheckout',{content_ids:cart.map(x=>x.id),value:p.final,currency:storeConfig.currency});}}
 }
 function applyCopy(){
     document.documentElement.lang=currentLanguage;document.documentElement.dir=currentLanguage==='ar'?'rtl':'ltr';

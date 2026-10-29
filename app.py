@@ -5,6 +5,7 @@ import reader_comments
 import paypal_checkout
 import checkout_fields
 import order_receipts
+import order_help
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -21,6 +22,7 @@ import book_previews
 import pdf_limits
 import meta_tracking
 import google_ads_tracking
+import journey_tracking
 import snap_tracking
 import checkout_pricing
 import catalog
@@ -70,6 +72,9 @@ class SlidingWindowLimiter:
 
 RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
+    '/api/order-help/request': (5, 600),
+    '/api/order-help/verify': (15, 600),
+    '/api/order-help/resend': (5, 600),
     '/api/autoseo/webhook': (60, 60),
     '/api/paypal/capture': (12, 600),
     '/api/paypal/webhook': (180, 60),
@@ -86,6 +91,7 @@ POST_LIMITS = {
     '/api/kashier/webhook': (180, 60),
 }
 GET_LIMITS = {
+    '/api/order-help/status': (60, 600),
     '/api/book-comments': (120, 600),
     '/previews/view': (30, 600),
     '/previews/read': (180, 600),
@@ -522,11 +528,13 @@ class Handler(BaseHTTPRequestHandler):
             meta_scripts=' https://connect.facebook.net' if meta_enabled else ''
             meta_images=' https://www.facebook.com https://facebook.com' if meta_enabled else ''
             meta_connect=' https://www.facebook.com https://connect.facebook.net' if meta_enabled else ''
-            google_enabled=getattr(self,'_google_enabled',False)
+            google_enabled=getattr(self,'_google_enabled',False) or getattr(self,'_ga4_enabled',False)
             google_scripts=' https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com' if google_enabled else ''
             google_images=(google_scripts+' https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com'
                            ' https://www.google.com.eg https://www.google.com.sa https://www.google.com.kw') if google_enabled else ''
-            google_connect=google_images+' https://ad.doubleclick.net' if google_enabled else ''
+            analytics_endpoints=' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com' if getattr(self,'_ga4_enabled',False) else ''
+            google_images+=analytics_endpoints
+            google_connect=(google_images+' https://ad.doubleclick.net') if google_enabled else ''
             google_frames='https://www.googletagmanager.com' if google_enabled else "'none'"
             snap_enabled=getattr(self,'_snap_enabled',False)
             snap_scripts=' https://sc-static.net' if snap_enabled else ''
@@ -642,7 +650,7 @@ class Handler(BaseHTTPRequestHandler):
                     **{key:book[key] for key in ('fixedPrices','bundleEligible','previewEnabled') if key in book}}
                    for bid,book in seo.BOOKS.items()]
             source=source.replace('__CHECKOUT_BOOKS__',seo.safe_json(books))
-        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js'):
+        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js'):
             if 'src="/'+asset+'"' in source:
                 version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
                 source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
@@ -663,6 +671,13 @@ class Handler(BaseHTTPRequestHandler):
         if self._google_enabled:
             version=hashlib.sha256((ROOT/'google-ads-tracking.js').read_bytes()).hexdigest()[:12]
             source=source.replace('</head>', '<script src="/google-ads-tracking.js?v='+version+'" data-google-tag-id="'+google_id+'" data-google-conversion-label="'+google_ads_tracking.CONVERSION_LABEL+'"></script></head>',1)
+        ga4_id=journey_tracking.tag_id()
+        self._ga4_enabled=bool(ga4_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','info.html','offers.html','success.html'))
+        if self._ga4_enabled:
+            version=hashlib.sha256((ROOT/'ga4-tracking.js').read_bytes()).hexdigest()[:12]
+            names={bid:book['name'] for bid,book in seo.BOOKS.items()}
+            names_attr=__import__('html').escape(json.dumps(names,ensure_ascii=False),quote=True)
+            source=source.replace('</head>','<script src="/ga4-tracking.js?v='+version+'" data-ga4-id="'+ga4_id+'" data-ga4-catalog="'+names_attr+'"></script></head>',1)
         snap_id=snap_tracking.pixel_id()
         self._snap_enabled=bool(snap_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','offers.html','success.html'))
         if self._snap_enabled:
@@ -675,7 +690,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store')
         for name,value in (extra_headers or {}).items():
             self.send_header(name,value)
-        if filename in ('checkout.html','pending.html','success.html','preview.html','paypal-return.html'):
+        if filename in ('checkout.html','pending.html','success.html','preview.html','paypal-return.html','order-help.html'):
             self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
 
@@ -702,7 +717,7 @@ class Handler(BaseHTTPRequestHandler):
             if not self.enforce_rate_limit(route,'POST'): return
             if route == autoseo.ENDPOINT:
                 return self.autoseo_webhook()
-            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or
+            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or route.startswith('/api/order-help/') or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             data=self.read_json()
@@ -757,6 +772,23 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(409,{'ok':False,'error':'Payment verification failed'})
                 except paypal_checkout.PayPalUnavailable:
                     return self.respond(503,{'ok':False,'error':'PayPal reconciliation temporarily unavailable'})
+            if route.startswith('/api/order-help/'):
+                if not order_help.enabled():
+                    return self.respond(503,{'ok':False,'error':'Order assistance temporarily unavailable'})
+                if route=='/api/order-help/request':
+                    challenge=order_help.request(data,self.client_id(),self.device_hash())
+                    return self.respond(202,{'ok':True,'challenge':challenge})
+                if route=='/api/order-help/verify':
+                    cookie=order_help.verify(data,self.device_hash())
+                    if not cookie:
+                        return self.respond(403,{'ok':False,'error':'Verification code is invalid or expired'})
+                    return self.respond(200,{'ok':True},{'Set-Cookie':secure_cookie(order_help.COOKIE,cookie,900)})
+                if route=='/api/order-help/resend':
+                    result=order_help.resend(self.cookie(order_help.COOKIE),self.device_hash())
+                    if not result:
+                        return self.respond(403,{'ok':False,'error':'Verify your email first'})
+                    return self.respond(200,{'ok':True,**result})
+                return self.respond(404,{'ok':False,'error':'Not found'})
             if route=='/api/book-comments':
                 if not store.ready():
                     return self.respond(503,{'ok':False,'error':'Comments temporarily unavailable'})
@@ -1212,6 +1244,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/book-comments.js': return self.asset('book-comments.js','text/javascript; charset=utf-8')
         if route=='/meta-tracking.js': return self.asset('meta-tracking.js','text/javascript; charset=utf-8')
         if route=='/google-ads-tracking.js': return self.asset('google-ads-tracking.js','text/javascript; charset=utf-8')
+        if route=='/ga4-tracking.js': return self.asset('ga4-tracking.js','text/javascript; charset=utf-8')
         if route=='/snap-tracking.js': return self.asset('snap-tracking.js','text/javascript; charset=utf-8')
         if route=='/seo.js': return self.asset('seo.js','text/javascript; charset=utf-8')
         if route=='/seo.css': return self.asset('seo.css','text/css; charset=utf-8')
@@ -1221,6 +1254,8 @@ class Handler(BaseHTTPRequestHandler):
         if optimized_cover and optimized_cover.group(1) in BOOKS:
             return self.asset('covers/'+optimized_cover.group(1)+'.webp','image/webp')
         if route=='/paypal-return.html': return self.html('paypal-return.html')
+        if route=='/order-help': return self.html('order-help.html')
+        if route=='/order-help.js': return self.asset('order-help.js','text/javascript; charset=utf-8')
         if route=='/checkout': return self.html('checkout.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
@@ -1261,6 +1296,16 @@ class Handler(BaseHTTPRequestHandler):
                 try: defaults.update(store.book_stats())
                 except Exception: pass
             return self.respond(200,defaults)
+        if route=='/api/order-help/status':
+            if not order_help.enabled():
+                return self.respond(503,{'ok':False,'error':'Order assistance temporarily unavailable'})
+            order=order_help.status(self.cookie(order_help.COOKIE),self.device_hash())
+            if not order:
+                return self.respond(403,{'ok':False,'error':'Verify your email first'})
+            result=public(order)
+            # Knowing the return link never replaces the existing download-device cookies.
+            result['returnUrl']='/pending.html?key='+order['statusKey']
+            return self.respond(200,{'ok':True,'order':result})
         if route=='/api/order-status':
             key=parse_qs(parsed.query).get('key',[''])[0]
             if not re.fullmatch(r'[0-9a-f]{64}',key): return self.respond(403,{'ok':False,'error':'رابط متابعة غير صالح.'})
@@ -1285,7 +1330,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(200,{'ok':True,'downloadLimit':DOWNLOAD_LIMIT,'books':books,
                                      'metaPurchase':meta_tracking.purchase(order),
                                      'googleAdsPurchase':google_ads_tracking.purchase(order) if not seo.review_mode() else None,
-                                     'snapPurchase':snap_tracking.purchase(order) if not seo.review_mode() else None})
+                                     'snapPurchase':snap_tracking.purchase(order) if not seo.review_mode() else None,
+                                     'ga4Purchase':journey_tracking.purchase(order) if not seo.review_mode() else None})
         match=re.fullmatch(r'/api/download/(book[1-9][0-9]*)',route)
         if match:
             return self.respond(405,{'ok':False,'error':'استخدم زر التحميل الآمن من صفحة الطلب.'},{'Allow':'POST'})
@@ -1297,6 +1343,7 @@ if __name__=='__main__':
     missing=[name for name,ready in checkout_readiness().items() if not ready]
     print('Checkout readiness: '+('ready' if not missing else 'blocked: '+','.join(missing)),flush=True)
     order_receipts.start_worker()
+    order_help.start_worker()
     ThreadingHTTPServer((host,port),Handler).serve_forever()
 
 

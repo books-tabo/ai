@@ -1979,6 +1979,7 @@ html[lang="en"] #heroDescription{white-space:pre-line}
         </a>
 
 
+        <a id="footerOrderHelp" href="/order-help">مساعدة بخصوص طلبي</a>
         <a id="footerContact" href="/contact">
             تواصل معنا
         </a>
@@ -2643,7 +2644,7 @@ const UI_COPY = {
         heroDescription:"كتب في الوعي، تطوير الذات\nالمال، ريادة الأعمال، الطموح\nوفهم الإنسان لنفسه والعالم من حوله",
         paymentTitle:"الدفع الإلكتروني", paymentDescription:"أضف الكتب للسلة، ثم اختر وسيلة الدفع في صفحة إتمام الطلب.",
         authorName:"تابو نور", authorDescription:"كاتب ومؤلف يهتم بموضوعات الوعي، تطوير الذات، المال، الطموح، وفهم الإنسان لنفسه والعالم من حوله.",
-        about:"من نحن", contact:"تواصل معنا", privacy:"سياسة الخصوصية", refund:"الاسترداد والإلغاء", delivery:"التوصيل والتسليم",
+        about:"من نحن", orderHelp:"مساعدة بخصوص طلبي", contact:"تواصل معنا", privacy:"سياسة الخصوصية", refund:"الاسترداد والإلغاء", delivery:"التوصيل والتسليم",
         footerCopy:"© 2026 TABO BOOKS — جميع الحقوق محفوظة", cartTitle:"سلة الكتب",
         original:"السعر السابق", final:"السعر الحالي",
         checkoutFields:"بيانات التواصل المطلوبة لصفحة الدفع", fullName:"الاسم الكامل",
@@ -2669,7 +2670,7 @@ const UI_COPY = {
         heroDescription:"Books on awareness and personal growth\nMoney, entrepreneurship and ambition\nUnderstanding yourself and the world around you",
         paymentTitle:"Secure online payment", paymentDescription:"Add books to your cart, then choose your payment method on the checkout page.",
         authorName:"TABO NOOR", authorDescription:"An author focused on awareness, personal growth, money, ambition, and understanding human nature and the world around us.",
-        about:"About us", contact:"Contact us", privacy:"Privacy policy", refund:"Refunds & cancellation", delivery:"Digital delivery",
+        about:"About us", orderHelp:"Help with my order", contact:"Contact us", privacy:"Privacy policy", refund:"Refunds & cancellation", delivery:"Digital delivery",
         footerCopy:"© 2026 TABO BOOKS — All rights reserved", cartTitle:"Book cart",
         original:"Previous price", final:"Current price",
         checkoutFields:"Contact details required for checkout", fullName:"Full name",
@@ -2808,7 +2809,7 @@ function applyStaticCopy(){
     document.documentElement.dir=currentLanguage==="ar"?"rtl":"ltr";
     const ids={countryLabel:"countryLabel",heroTitle:"heroTitle",heroDescription:"heroDescription",
         paymentTitle:"paymentTitle",paymentDescription:"paymentDescription",authorName:"authorName",authorDescription:"authorDescription",
-        authors:"footerAuthors",about:"footerAbout",contact:"footerContact",privacy:"footerPrivacy",refund:"footerRefund",delivery:"footerDelivery",footerCopy:"footerCopy",
+        orderHelp:"footerOrderHelp",authors:"footerAuthors",about:"footerAbout",contact:"footerContact",privacy:"footerPrivacy",refund:"footerRefund",delivery:"footerDelivery",footerCopy:"footerCopy",
         cartTitle:"cartTitle",original:"originalPriceLabel",final:"finalPriceLabel",checkoutFields:"checkoutFieldsLabel",
         checkout:"checkoutBtn",aboutBook:"detailsAboutTitle",adds:"detailsAddsTitle",
         menu:"drawerTitle",categories:"categoriesTab",authors:"authorsTab",offers:"offersDrawerTitle",offersHint:"offersDrawerHint",
@@ -2961,7 +2962,7 @@ function addCuratedOffer(offerId){
     if(added.length){
         saveCart();
         const delta=Math.max(0,Math.round((calculatePricing().final-before)*100)/100);
-        window.TaboTracking?.track('AddToCart',{content_ids:added,value:delta,currency:storeConfig.currency});
+        window.TaboTracking?.track('AddToCart',{content_ids:added,value:delta,currency:storeConfig.currency});window.TaboAnalytics?.track('AddToCart',{content_ids:added,value:delta,currency:storeConfig.currency});
     }
     updateCart();openCart();return true;
 }
@@ -3150,7 +3151,7 @@ function addBookToCart(
 
     });
 
-    window.TaboTracking?.track('AddToCart',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
+    window.TaboTracking?.track('AddToCart',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});window.TaboAnalytics?.track('AddToCart',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
 
 
     saveCart();
@@ -3348,7 +3349,7 @@ function openBookDetails(
 
     const displayBook=localizedBook(book);
 
-    window.TaboTracking?.track('ViewContent',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
+    window.TaboTracking?.track('ViewContent',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});window.TaboAnalytics?.track('ViewContent',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
 
 
     currentDetailsBook =

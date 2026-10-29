@@ -56,7 +56,7 @@ def message(order):
     en = buyer.get('language') == 'en'
     oid = order['id']
     resume = ORIGIN + '/pending.html?key=' + order['statusKey']
-    support = ORIGIN + '/contact'
+    support = ORIGIN + '/order-help'
     amount = f"{Decimal(str(order['total'])):.2f} {order['currency']}"
     titles = [str(item['name']) for item in order['items']]
     subject = ('Payment confirmed — ' if en else 'تم تأكيد شراء كتبك — ') + oid
