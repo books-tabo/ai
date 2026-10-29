@@ -80,7 +80,7 @@ class PostgresTests(unittest.TestCase):
         with self.connect() as c:
             c.execute("UPDATE public.orders SET country='SA' WHERE id=%s",(usd,))
             c.execute("UPDATE public.orders SET total=500,currency='EGP' WHERE id=%s",(egp,))
-            c.execute("UPDATE public.orders SET status='REFUNDED' WHERE id=%s",(refund,))
+            c.execute("UPDATE public.orders SET status='REFUNDED',checkout_session_hash=NULL,download_session_hash=NULL,download_token=NULL WHERE id=%s",(refund,))
             c.execute("INSERT INTO public.order_downloads(order_id,book_id,download_count) VALUES(%s,'book20',1)",(egp,))
         result=self.owner_report(auth)
         self.assertEqual(result['paidOrders'],2);self.assertEqual(result['pendingOrders'],1)
@@ -112,7 +112,7 @@ class PostgresTests(unittest.TestCase):
         self.receipt_payment(oid,number=2)
         result=self.owner_report(auth);self.assertEqual(result['funnel']['paid'],1);self.assertEqual(result['sources'][0]['source'],'google');self.assertEqual(result['pageViews'],2)
         with self.connect() as c:
-            c.execute("UPDATE public.orders SET status='REFUNDED' WHERE id=%s",(oid,))
+            c.execute("UPDATE public.orders SET status='REFUNDED',checkout_session_hash=NULL,download_session_hash=NULL,download_token=NULL WHERE id=%s",(oid,))
             c.execute("UPDATE public.owner_store_sessions SET expires_at=now()-interval '1 second'")
         self.assertEqual(self.owner_report(auth)['funnel']['paid'],0)
         self.assertFalse(self.owner_rpc('owner_insight_event',sid,device,'cart'))
