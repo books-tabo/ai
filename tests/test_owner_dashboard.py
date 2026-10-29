@@ -54,6 +54,12 @@ class DashboardTests(unittest.TestCase):
  def test_disabled_dashboard_cannot_link_orders(self):
   with patch.dict(os.environ,{'TABO_DASHBOARD_ENABLED':'0'}),patch.object(dashboard,'rpc') as rpc:
    dashboard.link_order('a'*64,'b'*64,'TABO-0000000000000001');rpc.assert_not_called()
+ def test_mail_failure_is_diagnosable_without_exposing_codes_or_addresses(self):
+  with patch.object(dashboard,'rpc',return_value=True),patch.object(dashboard.order_receipts,'send',side_effect=dashboard.order_receipts.DeliveryError(False,401,'api_key')),patch('builtins.print') as log:
+   cid=dashboard.login_request({'email':'owner@example.invalid'},'client','d'*64)
+   self.assertRegex(cid,r'^[a-f0-9]{64}$')
+   self.assertEqual(log.call_args.args,('Owner login mail: failed status=401 reason=api_key',))
+   self.assertNotIn(cid,str(log.call_args))
 
 class DashboardHTTPTests(HTTPCase):
  def setUp(self):
