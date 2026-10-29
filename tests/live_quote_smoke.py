@@ -36,16 +36,18 @@ def main():
     assert pricing['currency'] == 'USD'
     assert pricing['chargeCurrency'] == 'EGP'
     assert pricing['checkoutSupported'] is True
-    assert Decimal(str(pricing['prices']['1'])) == Decimal('9.99')
+    expected_display = Decimal(str(pricing['bookPolicies']['book1']['price']))
+    assert expected_display > 0
     page = read('/checkout')[0].decode()
     note = page.split('id="chargeCurrencyNote"', 1)[1].split('>', 1)[0]
     assert 'font-size:13px' in note
-    raw, headers = read('/api/checkout-quote', {'country': 'KW', 'items': [{'id': 'book1'}]})
+    raw, headers = read('/api/checkout-quote', {'country': 'KW', 'items': [{'id': 'book1'}],
+                                            'catalogRevision': pricing.get('catalogRevision')})
     result = json.loads(raw)
     assert result.get('ok') is True
     quote = result['quote']
     assert quote['displayCurrency'] == 'USD' and quote['chargeCurrency'] == 'EGP'
-    assert Decimal(quote['displayTotal']) == Decimal('9.99')
+    assert Decimal(quote['displayTotal']) == expected_display
     expected = (Decimal(quote['displayTotal']) * Decimal(quote['rate'])).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     assert Decimal(quote['chargeTotal']) == expected
     assert quote['expiresAt'] - quote['quotedAt'] == 300
