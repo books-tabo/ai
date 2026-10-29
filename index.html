@@ -2696,7 +2696,7 @@ const INFO_AR={};
 const INFO_EN={
     aboutModalBody:`<p>TABO BOOKS is a digital bookstore publishing original books about awareness, personal growth, money, ambition and understanding human nature.</p><p>All products are digital PDF editions delivered online after successful payment.</p>`,
     contactModalBody:`<p>For questions about an order or download, contact us and include your order number.</p><p><strong>WhatsApp:</strong> +20 112 296 5693</p><p><strong>Email:</strong> taponoor@gmail.com</p>`,
-    privacyModalBody:`<p>We collect only the contact and order information needed to process payments, deliver purchased books and provide support.</p><p>Your country is estimated from your IP address to apply the correct currency and prevent pricing abuse. We do not request precise GPS location. Your country selection may be stored locally.</p><p>Payment details are handled by the payment provider and are not stored by TABO BOOKS. We do not sell personal data.</p>`,
+    privacyModalBody:`<p>We collect only the contact and order information needed to process payments, deliver purchased books and provide support.</p><p>Your country is estimated from your IP address to apply the correct currency and prevent pricing abuse. We do not request precise GPS location. Your country selection may be stored locally.</p><p>Payment details are handled by the payment provider and are not stored by TABO BOOKS. We do not sell personal data.</p><p>If you choose the optional checkout reminder, we may send one unfinished checkout reminder. You can stop these reminders using the email link.</p>`,
     refundModalBody:`<p>Because PDF files are digital products, completed and delivered orders are generally non-refundable. Contact support if you were charged incorrectly, received a duplicate order, or could not access your purchased file.</p>`,
     deliveryModalBody:`<p>Books are delivered digitally after successful payment. No physical product is shipped and no shipping fee applies. If your files do not arrive, contact support with your order number.</p>`
 };
@@ -2709,7 +2709,7 @@ const INFO_EN={
 const BOOKS = []; /* SSR_HOME_BOOKS */
 const BOOK_TRANSLATIONS = {}; /* SSR_HOME_TRANSLATIONS */
 
-BOOKS.forEach((book,index)=>{ book.id=`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
+BOOKS.forEach((book,index)=>{ book.id=book.id||`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
 
 /* Book categories and author navigation */
 const BOOK_CATEGORIES = []; /* SSR_CATEGORIES */
@@ -2986,7 +2986,7 @@ function renderPanorama(){
  const track=document.getElementById("panoramaTrack");if(!track)return;
  const books=categoryBooks();
  const section=track.closest(".book-panorama");if(section)section.hidden=!books.length;
- track.innerHTML=books.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${localizedBook(book).name}"><div class="panorama-cover"><img src="${book.image}" alt="${localizedBook(book).name}" width="${book.imageWidth}" height="${book.imageHeight}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
+ track.innerHTML=books.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${escapeBookText(localizedBook(book).name)}"><div class="panorama-cover"><img src="${book.image}" alt="${escapeBookText(localizedBook(book).name)}" width="${book.imageWidth}" height="${book.imageHeight}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
 }
 function renderBooks(){
     renderPanorama();
@@ -3015,7 +3015,7 @@ function renderBooks(){
             if(!visibleBooks.includes(book)) return;
 
             const displayBook=localizedBook(book);
-            const cardName=displayBook.cardName||displayBook.name;
+            const cardName=escapeBookText(displayBook.cardName||displayBook.name);
 
 
             const card =
@@ -3051,7 +3051,7 @@ function renderBooks(){
                     ${ratingMarkup(book.id)}
 
                     <div class="book-description">
-                        ${displayBook.shortDescription}
+                        ${escapeBookText(displayBook.shortDescription)}
                     </div>
 
                     <a
@@ -3069,7 +3069,7 @@ function renderBooks(){
                             ${formatMoney(bookPrice(book))}
                         </div>
 
-                        ${bookPolicy(book).bundleEligible?`<div class="book-previous-price">
+                        ${bookPolicy(book).bundleEligible&&Number(storeConfig.compareAtPrice)>bookPrice(book)?`<div class="book-previous-price">
                             ${formatMoney(storeConfig.compareAtPrice || PRICING_LADDER[1])}
                         </div>`:""}
 

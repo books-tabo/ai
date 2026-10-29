@@ -21,6 +21,8 @@ function browserCountryHint(){
     catch(error){ return "EG"; }
 }
 
+function escapeBookText(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
 function formatMoney(value){
     const amount=Number(value)||0;
     try {
@@ -163,7 +165,7 @@ function renderCart(){
                         <div
                             class="cart-item-name"
                         >
-                            ${book.name}
+                            ${escapeBookText(book.name)}
                         </div>
 
                         <div
@@ -290,9 +292,12 @@ async function refreshCheckoutQuote(force=false){
     try{
         const response=await fetch(`${BACKEND_URL}/api/checkout-quote`,{
             method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,
-            body:JSON.stringify({items:cart.map(x=>({id:x.id})),country:storeConfig.country})
+            body:JSON.stringify({items:cart.map(x=>({id:x.id})),country:storeConfig.country,catalogRevision:storeConfig.catalogRevision})
         });
         const data=await response.json(),quote=data.quote;
+        if(data.code==='CATALOG_REFRESH_REQUIRED'&&typeof loadStoreConfig==='function'){
+            await loadStoreConfig();checkoutStatus(data.error);return false;
+        }
         if(!response.ok || !data.ok || !quote || quote.chargeCurrency!=='EGP' ||
                 quote.displayCurrency!=='USD' || !Number.isFinite(Number(quote.chargeTotal)) ||
                 Number(quote.chargeTotal)<=0 || Number(quote.displayTotal)!==calculatePricing().final ||
@@ -351,10 +356,13 @@ async function checkoutWithPaymentLink(){
             method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({items:cart.map(item=>({id:item.id})),customer,
                 country:storeConfig.country,language:currentLanguage,paymentProvider:selected,
+                recoveryConsent:storeConfig.recoveryEmailEnabled===true&&document.getElementById('recoveryConsent')?.checked===true,
+                catalogRevision:storeConfig.catalogRevision,
                 quoteToken:useQuote?checkoutQuote.token:undefined})
         });
         const data=await response.json();
         if(!response.ok||!data.ok){
+            if(data.code==='CATALOG_REFRESH_REQUIRED'&&typeof loadStoreConfig==='function')await loadStoreConfig();
             if(data.code==='QUOTE_REFRESH_REQUIRED')await refreshCheckoutQuote(true);
             const error=new Error(data.error||t('checkoutError'));
             if(data.code==='INVALID_CUSTOMER'&&data.fields)error.fieldErrors=data.fields;

@@ -24,10 +24,103 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute("UPDATE public.store_catalog_state SET published='{}'::jsonb,draft='{}'::jsonb,revision=0,draft_revision=0,reminders_enabled=true,published_at=NULL WHERE id")
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
                       (json.dumps([{'id':book_id} for book_id in app.BOOKS]),'1'*64,'a'*64,'b'*64,json.dumps({'name':'Synthetic','phone':'01000000000'})))
+
+
+    def recovery_order(self,number=2,consent=True,mode='live'):
+        oid=self.receipt_order(number,mode=mode)
+        with self.connect() as c:
+            c.execute("UPDATE public.orders SET buyer=jsonb_set(buyer,'{recoveryConsent}',%s::jsonb),created_at=now()-interval '2 hours' WHERE id=%s",(json.dumps(consent),oid))
+        return oid
+
+    def enroll_recovery(self,number=2,consent=True,mode='live'):
+        oid=self.recovery_order(number,consent,mode)
+        accepted=self.owner_rpc('store_recovery_enroll',oid,f'{number:064x}',f'{number+1000:064x}')
+        return oid,accepted
+
+    def test_store_catalog_private_draft_publication_conflict_and_audit(self):
+        auth=self.owner_auth()
+        self.assertIsNone(self.owner_rpc('store_admin_catalog_read','0'*64,*auth[1:]))
+        saved=self.owner_rpc('store_admin_catalog_save',*auth,0,json.dumps({'books':{'book1':{'name':'Synthetic title'}}}))
+        self.assertEqual(saved['draftRevision'],1)
+        with self.connect() as c:self.assertEqual(c.execute('SELECT published FROM public.store_catalog_state').fetchone()[0],{})
+        self.assertTrue(self.owner_rpc('store_admin_catalog_save',*auth,0,'{}')['conflict'])
+        self.assertTrue(self.owner_rpc('store_admin_catalog_publish',*auth,0)['conflict'])
+        result=self.owner_rpc('store_admin_catalog_publish',*auth,1)
+        self.assertEqual(result['revision'],1)
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT published FROM public.store_catalog_state').fetchone()[0]['books']['book1']['name'],'Synthetic title')
+            self.assertEqual(c.execute('SELECT count(*) FROM public.store_catalog_history').fetchone()[0],1)
+        self.assertTrue(self.owner_rpc('owner_session_logout',*auth))
+        self.assertIsNone(self.owner_rpc('store_admin_catalog_publish',*auth,1))
+
+    def test_reminder_requires_explicit_consent_live_order_and_hour_delay(self):
+        self.assertFalse(self.enroll_recovery(2,consent=False)[1])
+        self.assertFalse(self.enroll_recovery(3,mode='test')[1])
+        oid,accepted=self.enroll_recovery(4);self.assertTrue(accepted)
+        self.assertFalse(self.owner_rpc('store_recovery_enroll',oid,'a'*64,'b'*64))
+        with self.connect() as c:c.execute("UPDATE public.store_checkout_reminders SET next_attempt_at=now()+interval '1 hour'")
+        self.assertIsNone(self.owner_rpc('store_recovery_claim','d'*64))
+        self.assertFalse(self.enroll_recovery(5)[1])  # One enrollment per normalized email/day.
+
+    def test_reminder_concurrent_claim_and_single_transport_completion(self):
+        oid,accepted=self.enroll_recovery();self.assertTrue(accepted)
+        def claim(i):return self.owner_rpc('store_recovery_claim',f'{i:064x}')
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:results=list(pool.map(claim,range(10,18)))
+        self.assertEqual(sum(x is not None for x in results),1)
+        with self.connect() as c:lease=c.execute('SELECT lease FROM public.store_checkout_reminders').fetchone()[0]
+        self.assertFalse(self.owner_rpc('store_recovery_finish',oid,'0'*64,'sent',None))
+        self.assertTrue(self.owner_rpc('store_recovery_finish',oid,lease,'sent',None))
+        self.assertIsNone(self.owner_rpc('store_recovery_claim','e'*64))
+        value=self.owner_rpc('store_recovery_cart',f'{2:064x}')
+        self.assertEqual(set(value),{'items'})
+        self.assertTrue(all(set(item)=={'id'} for item in value['items']))
+
+    def test_reminder_stops_for_paid_original_or_another_paid_order(self):
+        oid,_=self.enroll_recovery();self.receipt_payment(oid)
+        self.assertIsNone(self.owner_rpc('store_recovery_claim','d'*64))
+        self.assertTrue(self.owner_rpc('store_recovery_cart',f'{2:064x}')['completed'])
+        with self.connect() as c:c.execute('TRUNCATE public.store_checkout_reminders')
+        oid=self.recovery_order(3)
+        self.assertTrue(self.owner_rpc('store_recovery_enroll',oid,'a'*64,'b'*64))
+        self.assertIsNone(self.owner_rpc('store_recovery_claim','d'*64))
+
+    def test_reminder_unsubscribe_post_race_pause_and_dedup_expiry(self):
+        auth=self.owner_auth();oid,_=self.enroll_recovery()
+        self.assertIsNotNone(self.owner_rpc('store_recovery_claim','d'*64))
+        self.assertTrue(self.owner_rpc('store_recovery_unsubscribe',f'{1002:064x}'))
+        self.assertFalse(self.owner_rpc('store_recovery_sendable',oid,'d'*64))
+        self.assertFalse(self.owner_rpc('store_recovery_finish',oid,'d'*64,'sent',None))
+        self.assertFalse(self.enroll_recovery(3)[1])
+        report=self.owner_rpc('store_admin_recovery_report',*auth)
+        self.assertNotIn('reader@example.invalid',json.dumps(report))
+        self.assertTrue(self.owner_rpc('store_admin_recovery_toggle',*auth,False)['ok'])
+        self.assertIsNone(self.owner_rpc('store_recovery_claim','e'*64))
+        with self.connect() as c:
+            c.execute('TRUNCATE public.store_checkout_reminders,public.store_reminder_optouts')
+            c.execute('UPDATE public.store_catalog_state SET reminders_enabled=true')
+        self.assertTrue(self.owner_rpc('store_recovery_enroll',oid,'a'*64,'b'*64))
+        with self.connect() as c:c.execute("UPDATE public.store_checkout_reminders SET created_at=now()-interval '21 hours'")
+        self.assertIsNone(self.owner_rpc('store_recovery_claim','e'*64))
+        with self.connect() as c:self.assertEqual(c.execute('SELECT state,reason FROM public.store_checkout_reminders').fetchone(),('failed','expired'))
+
+    def test_store_admin_new_tables_and_functions_are_backend_only(self):
+        tables=('store_catalog_state','store_catalog_history','store_catalog_covers','store_checkout_reminders','store_reminder_optouts')
+        with self.connect() as c:
+            for name in tables:
+                self.assertTrue(c.execute('SELECT relrowsecurity FROM pg_class WHERE oid=%s::regclass',('public.'+name,)).fetchone()[0])
+                for role in ('anon','authenticated'):
+                    for permission in ('SELECT','INSERT','UPDATE','DELETE'):
+                        self.assertFalse(c.execute('SELECT has_table_privilege(%s,%s,%s)',(role,'public.'+name,permission)).fetchone()[0])
+            funcs=c.execute("SELECT oid,prosecdef FROM pg_proc WHERE pronamespace='public'::regnamespace AND (proname LIKE 'store_admin_%' OR proname LIKE 'store_recovery_%')").fetchall()
+            self.assertEqual(len(funcs),11)
+            for oid,definer in funcs:
+                self.assertFalse(definer)
+                for role in ('anon','authenticated'):self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,oid)).fetchone()[0])
 
     def owner_rpc(self,name,*args):
         with self.connect() as c:

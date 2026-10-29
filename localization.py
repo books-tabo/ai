@@ -123,6 +123,7 @@ def pricing_for_country(base_prices, country):
     currency = 'EGP' if egypt else 'USD'
     prices = ({str(count): amount for count, amount in base_prices.items()}
               if egypt else USD_PRICES.copy())
+    prices=catalog.store_catalog.document().get('prices',{}).get(currency,prices)
     return {
         'country': code,
         'currency': currency,

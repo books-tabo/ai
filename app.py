@@ -7,6 +7,8 @@ import checkout_fields
 import order_receipts
 import order_help
 import owner_dashboard
+import store_catalog
+import checkout_recovery
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -73,6 +75,11 @@ class SlidingWindowLimiter:
 
 RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
+    '/api/admin-dashboard/catalog/draft': (20, 600),
+    '/api/admin-dashboard/catalog/publish': (10, 600),
+    '/api/admin-dashboard/catalog/cover': (5, 600),
+    '/api/admin-dashboard/recovery': (10, 600),
+    '/api/checkout-reminders/unsubscribe': (10, 600),
     '/api/admin-dashboard/request': (5, 600),
     '/api/admin-dashboard/verify': (15, 600),
     '/api/admin-dashboard/logout': (20, 600),
@@ -97,6 +104,8 @@ POST_LIMITS = {
     '/api/kashier/webhook': (180, 60),
 }
 GET_LIMITS = {
+    '/api/admin-dashboard/catalog': (30, 600),
+    '/api/admin-dashboard/recovery': (30, 600),
     '/api/admin-dashboard/session': (30, 600),
     '/api/admin-dashboard/report': (30, 600),
     '/api/order-help/status': (60, 600),
@@ -642,11 +651,11 @@ class Handler(BaseHTTPRequestHandler):
         host=self.headers.get('Host','').lower()
         return parsed.netloc.lower()==host and parsed.scheme in ('https','http')
 
-    def read_json(self):
+    def read_json(self, maximum=131_072):
         if self.headers.get_content_type()!='application/json':
             raise ValueError('Content-Type must be application/json')
         size=int(self.headers.get('Content-Length','0'))
-        if size<1 or size>131_072: raise ValueError('Invalid request size')
+        if size<1 or size>maximum: raise ValueError('Invalid request size')
         data=json.loads(self.rfile.read(size))
         if not isinstance(data,dict): raise ValueError('Invalid JSON object')
         return data
@@ -656,12 +665,14 @@ class Handler(BaseHTTPRequestHandler):
         if filename == 'admin-dashboard.html':
             version=hashlib.sha256((ROOT/'admin-dashboard.css').read_bytes()).hexdigest()[:12]
             source=source.replace('href="/admin-dashboard.css"','href="/admin-dashboard.css?v='+version+'"')
+        if filename == 'checkout-recovery.html':
+            source=source.replace('__RECOVERY_DATA__',seo.safe_json(self._recovery_data))
         if filename == 'checkout.html':
             books=[{'id':bid,'name':book['name'],'enName':book['enName'],
                     **{key:book[key] for key in ('fixedPrices','bundleEligible','previewEnabled') if key in book}}
-                   for bid,book in seo.BOOKS.items()]
+                   for bid,book in seo.current_books().items()]
             source=source.replace('__CHECKOUT_BOOKS__',seo.safe_json(books))
-        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js','admin-dashboard.js'):
+        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js','admin-dashboard.js','admin-store.js','checkout-recovery.js'):
             if 'src="/'+asset+'"' in source:
                 version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
                 source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
@@ -686,7 +697,7 @@ class Handler(BaseHTTPRequestHandler):
         self._ga4_enabled=bool(ga4_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','info.html','offers.html','success.html'))
         if self._ga4_enabled:
             version=hashlib.sha256((ROOT/'ga4-tracking.js').read_bytes()).hexdigest()[:12]
-            names={bid:book['name'] for bid,book in seo.BOOKS.items()}
+            names={bid:book['name'] for bid,book in seo.current_books().items()}
             names_attr=__import__('html').escape(json.dumps(names,ensure_ascii=False),quote=True)
             source=source.replace('</head>','<script src="/ga4-tracking.js?v='+version+'" data-ga4-id="'+ga4_id+'" data-ga4-catalog="'+names_attr+'"></script></head>',1)
         if owner_dashboard.enabled() and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','info.html','offers.html'):
@@ -704,7 +715,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store')
         for name,value in (extra_headers or {}).items():
             self.send_header(name,value)
-        if filename in ('checkout.html','pending.html','success.html','preview.html','paypal-return.html','order-help.html','admin-dashboard.html'):
+        if filename in ('checkout.html','pending.html','success.html','preview.html','paypal-return.html','order-help.html','admin-dashboard.html','checkout-recovery.html'):
             self.send_header('X-Robots-Tag','noindex, nofollow, noarchive')
         self.send_header('Content-Length',str(len(payload))); self.end_headers(); self.wfile.write(payload)
 
@@ -726,17 +737,45 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         route=urlparse(self.path).path
         try:
+            if route in ('/api/orders','/api/checkout-quote'):
+                with store_catalog.context():return self._do_POST()
+            return self._do_POST()
+        except Exception:
+            return self.respond(503,{'error':'تعذر قراءة إعدادات المتجر الآن. حاول مرة أخرى.'})
+
+    def _do_POST(self):
+        route=urlparse(self.path).path
+        try:
             if seo.review_mode():
                 return self.respond(503,{'ok':False,'error':'Read-only review environment'})
             if not self.enforce_rate_limit(route,'POST'): return
             if route == autoseo.ENDPOINT:
                 return self.autoseo_webhook()
-            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or route.startswith(('/api/order-help/','/api/admin-dashboard/','/api/store-insights/')) or
+            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or route.startswith(('/api/order-help/','/api/admin-dashboard/','/api/store-insights/','/api/checkout-reminders/')) or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
-            data=self.read_json()
+            if route=='/api/admin-dashboard/catalog/cover':
+                if not owner_dashboard.enabled() or not store_catalog.enabled() or not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):
+                    return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+            data=self.read_json(2_200_000 if route=='/api/admin-dashboard/catalog/cover' else 131_072)
+            if route=='/api/checkout-reminders/unsubscribe':
+                checkout_recovery.unsubscribe(data.get('token'))
+                return self.respond(200,{'ok':True})
             if route.startswith('/api/admin-dashboard/'):
                 if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
+                if route.startswith('/api/admin-dashboard/catalog/') or route=='/api/admin-dashboard/recovery':
+                    auth=owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash())
+                    if not auth:return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+                    if not store_catalog.enabled():return self.respond(503,{'error':'إدارة المتجر غير متاحة مؤقتًا.'})
+                    try:
+                        if route=='/api/admin-dashboard/catalog/cover':return self.respond(200,store_catalog.upload(data))
+                        if route=='/api/admin-dashboard/catalog/draft':return self.respond(200,store_catalog.save(auth,data))
+                        if route=='/api/admin-dashboard/catalog/publish':return self.respond(200,store_catalog.save(auth,data,publish=True))
+                        if route=='/api/admin-dashboard/recovery':return self.respond(200,checkout_recovery.admin(auth,data))
+                    except FileExistsError as exc:return self.respond(409,{'error':str(exc)})
+                    except ValueError as exc:return self.respond(400,{'error':str(exc)})
+                    except PermissionError:return self.respond(403,{'error':'انتهت جلسة الدخول.'})
+                    return self.respond(404,{'error':'Not found'})
                 if route=='/api/admin-dashboard/request':
                     challenge=owner_dashboard.login_request(data,self.client_id(),self.device_hash())
                     return self.respond(202,{'challenge':challenge})
@@ -857,6 +896,8 @@ class Handler(BaseHTTPRequestHandler):
                 headers={'Set-Cookie':f'__Host-tabo_rating_id={rating_id}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Strict; Priority=High'}
                 return self.respond(200,{'ok':True,'rating':rating,'stats':stats},headers)
             if route in ('/api/orders','/api/checkout-quote'):
+                if store_catalog.enabled() and data.get('catalogRevision')!=store_catalog.revision():
+                    return self.respond(409,{'ok':False,'code':'CATALOG_REFRESH_REQUIRED','error':'تغيرت الأسعار أو العروض. حدّث السلة وراجع الإجمالي قبل الدفع.'})
                 selected=data.get('paymentProvider') or payment_provider()
                 if selected not in (payment_provider(),'paypal'):
                     return self.respond(400,{'ok':False,'error':'Invalid payment provider'})
@@ -893,16 +934,20 @@ class Handler(BaseHTTPRequestHandler):
                     total=float(Decimal(pricing_quote['chargeTotal']))
                     currency='EGP'
                 checkout_secret=secrets.token_urlsafe(32)
-                order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':BOOKS[i][0]} for i in ids],
+                order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':seo.current_books()[i]['name']} for i in ids],
                        'total':total,'currency':currency,'country':country,'pricingQuote':pricing_quote,
                        'paymobMethodId':paymob_method_id,'paymentMode':paypal_checkout.mode() if using_paypal else payment_mode(),
                        'paymentMethod':'PayPal' if using_paypal else ('Kashier' if payment_provider()=='kashier' else 'Paymob'),
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
                        'token':None,'buyer':{**customer,'language':'en' if data.get('language')=='en' else 'ar',
-                                             'receiptRequested':order_receipts.enabled()},
+                                             'receiptRequested':order_receipts.enabled(),
+                                             'recoveryConsent':checkout_recovery.enabled() and data.get('recoveryConsent') is True},
                        'transactionId':None,'statusKey':secrets.token_hex(32),
                        'checkoutSessionHash':hash_secret(checkout_secret)}
                 store.insert(order)
+                if order['buyer']['recoveryConsent']:
+                    try:checkout_recovery.enroll(order['id'])
+                    except Exception:pass  # Consent remains durable for worker enrollment retries.
                 owner_dashboard.link_order_async(self.cookie(owner_dashboard.INSIGHT_COOKIE),self.device_hash(),order['id'])
                 try: link,provider_order_id=paypal_checkout.create(order) if using_paypal else payment_checkout(order,customer)
                 except Exception as exc:
@@ -1180,9 +1225,19 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(503, {'error': 'Blog temporarily unavailable'}, {'Retry-After': '30'})
 
     def do_GET(self):
+        route=urlparse(self.path).path
+        uses_catalog=(route in ('/','/index.html','/checkout','/checkout.html','/api/store-config','/offers','/categories','/authors') or route.startswith(('/books/','/offers/','/categories/','/authors/','/catalog-covers/')))
+        try:
+            if uses_catalog:
+                with store_catalog.context():return self._do_GET()
+            return self._do_GET()
+        except Exception:
+            return self.respond(503,{'error':'تعذر قراءة إعدادات المتجر الآن. حاول مرة أخرى.'})
+
+    def _do_GET(self):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if seo.review_mode() and route=='/api/book-stats':
-            return self.respond(200,{key:{'rating':None,'reviews':0,'downloads':0,'pageCount':value.get('pageCount')} for key,value in seo.BOOKS.items()})
+            return self.respond(200,{key:{'rating':None,'reviews':0,'downloads':0,'pageCount':value.get('pageCount')} for key,value in seo.current_books().items()})
         if seo.review_mode() and route.startswith('/api/') and route not in ('/api/config','/api/store-config','/api/book-comments'):
             return self.respond(503,{'ok':False,'error':'Read-only review environment'})
         if seo.review_mode() and route.startswith('/previews/'):
@@ -1190,7 +1245,26 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(503 if catalog.preview_enabled(book_id) else 404,
                                 {'ok':False,'error':'Preview originals are not connected to the review environment'})
         if not self.enforce_rate_limit(route,'GET'): return
+        if route in ('/resume-checkout','/stop-reminders'):
+            if not checkout_recovery.enabled():return self.respond(404,{'error':'Not found'})
+            if route=='/stop-reminders':self._recovery_data={'mode':'unsubscribe','token':token if checkout_recovery.TOKEN.fullmatch(token) else ''}
+            else:
+                value=checkout_recovery.cart(token)
+                with store_catalog.context():
+                    self._recovery_data={'mode':'cart','cart':value,'names':{bid:b['name'] for bid,b in seo.current_books().items()}}
+            return self.html('checkout-recovery.html')
+        if route=='/checkout-recovery.js':return self.asset('checkout-recovery.js','text/javascript; charset=utf-8')
+        if route=='/admin-store.js':return self.asset('admin-store.js','text/javascript; charset=utf-8')
+        image=re.fullmatch(r'/catalog-covers/([a-f0-9]{64})\.webp',route)
+        private_image=re.fullmatch(r'/api/admin-dashboard/cover/([a-f0-9]{64})',route)
+        if image or private_image:
+            if not store_catalog.enabled():return self.respond(404,{'error':'Not found'})
+            if private_image and not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+            payload=store_catalog.cover((image or private_image).group(1),private=bool(private_image))
+            if payload is None:return self.respond(404,{'error':'Not found'})
+            self.send_response(200);self.send_header('Content-Type','image/webp');self.send_header('Cache-Control','private, no-store' if private_image else 'public, max-age=31536000, immutable');self.send_header('Content-Length',str(len(payload)));self.end_headers();return self.wfile.write(payload)
         if route in ('/admin','/admin/'):
+
             return self.html('admin-dashboard.html')
         if route=='/admin-dashboard.js':return self.asset('admin-dashboard.js','text/javascript; charset=utf-8')
         if route=='/admin-dashboard.css':return self.asset('admin-dashboard.css','text/css; charset=utf-8')
@@ -1198,6 +1272,11 @@ class Handler(BaseHTTPRequestHandler):
         if route.startswith('/api/admin-dashboard/'):
             if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
             try:
+                if route in ('/api/admin-dashboard/catalog','/api/admin-dashboard/recovery'):
+                    auth=owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash())
+                    if not auth:return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+                    if not store_catalog.enabled():return self.respond(503,{'error':'إدارة المتجر غير متاحة مؤقتًا.'})
+                    return self.respond(200,store_catalog.read(auth) if route.endswith('/catalog') else checkout_recovery.admin(auth))
                 if route=='/api/admin-dashboard/session':
                     if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):return self.respond(403,{'error':'سجّل الدخول أولًا.'})
                     return self.respond(200,{'ok':True})
@@ -1343,6 +1422,8 @@ class Handler(BaseHTTPRequestHandler):
             config['checkoutSupported']=payment_currency_supported(config['currency'])
             config['paypalAvailable']=paypal_ready(config['currency'])
             config['receiptEmailEnabled']=order_receipts.enabled()
+            config['catalogRevision']=store_catalog.revision()
+            config['recoveryEmailEnabled']=checkout_recovery.enabled() and store_catalog.reminders_enabled()
             config['paymentProvider']=payment_provider()
             config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']
             return self.respond(200,config)
@@ -1402,6 +1483,7 @@ if __name__=='__main__':
     order_receipts.start_worker()
     order_help.start_worker()
     owner_dashboard.start_pruner()
+    checkout_recovery.start_worker()
     ThreadingHTTPServer((host,port),Handler).serve_forever()
 
 

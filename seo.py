@@ -22,6 +22,10 @@ AUTHOR_BIO = {
     'en': 'TABO NOOR writes about awareness, personal growth, money, ambition and understanding human nature. His books explore behavior, relationships, choice and responsibility, connecting reflection with practical action.'}
 
 
+def current_books():
+    return catalog.store_catalog.book_data(BOOKS)
+
+
 def review_mode():
     return os.environ.get('TABO_SITE_ENV', 'production') != 'production'
 
@@ -56,11 +60,11 @@ def paragraphs(value):
 
 def categories_for(book_id):
     matches = [(key, cat) for key, cat in CATEGORIES.items() if book_id in cat['books']]
-    return sorted(matches, key=lambda item: item[0] != BOOKS[book_id].get('primaryCategory'))
+    return sorted(matches, key=lambda item: item[0] != current_books()[book_id].get('primaryCategory'))
 
 
 def book_card(book_id, language='ar', home=False, position=0):
-    book = BOOKS[book_id]
+    book = current_books()[book_id]
     name = book_name(book, language)
     image = book['image']
     loading = 'eager' if position < 2 else 'lazy'
@@ -81,11 +85,11 @@ def crumbs(items, language):
 
 def related(book_id):
     # Editorial relations are explicit: a shared category alone is not enough.
-    return BOOKS[book_id]['related']
+    return current_books()[book_id]['related']
 
 
 def book_extra(book_id, language):
-    book = BOOKS[book_id]
+    book = current_books()[book_id]
     ar = language == 'ar'
     section = '<section class="section"><h2>' + ('لمن يناسب الكتاب؟' if ar else 'Who is this book for?') + '</h2>' + paragraphs(book['audience'][language])
     section += '<h2>' + ('موضوعات يناقشها الكتاب' if ar else 'Topics explored') + '</h2><ul>' + ''.join('<li>' + escape(s) + '</li>' for s in book['topics'][language]) + '</ul></section>'
@@ -100,7 +104,7 @@ def book_extra(book_id, language):
     section += '<section class="section"><h2>' + ('أسئلة عن الكتاب' if ar else 'Questions about this book') + '</h2>'
     section += ''.join('<details><summary>' + escape(q) + '</summary><p>' + escape(a) + '</p></details>' for q, a in book['faq'][language]) + '</section>'
     section += '<section class="section"><h2>' + ('كتب مرتبطة بالموضوع' if ar else 'Related reading') + '</h2>' + book_list(related(book_id), language) + '</section>'
-    for offer_id, offer in catalog.OFFERS.items():
+    for offer_id, offer in catalog.current_offers().items():
         if offer.get('fixedPriceBundle') and book_id in offer['books']:
             section += '<section class="section"><h2>' + ('عرض كتابَي السيجما' if ar else 'Sigma pair offer') + '</h2>' + paragraphs(offer['description'][language]) + link('/offers/' + offer_id, 'عرض الباقة والكتابين' if ar else 'View the pack and both books') + '</section>'
     section += '<nav class="seo-categories" aria-label="' + ('أقسام الكتاب' if ar else 'Book categories') + '">' + ''.join(link('/categories/' + key, cat[language]) for key, cat in categories_for(book_id)) + '</nav>'
@@ -108,10 +112,10 @@ def book_extra(book_id, language):
 
 
 def offer_card(offer_id, language='ar', home=False):
-    offer = catalog.OFFERS[offer_id]
+    offer = catalog.current_offers()[offer_id]
     ar = language == 'ar'
-    names = ''.join('<li>' + link('/books/'+bid,book_name(BOOKS[bid],language)).replace('<a ', '<a data-offer-book-name="'+bid+'" ',1) + '</li>' for bid in offer['books'])
-    images = ''.join('<img src="'+BOOKS[bid]['image']+'" alt="'+escape(book_name(BOOKS[bid],language))+'" width="'+str(BOOKS[bid]['imageWidth'])+'" height="'+str(BOOKS[bid]['imageHeight'])+'" loading="lazy" decoding="async">' for bid in offer['books'])
+    names = ''.join('<li>' + link('/books/'+bid,book_name(current_books()[bid],language)).replace('<a ', '<a data-offer-book-name="'+bid+'" ',1) + '</li>' for bid in offer['books'])
+    images = ''.join('<img src="'+current_books()[bid]['image']+'" alt="'+escape(book_name(current_books()[bid],language))+'" width="'+str(current_books()[bid]['imageWidth'])+'" height="'+str(current_books()[bid]['imageHeight'])+'" loading="lazy" decoding="async">' for bid in offer['books'])
     action = ('<button type="button" data-add-offer="'+offer_id+'"' if home else '<a data-offer-buy href="/?offer='+offer_id+'&amp;cart=1"') + ' class="offer-button" data-offer-button-label>' + ('أضف الباقة للسلة' if ar else 'Add pack to cart') + ('</button>' if home else '</a>')
     heading = 'h3' if home else 'h2'
     prices = ' / '.join((str(value)+' جنيه' if currency=='EGP' and ar else 'EGP '+str(value) if currency=='EGP' else '$'+str(value)) for currency,value in offer['prices'].items())
@@ -120,7 +124,7 @@ def offer_card(offer_id, language='ar', home=False):
 
 
 def offers_section(language='ar', home=False):
-    return '<section class="curated-offers" id="curatedOffers"><h2 data-offer-section-title>'+('باقات كتب مختارة' if language=='ar' else 'Curated book packs')+'</h2><div class="curated-offer-grid">'+''.join(offer_card(key,language,home) for key in catalog.OFFERS)+'</div></section>'
+    return '<section class="curated-offers" id="curatedOffers"><h2 data-offer-section-title>'+('باقات كتب مختارة' if language=='ar' else 'Curated book packs')+'</h2><div class="curated-offer-grid">'+''.join(offer_card(key,language,home) for key in catalog.current_offers())+'</div></section>'
 
 
 def listed_articles(include_drafts=False):
@@ -130,7 +134,7 @@ def listed_articles(include_drafts=False):
 def public_paths():
     paths = ['/'] + ['/books/' + book_id for book_id in catalog.BOOKS]
     paths += ['/' + key for key in PAGES] + ['/categories', '/authors/tabo-noor']
-    paths += ['/offers'] + ['/offers/' + key for key in catalog.OFFERS]
+    paths += ['/offers'] + ['/offers/' + key for key in catalog.current_offers()]
     paths += ['/categories/' + key for key, cat in CATEGORIES.items() if cat['books']]
     articles = listed_articles()
     if articles:
@@ -163,7 +167,7 @@ def graph(path, title, description, image, trail, book_id=None):
             {'@type': 'ListItem', 'position': i + 1, 'name': name, 'item': ORIGIN + (url or path)} for i, (url, name) in enumerate(trail)]})
         nodes[3]['breadcrumb'] = {'@id': ORIGIN + path + '#breadcrumb'}
     if book_id:
-        book = BOOKS[book_id]
+        book = current_books()[book_id]
         node = {'@type': 'Book', '@id': ORIGIN + path + '#book', 'name': book['name'], 'alternateName': book['enName'], 'url': ORIGIN + path,
                 'description': book['short'], 'image': ORIGIN + image, 'author': {'@id': author_id}, 'publisher': {'@id': org_id},
                 'bookFormat': 'https://schema.org/EBook', 'inLanguage': 'ar', 'encodingFormat': 'application/pdf', 'isAccessibleForFree': False}
@@ -194,7 +198,7 @@ def page_data(path, include_drafts=False):
             description = 'اكتشف كتب تابو نور العربية في تطوير الذات والمال وفهم السلوك والعلاقات. تصفح نبذات الكتب والأقسام، واختر نسختك الرقمية بصيغة PDF.' if ar else 'Discover original Arabic PDF books by TABO NOOR on personal growth, money, behavior and relationships. Explore book descriptions and subject collections.'
             body = '<nav class="seo-category-links" aria-label="' + ('تصفح الأقسام' if ar else 'Browse categories') + '">' + ''.join(link('/categories/' + key, cat[language]) for key, cat in CATEGORIES.items() if cat['books']) + '</nav>'
         elif book_id:
-            book = BOOKS[book_id]
+            book = current_books()[book_id]
             name = book_name(book, language)
             title = name + (' — كتاب تابو نور PDF | TABO BOOKS' if ar else ' — Arabic PDF by TABO NOOR | TABO BOOKS')
             description = text(book, 'short', language)
@@ -208,11 +212,11 @@ def page_data(path, include_drafts=False):
             trail += [(None,title)]
             body = paragraphs(description) + offers_section(language)
             body += paragraphs('يُطبق سعر الباقة عند اكتمال كتبها في السلة وفي العملة المحددة للعرض، ويُختار أقل إجمالي مستحق عند جمع العروض. حذف كتاب قد يغيّر العرض المستحق. كتابا السيجما خارج خصومات العدد، ولهما باقة مستقلة بالدولار فقط.' if ar else 'A pack price applies when all its books are in the cart and the offer supports the current currency. The lowest eligible total is used when packs are combined. Removing a book may change eligibility. The Sigma books do not count toward quantity discounts and have a dedicated USD-only pack.')
-        elif path.startswith('/offers/') and path.rsplit('/',1)[-1] in catalog.OFFERS:
+        elif path.startswith('/offers/') and path.rsplit('/',1)[-1] in catalog.current_offers():
             key = path.rsplit('/',1)[-1]
-            offer = catalog.OFFERS[key]
+            offer = catalog.current_offers()[key]
             title,description = offer['title'][language],offer['description'][language]
-            image = BOOKS[offer['books'][0]]['image']
+            image = current_books()[offer['books'][0]]['image']
             trail += [('/offers','عروض الباقات' if ar else 'Book pack offers'),(None,title)]
             body = offer_card(key,language) + '<h2>'+('الكتب المشمولة في الباقة' if ar else 'Books included in this pack')+'</h2>'+book_list(offer['books'],language)
             body += '<section class="seo-section"><h2>'+('كيف تحصل على العرض؟' if ar else 'How does the offer work?')+'</h2>'+paragraphs('اضغط «أضف الباقة للسلة» لإضافة الكتب المحددة دون تكرار كتب موجودة بالفعل. يُحسب أقل سعر مستحق تلقائيًا. إذا حذفت كتابًا من الباقة يُعاد حساب الإجمالي والعروض المتاحة. الكتب باللغة العربية وبصيغة PDF، وتظهر روابطها في طلبك بعد إتمام الدفع وفق سياسة المتجر.' if ar else 'Add the pack to your cart to add its selected books without duplicating titles already there. The lowest eligible total is calculated automatically. Removing a book recalculates the available offers. These are Arabic PDF books; access follows the store delivery policy after successful payment.')+'</section>'
@@ -262,7 +266,7 @@ def page_data(path, include_drafts=False):
         if path != '/' and not book_id:
             title += ' | TABO BOOKS'
         result[language] = {'title': title, 'description': description, 'image': ORIGIN + image, 'body': body,
-                            'extra': extra, 'trail':trail, 'breadcrumb': crumbs(trail, language), 'heading': (book_name(BOOKS[book_id], language) if book_id else title.removesuffix(' | TABO BOOKS'))}
+                            'extra': extra, 'trail':trail, 'breadcrumb': crumbs(trail, language), 'heading': (book_name(current_books()[book_id], language) if book_id else title.removesuffix(' | TABO BOOKS'))}
     result['graph'] = graph(path, result['ar']['title'], result['ar']['description'], result['ar']['image'].removeprefix(ORIGIN),
                             result['ar']['trail'], book_id)
     result['canonical'] = ORIGIN + path
@@ -290,8 +294,8 @@ def render(source, path, host, filename):
     head += '<link rel="stylesheet" href="/seo.css?v=' + ASSET_VERSIONS['seo.css'] + '">\n<script type="application/ld+json" id="seo-graph">' + safe_json(data['graph']) + '</script>\n'
     head += '<script type="application/json" id="seo-data">' + safe_json(data) + '</script>\n<script src="/seo.js?v=' + ASSET_VERSIONS['seo.js'] + '"></script>\n'
     if filename in ('index.html','offers.html'):
-        names = {bid:{'ar':book['name'],'en':book['enName']} for bid,book in BOOKS.items()}
-        code = 'var TABO_CURATED_OFFERS='+safe_json(catalog.OFFERS)+';var TABO_OFFER_BOOK_NAMES='+safe_json(names)+';\n'
+        names = {bid:{'ar':book['name'],'en':book['enName']} for bid,book in current_books().items()}
+        code = 'var TABO_CURATED_OFFERS='+safe_json(catalog.current_offers())+';var TABO_OFFER_BOOK_NAMES='+safe_json(names)+';\n'
         code += (ROOT/'offer-pricing.js').read_text()+'\n'+(ROOT/'offer-ui.js').read_text()
         head += '<script id="curated-offer-code">'+code+'</script>\n'
     source = source.replace('</head>', head + '</head>', 1)
@@ -301,27 +305,27 @@ def render(source, path, host, filename):
     if filename == 'index.html':
         home_books = [{'id':key,'name':book['name'],'image':book['image'],'imageWidth':book['imageWidth'],'imageHeight':book['imageHeight'],
                        'shortDescription':book['short'],'about':book['about'],'adds':book['adds'],'idea':book['idea'],
-                       **{field:book[field] for field in ('fixedPrices','bundleEligible','previewEnabled') if field in book}} for key,book in BOOKS.items()]
-        translations = {key:{'name':book['enName'],'shortDescription':book['enShort'],'about':book['enAbout'],'adds':book['enAdds'],'idea':book['enIdea']} for key,book in BOOKS.items()}
+                       **{field:book[field] for field in ('fixedPrices','bundleEligible','previewEnabled') if field in book}} for key,book in current_books().items()]
+        translations = {key:{'name':book['enName'],'shortDescription':book['enShort'],'about':book['enAbout'],'adds':book['enAdds'],'idea':book['enIdea']} for key,book in current_books().items()}
         source = source.replace('const BOOKS = []; /* SSR_HOME_BOOKS */','const BOOKS = ' + safe_json(home_books) + ';')
         source = source.replace('const BOOK_TRANSLATIONS = {}; /* SSR_HOME_TRANSLATIONS */','const BOOK_TRANSLATIONS = ' + safe_json(translations) + ';')
         categories = [{'id':'all','ar':'كل الكتب','en':'All books'}] + [{'id':key,'ar':cat['ar'],'en':cat['en'],'books':cat['books']} for key,cat in CATEGORIES.items()]
         categories += [{'id':'novels','ar':'روايات','en':'Novels','books':[]},{'id':'articles','ar':'مقالات','en':'Articles','books':[]}]
         source = source.replace('const BOOK_CATEGORIES = []; /* SSR_CATEGORIES */','const BOOK_CATEGORIES = ' + safe_json(categories) + ';')
         grid = re.compile(r'(<div\s+class="books-grid"\s+id="booksGrid"\s*>)[\s\S]*?</div>')
-        cards = ''.join(book_card(key, home=True, position=i) for i, key in enumerate(catalog.BOOKS))
+        cards = ''.join(book_card(key, home=True, position=i) for i, key in enumerate(current_books()))
         source = grid.sub(lambda m: m[1] + cards + '</div>', source, count=1)
         source = source.replace('<section class="book-panorama"', offers_section(home=True)+'<section class="book-panorama"',1)
         source = source.replace('<section class="book-panorama"', '<div id="seo-body" class="seo-home-nav">' + ar['body'] + '</div><section class="book-panorama"', 1)
     elif filename == 'book.html':
         book_id = path.rsplit('/', 1)[-1]
-        book = BOOKS[book_id]
+        book = current_books()[book_id]
         for key, value in {'title': book['name'], 'short': book['short'], 'about': book['about'], 'adds': book['adds'], 'idea': book['idea'], 'author': AUTHOR_BIO['ar']}.items():
             source = replace_id(source, key, escape(value))
         source = source.replace('id="cover" alt=""', 'id="cover" src="' + book['image'] + '" alt="غلاف كتاب ' + escape(book['name']) + '" width="' + str(book['imageWidth']) + '" height="' + str(book['imageHeight']) + '" fetchpriority="high"')
         source = source.replace('<article class="product">', '<div id="seo-breadcrumb">' + ar['breadcrumb'] + '</div><article class="product">', 1)
         source = source.replace('</main>', '<p class="seo-author-link">' + link('/authors/tabo-noor', 'كتب تابو نور ونبذة عن المؤلف') + '</p><div id="seo-extra">' + ar['extra'] + '</div></main>', 1)
-        source = source.replace('const BOOKS={}; /* SSR_BOOKS */', 'const BOOKS=' + safe_json(BOOKS) + ';')
+        source = source.replace('const BOOKS={}; /* SSR_BOOKS */', 'const BOOKS=' + safe_json(current_books()) + ';')
         source = source.replace('const id=""; /* SSR_BOOK_ID */', 'const id=' + safe_json(book_id) + ';')
         if book.get('pageCount'):
             source = replace_id(source, 'pages', str(book['pageCount']))

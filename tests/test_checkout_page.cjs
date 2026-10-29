@@ -6,7 +6,7 @@ const fixtures=JSON.parse(execFileSync('python3',['-c',`import json,catalog,loca
 print(json.dumps({'books':[{'id':key,**{k:b[k] for k in ('name','enName','fixedPrices','bundleEligible','previewEnabled') if k in b}} for key,b in seo.BOOKS.items()], 'usd':localization.pricing_for_country(catalog.PRICES,'KW'),'egp':localization.pricing_for_country(catalog.PRICES,'EG')}))`],{encoding:'utf8'}));
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function node(){return {textContent:'',hidden:false,disabled:false,value:'',style:{},attributes:{},parentElement:{},classList:{toggle(){},add(){}},events:{},setAttribute(key,value){this.attributes[key]=value;},focus(){this.focused=true;},addEventListener(name,callback){this.events[name]=callback;}};}
-async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}])){
+async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}]),reminders=false){
  const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(match=>[match[1],node()]));
  nodes['checkout-catalog'].textContent=JSON.stringify(fixtures.books);
  nodes.checkoutName.value='Synthetic Buyer';nodes.checkoutEmail.value='fixture@example.invalid';nodes.checkoutPhone.value='01000000000';
@@ -21,7 +21,7 @@ async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}])){
   calls.push({url,options});
   if(url.startsWith('/api/store-config')){
    const egp=new URL(url,c.location.origin).searchParams.get('country')==='EG';
-   return {ok:true,json:async()=>({...fixtures[egp?'egp':'usd'],checkoutEnabled:true,checkoutSupported:true,paymentProvider:'kashier',paypalAvailable:!egp})};
+   return {ok:true,json:async()=>({...fixtures[egp?'egp':'usd'],checkoutEnabled:true,checkoutSupported:true,paymentProvider:'kashier',paypalAvailable:!egp,recoveryEmailEnabled:reminders})};
   }
   if(url==='/api/checkout-quote')return {ok:true,json:async()=>({ok:true,quote:{displayCurrency:'USD',displayTotal:'20.00',chargeCurrency:'EGP',chargeTotal:'1122.32',expiresAt:Date.now()/1000+300,token:'synthetic-quote'}})};
   if(url==='/api/orders'){
@@ -52,6 +52,13 @@ async function pendingCase(status,ready,activationFails=false){
  assert(calls.some(call=>call.url==='/api/download-session'&&call.options.method==='POST'));
 }
 (async()=>{
+ for(const consent of [false,true]){
+  const r=await boot(undefined,true);r.nodes.recoveryConsent.checked=consent;
+  await r.nodes.paypalCheckoutBtn.events.click();await flush();await flush();
+  const payload=JSON.parse(r.calls.find(x=>x.url==='/api/orders').options.body);
+  assert.equal(payload.recoveryConsent,consent);
+ }
+
  {
   const {nodes,calls}=await boot();
   nodes.checkoutPhone.value='٠٠٩٦٦ (٥٠) ١٢٣-٤٥٦٧';nodes.checkoutPhone.events.blur({target:nodes.checkoutPhone});

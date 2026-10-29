@@ -1,6 +1,7 @@
 """Authoritative book catalog, preview policy and independent-price checkout."""
 from decimal import Decimal
 import json
+import store_catalog
 from pathlib import Path
 
 BOOKS = {'book1': ('هرمون', 'book1.pdf'),
@@ -60,21 +61,31 @@ for _offer in OFFERS.values():
         raise ValueError('Invalid curated offer')
 
 
+def current_offers():
+    offers=store_catalog.document().get('offers',OFFERS)
+    return {key:value for key,value in offers.items() if value.get('active',True)}
+
+
+def current_fixed_prices():
+    return {**FIXED_PRICES,**store_catalog.document().get('independentPrices',{})}
+
+
 def preview_enabled(book_id):
     return book_id in BOOKS and book_id not in PREVIEW_DISABLED
 
 
 def public_policies(currency, ordinary_price):
+    fixed=current_fixed_prices()
     return {book_id: {
-        'price': FIXED_PRICES[book_id][currency] if book_id in FIXED_PRICES else ordinary_price,
-        'bundleEligible': book_id not in FIXED_PRICES,
+        'price': fixed[book_id][currency] if book_id in fixed else ordinary_price,
+        'bundleEligible': book_id not in fixed,
         'previewEnabled': preview_enabled(book_id),
     } for book_id in BOOKS}
 
 
 def public_offers(currency):
     return [{'id':key,'books':offer['books'],'price':offer['prices'][currency],
-             'title':offer['title']} for key,offer in OFFERS.items() if currency in offer['prices']]
+             'title':offer['title']} for key,offer in current_offers().items() if currency in offer['prices']]
 
 
 def pricing_breakdown(ids, price_config):
@@ -86,17 +97,18 @@ def pricing_breakdown(ids, price_config):
     """
     if len(set(ids)) != len(ids) or any(book_id not in BOOKS for book_id in ids):
         raise ValueError('Invalid or duplicate book')
-    ordinary = set(ids) - set(FIXED_PRICES)
+    fixed_prices=current_fixed_prices()
+    ordinary = set(ids) - set(fixed_prices)
     currency = price_config['currency']
     def regular(count):
         return Decimal(str(price_config['prices'][str(count)])) if count else Decimal(0)
     def remainder(used):
-        fixed = sum((Decimal(str(FIXED_PRICES[b][currency])) for b in ids
-                     if b in FIXED_PRICES and b not in used), Decimal(0))
+        fixed = sum((Decimal(str(fixed_prices[b][currency])) for b in ids
+                     if b in fixed_prices and b not in used), Decimal(0))
         return regular(len(ordinary - used)) + fixed
     baseline = remainder(set())
     best, applied = baseline, []
-    eligible = [(key,offer) for key,offer in OFFERS.items()
+    eligible = [(key,offer) for key,offer in current_offers().items()
                 if currency in offer['prices'] and set(offer['books']) <= set(ids)]
     for mask in range(1, 1 << len(eligible)):
         used, selected, cost = set(), [], Decimal(0)

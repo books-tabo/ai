@@ -35,6 +35,9 @@ function applyCopy(){
     renderCountryOptions();updateCart();
 }
 function renderEmailHelp(){
+    const recovery=document.getElementById('recoveryConsentWrap');
+    if(recovery){recovery.hidden=storeConfig.recoveryEmailEnabled!==true;document.getElementById('recoveryConsentLabel').textContent=currentLanguage==='ar'?'ذكّرني برسالة بريد واحدة إذا لم أكمل الدفع خلال ساعة. يمكنني إيقاف التذكير من الرسالة.':'Send me one email reminder if I do not complete payment within an hour. I can unsubscribe from the email.';}
+
     document.getElementById('checkoutEmailHelp').textContent=storeConfig.receiptEmailEnabled===true?(currentLanguage==='ar'?'سنرسل تأكيد الشراء ورابط الرجوع لطلبك إلى هذا البريد.':'We will send your purchase confirmation and order link to this email.'):(currentLanguage==='ar'?'راجع البريد لسهولة التواصل بخصوص طلبك.':'Check your email address so we can help with your order.');
 }
 async function loadStoreConfig(country=browserCountryHint()){
