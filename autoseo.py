@@ -533,8 +533,8 @@ def render_post(row, host, related=()):
 
 
 def render_index(rows, page, host):
-    title = 'مقالات القراءة والمال وتطوير الذات' + (' — الصفحة ' + str(page) if page > 1 else '')
-    description = 'اقرأ مقالات TABO BOOKS عن اختيار الكتب والثقافة المالية والتعلم وتطوير الذات، واستكشف قراءات مرتبطة تساعدك على مواصلة التعلم.'
+    title = 'مقالات الكتب والثقافة المالية' + (' — الصفحة ' + str(page) if page > 1 else '')
+    description = 'اقرأ مقالات TABO BOOKS عن اختيار الكتب والمال والأعمال والثقافة المالية، واستكشف قراءات مرتبطة تساعدك على مواصلة التعلم.'
     canonical = origin() + '/blog' + ('?page=' + str(page) if page > 1 else '')
     body, breadcrumb = breadcrumbs(canonical, title)
     body += '<h1>' + title + '</h1><p class="blog-intro">' + description + '</p>'
