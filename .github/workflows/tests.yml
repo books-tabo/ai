@@ -27,6 +27,7 @@ jobs:
       - run: python -m ruff check --select E9,F63,F7,F82 .
       - run: python tools/prepare_editorial_batch.py --output /tmp/tabo-editorial-checked.json
       - run: python tools/prepare_editorial_batch.py --manifest batch-two.json --output /tmp/tabo-editorial-batch-two-checked.json
+      - run: python tools/prepare_reference_resources.py --output /tmp/tabo-reference-resources-checked.json
       - run: python -m unittest discover -s tests -v
       - run: node tests/test_meta_tracking.cjs
       - run: node tests/test_store_admin.cjs

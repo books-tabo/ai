@@ -1,5 +1,9 @@
 # TABO BOOKS backend review
 
+Public storefront: [TABO BOOKS](https://tabobooks.com/). Original reusable
+[Arabic worksheets](content/resources/README.md) include incentive review,
+learning-project planning, and service scoping, with links to the published originals.
+
 These notes describe the original PR #1 safety review. That review used **`TABO_CHECKOUT_ENABLED=0`** and did not authorize production operations. Subsequent store/payment activation and the 2026-10-19 Meta tracking installation were separately requested by the owner. The example and CI configurations still keep checkout off; this tracking change does not modify payment environment variables, prices, previews, or book contents. The connected Render branch has auto-deploy off, so a code update alone does not deploy it.
 
 ## Independent catalog pricing
