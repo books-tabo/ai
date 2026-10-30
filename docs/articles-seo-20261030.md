@@ -75,3 +75,18 @@ maintenance. Publishing additional pages alone is not proof of useful content.
 
 These changes improve discoverability and page understanding. They do not imply
 an indexing deadline, rich-result eligibility or a ranking guarantee.
+
+## Availability follow-up
+
+After the first deployment, the public audit checked 50 paths, including all 21
+books and four articles. All final responses passed, but two public HTML requests
+initially returned 503 and succeeded on one retry. Catalog refresh contention is
+a reproducible cause: readers wait only 200 ms for the shared refresh lock.
+
+Public HTML can now reuse a recently validated catalog snapshot during another
+request's refresh. The allowance expires after 30 seconds, keeps the document and
+revision paired, and cannot reuse an invalidated or missing cache. Cold starts
+without a validated snapshot still fail closed. Checkout, store-config, pricing,
+orders and cover authorization retain strict reads. This changes no payment
+decision or paid-download entitlement. Two additional tests cover HTTP behavior,
+strict-read isolation, age limits and cache invalidation.
