@@ -260,6 +260,21 @@ class AutoSEOHTTPTests(HTTPCase):
                 patch.object(autoseo.seo.catalog.store_catalog, 'published', side_effect=RuntimeError('synthetic outage')):
             self.assertEqual(self.get('/blog/example-article')[0], 200)
 
+    def test_explicit_editorial_book_wins_over_title_keywords_and_pins_related_articles(self):
+        self.post(autoseo.ENDPOINT, article(title='تعلم اتخاذ القرارات'), AUTH)
+        self.post(autoseo.ENDPOINT, article(id=124, slug='same-book', title='اختبار قرار'), AUTH)
+        self.post(autoseo.ENDPOINT, article(id=125, slug='different-book', title='التعلم الذاتي'), AUTH)
+        self.rows[123]['post']['editorial_book_id']='book9'
+        self.rows[124]['post']['editorial_book_id']='book9'
+        self.rows[125]['post']['editorial_book_id']='book19'
+        page=Page(self.get('/blog/example-article')[2].decode())
+        self.assertIn('/books/book9',page.anchors)
+        self.assertNotIn('/books/book19',page.anchors)
+        self.assertIn('https://tabobooks.com/blog/same-book',page.anchors)
+        self.assertNotIn('https://tabobooks.com/blog/different-book',page.anchors)
+        self.assertEqual(autoseo.editorial_book({'editorial_book_id':'book18'}),'book18')
+        self.assertIsNone(autoseo.editorial_book({'editorial_book_id':'book999'}))
+
     def test_blog_index_pagination_metadata_and_drawer_link_are_crawlable(self):
         for identifier in range(1, 23):
             self.post(autoseo.ENDPOINT, article(id=identifier, slug='post-' + str(identifier)), AUTH)
