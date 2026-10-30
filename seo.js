@@ -20,6 +20,7 @@
         ['meta[property="og:locale"]', language === 'en' ? 'en_US' : 'ar_AR']
       ]) document.querySelector(selector)?.setAttribute('content', value);
       document.querySelectorAll('[data-offers-label]').forEach(target => { target.textContent = language === 'en' ? 'Book pack offers' : 'عروض الباقات'; });
+      document.querySelectorAll('[data-seo-label="blog"]').forEach(target => { target.textContent = language === 'en' ? 'Articles' : 'المقالات'; });
       if (language === renderedLanguage) return;
       for (const [id, value] of [['seo-breadcrumb', copy.breadcrumb], ['seo-extra', copy.extra], ['seo-body', copy.body]]) {
         const target = document.getElementById(id);

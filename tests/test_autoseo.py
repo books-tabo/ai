@@ -7,6 +7,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -16,6 +17,7 @@ from urllib.request import Request
 from PIL import Image
 import autoseo
 from support import HTTPCase
+from tools.audit_seo import Page
 
 SECRET = 'synthetic-autoseo-token-for-tests-only'
 AUTH = {'Authorization': 'Bearer ' + SECRET}
@@ -211,6 +213,79 @@ class AutoSEOHTTPTests(HTTPCase):
         self.assertNotIn('/blog/post-2"', first)
         self.assertIn('/blog/post-2"', second)
         self.assertIn('/blog/post-1"', second)
+
+    def test_existing_toc_targets_and_duplicate_headings_are_repaired_without_republishing(self):
+        content = '<a href="https://tabobooks.com/blog/example-article#1-أساسيات-التمويل">انتقل</a>'
+        content += '<a href="https://other.example/post#1-أساسيات-التمويل">مصدر آخر</a>'
+        content += '<h2>1. أسَاسيات <strong>التمويل</strong></h2><p>نص</p><h2>1. أسَاسيات التمويل</h2>'
+        self.post(autoseo.ENDPOINT, article(content_html=content), AUTH)
+        stored = copy.deepcopy(self.rows[123])
+        source = self.get('/blog/example-article')[2].decode()
+        target = re.search(r'href="#([^"]+)"', source)[1]
+        self.assertIn('id="' + target + '"', source)
+        self.assertIn('id="' + target + '-2"', source)
+        self.assertIn('https://other.example/post#1-أساسيات-التمويل', source)
+        self.assertEqual(self.rows[123], stored)
+
+    def test_article_navigation_dates_and_schema_describe_visible_public_content(self):
+        self.post(autoseo.ENDPOINT, article(title='كتب إدارة المال', updatedAt='2026-10-27T12:00:00Z'), AUTH)
+        self.post(autoseo.ENDPOINT, article(id=124, slug='money-reading', title='الثقافة المالية'), AUTH)
+        self.post(autoseo.ENDPOINT, article(id=125, slug='learning', title='مهارة جديدة'), AUTH)
+        status, _, payload = self.get('/blog/example-article?utm_source=synthetic')
+        source = payload.decode()
+        page = Page(source)
+        self.assertEqual(status, 200)
+        self.assertIn('/books/book4', page.anchors)
+        self.assertIn('/categories/business', page.anchors)
+        self.assertIn('https://tabobooks.com/blog/money-reading', page.anchors)
+        self.assertNotIn('https://tabobooks.com/blog/learning', page.anchors)
+        self.assertIn('/about', page.anchors)
+        self.assertIn('2026-10-27', source)
+        self.assertIn('آخر تحديث', source)
+        self.assertEqual(page.meta['og:type'], 'article')
+        graph = page.graphs[0]['@graph']
+        posting = next(n for n in graph if n['@type'] == 'BlogPosting')
+        self.assertEqual(posting['dateModified'], self.rows[123]['updated_at'])
+        self.assertNotIn('author', posting)  # No invented human author or expert review.
+        self.assertEqual(posting['mainEntityOfPage']['@id'], 'https://tabobooks.com/blog/example-article#webpage')
+        self.assertIn('BreadcrumbList', [n['@type'] for n in graph])
+        self.assertIn('noindex', self.get('/blog/example-article', host='alternate.invalid')[1]['X-Robots-Tag'])
+        # These are navigation links, not paid assets or a checkout action.
+        self.assertNotIn('/api/orders', source)
+        self.assertNotIn('/originals/', source)
+
+    def test_optional_related_or_catalog_outage_does_not_hide_published_article(self):
+        self.post(autoseo.ENDPOINT, article(title='الثقافة المالية'), AUTH)
+        with patch.object(autoseo, 'list_posts', side_effect=RuntimeError('synthetic outage')), \
+                patch.object(autoseo.seo.catalog.store_catalog, 'published', side_effect=RuntimeError('synthetic outage')):
+            self.assertEqual(self.get('/blog/example-article')[0], 200)
+
+    def test_blog_index_pagination_metadata_and_drawer_link_are_crawlable(self):
+        for identifier in range(1, 23):
+            self.post(autoseo.ENDPOINT, article(id=identifier, slug='post-' + str(identifier)), AUTH)
+        first = Page(self.get('/blog')[2].decode())
+        second_source = self.get('/blog?page=2')[2].decode()
+        second = Page(second_source)
+        self.assertEqual(first.meta['og:type'], 'website')
+        self.assertIn('الثقافة المالية', first.meta['description'])
+        collection = next(n for n in second.graphs[0]['@graph'] if n['@type'] == 'CollectionPage')
+        self.assertEqual(collection['mainEntity']['numberOfItems'], 2)
+        self.assertEqual(collection['mainEntity']['itemListElement'][0]['position'], 21)
+        self.assertIn('href="/blog"', second_source)
+        self.assertIn('https://tabobooks.com/blog?page=2', second_source)
+        for route in ('/', '/books/book4', '/categories/business', '/offers'):
+            source = self.get(route)[2].decode()
+            self.assertIn('href="/blog" data-seo-label="blog"', source)
+        home = self.get('/')[2].decode()
+        categories = json.loads(re.search(r'const BOOK_CATEGORIES = (\[.*?\]);', home)[1])
+        self.assertEqual(next(c for c in categories if c['id'] == 'articles')['href'], '/blog')
+
+    def test_readable_content_only_retargets_same_article_fragments(self):
+        canonical = autoseo.post_url('حب-القراءة')
+        source = '<a href="' + canonical + '#القراءة">هنا</a><h2>القراءة</h2>'
+        result = autoseo.readable_content(source, canonical)
+        self.assertIn('href="#القراءة"', result)
+        self.assertIn('id="القراءة"', result)
 
 
 class ImageSafetyTests(unittest.TestCase):

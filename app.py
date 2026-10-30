@@ -677,12 +677,12 @@ class Handler(BaseHTTPRequestHandler):
                 version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
                 source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
         if filename in ('index.html','book.html','info.html','offers.html'):
-            source=seo.render(source,public_path or urlparse(self.path).path,self.headers.get('Host',''),filename)
+            source=seo.render(source,public_path or urlparse(self.path).path,self.headers.get('Host',''),filename,blog_enabled=autoseo.enabled())
             if source is None:
                 return self.respond(404,{'ok':False,'error':'Not found'})
-        if filename == 'index.html' and autoseo.enabled():
-            source = source.replace('<div class="footer-links">',
-                '<div class="footer-links"><a href="/blog">المقالات · Blog</a>', 1)
+        if filename in ('index.html','book.html','info.html','offers.html') and autoseo.enabled():
+            source = source.replace('<a href="/offers" data-offers-label>',
+                '<a href="/blog" data-seo-label="blog">المقالات · Blog</a><a href="/offers" data-offers-label>', 1)
         pixel_id=meta_tracking.pixel_id()
         self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','success.html','offers.html'))
         if self._meta_enabled:
@@ -1207,7 +1207,16 @@ class Handler(BaseHTTPRequestHandler):
                     row = autoseo.get_post(slug)
                     if not row:
                         return self.respond(404, {'error': 'Not found'})
-                    source = autoseo.render_post(row, self.headers.get('Host', ''))
+                    try:
+                        related = autoseo.list_posts(1, 40)
+                    except Exception:
+                        related = []  # Optional navigation must not hide a published article.
+                    try:
+                        catalog_document = store_catalog.published()
+                    except Exception:
+                        catalog_document = {}  # Book links can use the baseline during a catalog outage.
+                    with store_catalog.context(catalog_document):
+                        source = autoseo.render_post(row, self.headers.get('Host', ''), related)
                 nonce = secrets.token_urlsafe(24)
                 source = source.replace('<script ', '<script nonce="' + nonce + '" ')
                 self._csp_nonce = nonce
