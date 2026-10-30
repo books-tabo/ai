@@ -357,7 +357,7 @@ def publish(raw, headers):
 
 def list_posts(page=1, size=20, *, offset=None):
     return store.request('/rest/v1/tabo_autoseo_posts', params={
-        'select': SUMMARY_FIELDS, 'order': 'published_at.desc,id.desc', 'limit': size,
+        'select': SUMMARY_FIELDS + ',editorial_book_id:post->>editorial_book_id', 'order': 'published_at.desc,id.desc', 'limit': size,
         'offset': (page - 1) * size if offset is None else offset}) or []
 
 
@@ -430,6 +430,9 @@ def readable_content(source, canonical):
 
 def article_topic(row):
     """Conservative topic matching uses public titles, never visitor information."""
+    book_id = editorial_book(row)
+    if book_id:
+        return seo.categories_for(book_id)[0][0], (book_id,)
     title = heading_key(row.get('title', '') + ' ' + row.get('description', ''))
     groups = (
         (('تعلم', 'مهارة', 'تعليم', 'learning', 'skill'), 'self-development', ('book19', 'book18', 'book2')),
@@ -438,6 +441,11 @@ def article_topic(row):
         (('زوج', 'زواج', 'marriage'), 'marriage-family', ('book20', 'book21')),
     )
     return next(((category, books) for terms, category, books in groups if any(heading_key(term) in title for term in terms)), None)
+
+
+def editorial_book(row):
+    book_id = row.get('editorial_book_id') or row.get('post', {}).get('editorial_book_id')
+    return book_id if isinstance(book_id, str) and book_id in seo.BOOKS else None
 
 
 def breadcrumbs(canonical, title, article=False):
@@ -464,9 +472,11 @@ def related_reading(row, candidates):
     body += '<p>' + ('للتوسع في القراءة، تصفح نبذات هذه الكتب العربية بصيغة PDF واختر ما يناسب سؤالك.' if ar else 'Explore these Arabic PDF books and choose the reading that fits your question.') + '</p>'
     body += seo.book_list(books, language)
     body += '<p>' + seo.link('/categories/' + category, seo.CATEGORIES[category][language]) + '</p>'
+    pinned_book = editorial_book(row)
     related = [item for item in candidates if item['slug'] != row['slug'] and
                item['language'].lower().split('-')[0] == row['language'].lower().split('-')[0] and
-               article_topic(item) and article_topic(item)[0] == category][:3]
+               ((editorial_book(item) == pinned_book) if pinned_book else
+                (article_topic(item) and article_topic(item)[0] == category))][:3]
     if related:
         body += '<h2>' + ('مقالات تكمل قراءتك' if ar else 'Continue reading') + '</h2><ul>'
         body += ''.join('<li>' + seo.link(post_url(item['slug']), item['title']) + '</li>' for item in related) + '</ul>'
