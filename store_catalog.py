@@ -41,11 +41,19 @@ def invalidate():
         _CACHE = None
 
 
-def published(with_revision=False):
+def published(with_revision=False, *, public_read=False):
     global _CACHE
     if not enabled():
         return ({},0) if with_revision else {}
+    # Public HTML may keep using a recently validated snapshot while another
+    # request refreshes it. Checkout/config/price decisions retain strict reads.
+    snapshot = _CACHE
+    if public_read and snapshot and time.monotonic()-snapshot[0] < 5:
+        return (snapshot[1],snapshot[3]) if with_revision else snapshot[1]
     if not _LOCK.acquire(timeout=.2):
+        snapshot = _CACHE
+        if public_read and snapshot and time.monotonic()-snapshot[0] < 30:
+            return (snapshot[1],snapshot[3]) if with_revision else snapshot[1]
         raise store.StoreUnavailable()
     try:
         if _CACHE and time.monotonic()-_CACHE[0] < 5:
@@ -71,8 +79,8 @@ def revision():
 
 
 @contextmanager
-def context(value=None):
-    value,number=published(with_revision=True) if value is None else (value,0)
+def context(value=None, *, public_read=False):
+    value,number=published(with_revision=True,public_read=public_read) if value is None else (value,0)
     token = _DOCUMENT.set(value)
     version = _REVISION.set(number)
     try:

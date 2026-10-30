@@ -1212,7 +1212,7 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception:
                         related = []  # Optional navigation must not hide a published article.
                     try:
-                        catalog_document = store_catalog.published()
+                        catalog_document = store_catalog.published(public_read=True)
                     except Exception:
                         catalog_document = {}  # Book links can use the baseline during a catalog outage.
                     with store_catalog.context(catalog_document):
@@ -1238,7 +1238,8 @@ class Handler(BaseHTTPRequestHandler):
         uses_catalog=(route in ('/','/index.html','/checkout','/checkout.html','/api/store-config','/offers','/categories','/authors') or route.startswith(('/books/','/offers/','/categories/','/authors/','/catalog-covers/')))
         try:
             if uses_catalog:
-                with store_catalog.context():return self._do_GET()
+                public_read=not (route.startswith(('/api/','/catalog-covers/')) or route in ('/checkout','/checkout.html'))
+                with store_catalog.context(public_read=public_read):return self._do_GET()
             return self._do_GET()
         except Exception:
             return self.respond(503,{'error':'تعذر قراءة إعدادات المتجر الآن. حاول مرة أخرى.'})

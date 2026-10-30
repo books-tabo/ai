@@ -5,6 +5,7 @@ import copy
 import io
 import json
 import os
+import time
 import unittest
 from urllib.request import Request
 from urllib.error import HTTPError
@@ -54,6 +55,19 @@ class CatalogEditTests(unittest.TestCase):
   with patch.object(editor,'enabled',return_value=True),patch.object(editor.store,'request',return_value=[{'published':{'books':{'book1':{'name':'Version seven'}}},'revision':7,'reminders_enabled':True}]):
    with editor.context():self.assertEqual(editor.revision(),7);self.assertEqual(seo.current_books()['book1']['name'],'Version seven')
   self.assertEqual(editor.revision(),0)
+ def test_public_refresh_snapshot_is_bounded_and_never_used_for_strict_reads(self):
+  document={'books':{'book1':{'name':'Recently published'}}}
+  with patch.object(editor,'enabled',return_value=True),patch.object(editor.time,'monotonic',return_value=100):
+   editor._CACHE=(94,document,True,7)
+   editor._LOCK.acquire()
+   try:
+    self.assertEqual(editor.published(with_revision=True,public_read=True),(document,7))
+    with self.assertRaises(editor.store.StoreUnavailable):editor.published(with_revision=True)
+    editor._CACHE=(69,document,True,7)
+    with self.assertRaises(editor.store.StoreUnavailable):editor.published(public_read=True)
+    editor._CACHE=None
+    with self.assertRaises(editor.store.StoreUnavailable):editor.published(public_read=True)
+   finally:editor._LOCK.release()
  def test_conflicts_and_auth_are_not_silently_overwritten(self):
   with patch.object(editor,'rpc',return_value={'conflict':True}):
    with self.assertRaises(FileExistsError):editor.save(AUTH,{'document':{},'draftRevision':2})
@@ -115,6 +129,18 @@ class AdminHTTPTests(HTTPCase):
   with patch.object(editor,'published',return_value=({},0)),patch.object(app.store,'insert') as insert,patch.object(app,'payment_checkout') as pay:
    code,data,_=self.post('/api/orders',{'catalogRevision':99})
    self.assertEqual(code,409);self.assertEqual(data['code'],'CATALOG_REFRESH_REQUIRED');insert.assert_not_called();pay.assert_not_called()
+ def test_refreshing_catalog_keeps_public_html_available_without_relaxing_checkout(self):
+  self.addCleanup(editor.invalidate)
+  editor._CACHE=(time.monotonic()-6,{'books':{'book4':{'name':'Published book title'}}},True,7)
+  with patch.object(editor,'enabled',return_value=True):
+   editor._LOCK.acquire()
+   try:
+    for route in ('/books/book4','/categories/business','/offers/change-starter'):
+     code,body,_=self.get(route)
+     self.assertEqual(code,200,route);self.assertIn(b'Published book title',body)
+    self.assertEqual(self.get('/api/store-config?country=SA')[0],503)
+    self.assertEqual(self.get('/checkout')[0],503)
+   finally:editor._LOCK.release()
  def test_recovery_get_is_safe_and_unsubscribe_requires_post(self):
   with patch.object(recovery,'enabled',return_value=True),patch.object(recovery,'unsubscribe') as stop:
    code,body,headers=self.get('/stop-reminders?token='+'a'*64)
