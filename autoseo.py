@@ -18,7 +18,7 @@ import threading
 import time
 import unicodedata
 from datetime import datetime, timezone
-from urllib.parse import quote, urljoin, urlsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 import media_sandbox
@@ -382,30 +382,134 @@ def get_media(digest):
     return payload
 
 
+class ArticleText(HTMLParser):
+    def __init__(self, source):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self.feed(source)
+
+    def handle_data(self, value):
+        self.parts.append(value)
+
+
+def heading_key(value):
+    value = unicodedata.normalize('NFKD', value).casefold()
+    value = ''.join(c for c in value if not unicodedata.combining(c))
+    return re.sub(r'[^\w-]+', '-', value).strip('-_')
+
+
+def readable_content(source, canonical):
+    """Restore heading targets stripped by ingestion, including already stored posts."""
+    used, targets = set(), {}
+
+    def heading(match):
+        key = heading_key(''.join(ArticleText(match[2]).parts)) or 'section'
+        identifier, suffix = key[:180], 1
+        while identifier in used:
+            suffix += 1
+            identifier = key[:170] + '-' + str(suffix)
+        used.add(identifier)
+        targets.setdefault(key, identifier)
+        return '<h' + match[1] + ' id="' + seo.escape(identifier) + '">' + match[2] + '</h' + match[1] + '>'
+
+    # Stored markup has already passed ArticleHTML's allowlist. Only add escaped IDs.
+    source = re.sub(r'<h([2-6])>([\s\S]*?)</h\1>', heading, source)
+    destination = urlsplit(canonical)
+
+    def anchor(match):
+        href = html.unescape(match[1])
+        parsed = urlsplit(href)
+        same_page = (not parsed.scheme and not parsed.netloc and not parsed.path) or (
+            parsed.scheme in ('', 'https') and parsed.netloc in ('', destination.netloc) and
+            unquote(parsed.path) == unquote(destination.path))
+        target = targets.get(heading_key(unquote(parsed.fragment))) if same_page else None
+        return 'href="#' + seo.escape(target) + '"' if target else match[0]
+
+    return re.sub(r'href="([^"]*)"', anchor, source)
+
+
+def article_topic(row):
+    """Conservative topic matching uses public titles, never visitor information."""
+    title = heading_key(row.get('title', '') + ' ' + row.get('description', ''))
+    groups = (
+        (('تعلم', 'مهارة', 'تعليم', 'learning', 'skill'), 'self-development', ('book19', 'book18', 'book2')),
+        (('مال', 'ميزانية', 'ادخار', 'ثروة', 'money', 'financial', 'budget', 'wealth', 'business'), 'business', ('book4', 'book17', 'book9')),
+        (('تطوير-الذات', 'عادات', 'عادة', 'انضباط', 'تغيير-حيات', 'habit', 'discipline'), 'self-development', ('book18', 'book14', 'book6')),
+        (('زوج', 'زواج', 'marriage'), 'marriage-family', ('book20', 'book21')),
+    )
+    return next(((category, books) for terms, category, books in groups if any(heading_key(term) in title for term in terms)), None)
+
+
+def breadcrumbs(canonical, title, article=False):
+    trail = [('/', 'الرئيسية'), ('/blog', 'المقالات')]
+    if article:
+        trail.append((canonical, title))
+    items = [{'@type': 'ListItem', 'position': i + 1, 'name': label,
+              'item': path if path.startswith('https://') else origin() + path} for i, (path, label) in enumerate(trail)]
+    body = '<nav class="breadcrumbs" aria-label="مسار التصفح">'
+    body += ' <span aria-hidden="true">›</span> '.join(
+        seo.link(path, label) if i < len(trail) - 1 else '<span aria-current="page">' + seo.escape(label) + '</span>'
+        for i, (path, label) in enumerate(trail)) + '</nav>'
+    return body, {'@type': 'BreadcrumbList', '@id': canonical + '#breadcrumb', 'itemListElement': items}
+
+
+def related_reading(row, candidates):
+    topic = article_topic(row)
+    if not topic:
+        return ''
+    category, books = topic
+    language = 'ar' if row['language'].lower().startswith('ar') else 'en'
+    ar = language == 'ar'
+    body = '<aside class="related-reading"><h2>' + ('كتب مرتبطة بموضوع المقال' if ar else 'Books on this topic') + '</h2>'
+    body += '<p>' + ('للتوسع في القراءة، تصفح نبذات هذه الكتب العربية بصيغة PDF واختر ما يناسب سؤالك.' if ar else 'Explore these Arabic PDF books and choose the reading that fits your question.') + '</p>'
+    body += seo.book_list(books, language)
+    body += '<p>' + seo.link('/categories/' + category, seo.CATEGORIES[category][language]) + '</p>'
+    related = [item for item in candidates if item['slug'] != row['slug'] and
+               item['language'].lower().split('-')[0] == row['language'].lower().split('-')[0] and
+               article_topic(item) and article_topic(item)[0] == category][:3]
+    if related:
+        body += '<h2>' + ('مقالات تكمل قراءتك' if ar else 'Continue reading') + '</h2><ul>'
+        body += ''.join('<li>' + seo.link(post_url(item['slug']), item['title']) + '</li>' for item in related) + '</ul>'
+    return body + '</aside>'
+
+
 def document(title, description, canonical, body, host, language='ar', graph=None, image=None):
     esc = seo.escape
     rtl = language.split('-')[0].lower() in ('ar', 'fa', 'he', 'ur')
     metadata = '<meta name="description" content="' + esc(description) + '"><link rel="canonical" href="' + esc(canonical) + '">'
-    for key, value in {'og:type': 'article' if graph else 'website', 'og:title': title, 'og:description': description, 'og:url': canonical, 'og:site_name': 'TABO BOOKS', **({'og:image': origin() + image} if image else {})}.items():
+    article = any(node.get('@type') == 'BlogPosting' for node in (graph or {}).get('@graph', []))
+    share_image = origin() + (image or '/tabo-books-logo.webp')
+    for key, value in {'og:type': 'article' if article else 'website', 'og:title': title, 'og:description': description, 'og:url': canonical, 'og:site_name': 'TABO BOOKS', 'og:image': share_image, 'og:locale': language.replace('-', '_')}.items():
         metadata += '<meta property="' + key + '" content="' + esc(value) + '">'
+    metadata += '<meta name="twitter:card" content="' + ('summary_large_image' if image else 'summary') + '">'
     if not seo.indexable(host):
         metadata += '<meta name="robots" content="noindex,nofollow">'
+    else:
+        metadata += '<meta name="robots" content="max-image-preview:large">'
     if graph:
         metadata += '<script type="application/ld+json">' + seo.safe_json(graph) + '</script>'
     return ('<!doctype html><html lang="' + esc(language) + '" dir="' + ('rtl' if rtl else 'ltr') + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<title>' + esc(title) + ' | TABO BOOKS</title>' + metadata + '<link rel="stylesheet" href="/blog/style.css"></head><body>'
-            '<header><a href="/">TABO BOOKS</a><nav><a href="/">المتجر · Store</a><a href="/blog">المقالات · Blog</a></nav></header><main>' + body + '</main><footer><a href="/">اكتشف الكتب في TABO BOOKS · Explore our books</a></footer></body></html>')
+            '<title>' + esc(title) + ' | TABO BOOKS</title>' + metadata + '<link rel="stylesheet" href="/seo.css?v=' + seo.ASSET_VERSIONS['seo.css'] + '"><link rel="stylesheet" href="/blog/style.css?v=' + hashlib.sha256(STYLE.encode()).hexdigest()[:12] + '"></head><body>'
+            '<header><a href="/">TABO BOOKS</a><nav aria-label="التنقل الرئيسي"><a href="/">المتجر · Store</a><a href="/blog">المقالات · Blog</a><a href="/categories">أقسام الكتب · Categories</a></nav></header><main>' + body + '</main><footer><nav><a href="/about">من نحن · About</a><a href="/contact">تواصل معنا · Contact</a><a href="/">اكتشف الكتب · Explore our books</a></nav></footer></body></html>')
 
 
-def render_post(row, host):
+def render_post(row, host, related=()):
     post = row['post']
     esc = seo.escape
     canonical = post_url(row['slug'])
-    body = '<article><h1>' + esc(row['title']) + '</h1><time datetime="' + esc(row['published_at']) + '">' + esc(row['published_at'][:10]) + '</time>'
+    content = readable_content(post['content_html'], canonical)
+    description = row['description'].strip() or ' '.join(ArticleText(content).parts)[:160]
+    body, breadcrumb = breadcrumbs(canonical, row['title'], article=True)
+    ar = row['language'].lower().startswith('ar')
+    body += '<article><h1>' + esc(row['title']) + '</h1><p class="article-meta">' + ('نشر: ' if ar else 'Published: ')
+    body += '<time datetime="' + esc(row['published_at']) + '">' + esc(row['published_at'][:10]) + '</time>'
+    if row['updated_at'] != row['published_at']:
+        body += ' · ' + ('آخر تحديث: ' if ar else 'Updated: ') + '<time datetime="' + esc(row['updated_at']) + '">' + esc(row['updated_at'][:10]) + '</time>'
+    body += ' · ' + ('الناشر: ' if ar else 'Publisher: ') + seo.link('/about', 'TABO BOOKS') + '</p>'
     hero = post.get('hero_image')
     if hero:
-        body += '<img class="hero" src="' + esc(hero) + '" alt="' + esc(post.get('hero_alt', '')) + '" fetchpriority="high">'
-    body += '<div class="article-body">' + post['content_html'] + '</div>'
+        body += '<img class="hero" src="' + esc(hero) + '" alt="' + esc(post.get('hero_alt') or row['title']) + '" fetchpriority="high" decoding="async">'
+    body += '<div class="article-body">' + content + '</div>'
     infographic = post.get('infographic_image')
     if infographic and infographic not in post['content_html']:
         body += '<figure><img src="' + esc(infographic) + '" alt="' + esc(row['title']) + '" loading="lazy"></figure>'
@@ -413,31 +517,44 @@ def render_post(row, host):
     if faq:
         body += '<section><h2>' + ('أسئلة شائعة' if row['language'].startswith('ar') else 'Frequently asked questions') + '</h2>'
         body += ''.join('<details><summary>' + esc(item['question']) + '</summary><p>' + esc(item['answer']) + '</p></details>' for item in faq) + '</section>'
-    body += '</article>'
-    article = {'@type': 'BlogPosting', 'headline': row['title'], 'description': row['description'], 'url': canonical,
+    body += '</article>' + related_reading(row, related)
+    article = {'@type': 'BlogPosting', '@id': canonical + '#article', 'headline': row['title'], 'description': description, 'url': canonical,
                'datePublished': row['published_at'], 'dateModified': row['updated_at'], 'inLanguage': row['language'],
-               'mainEntityOfPage': canonical, 'publisher': {'@type': 'Organization', 'name': 'TABO BOOKS', 'url': origin()}}
+               'mainEntityOfPage': {'@id': canonical + '#webpage'}, 'isAccessibleForFree': True,
+               'publisher': {'@type': 'Organization', 'name': 'TABO BOOKS', 'url': origin()}}
     if hero:
         article['image'] = origin() + hero
-    graph = {'@context': 'https://schema.org', '@graph': [article]}
+    graph = {'@context': 'https://schema.org', '@graph': [article, breadcrumb,
+        {'@type': 'WebPage', '@id': canonical + '#webpage', 'url': canonical, 'name': row['title'],
+         'inLanguage': row['language'], 'mainEntity': {'@id': canonical + '#article'}, 'breadcrumb': {'@id': breadcrumb['@id']}}]}
     if faq:
         graph['@graph'].append({'@type': 'FAQPage', 'mainEntity': [{'@type': 'Question', 'name': item['question'], 'acceptedAnswer': {'@type': 'Answer', 'text': item['answer']}} for item in faq]})
-    return document(row['title'], row['description'], canonical, body, host, row['language'], graph, hero)
+    return document(row['title'], description, canonical, body, host, row['language'], graph, hero)
 
 
 def render_index(rows, page, host):
-    body = '<h1>المقالات · Blog</h1>'
+    title = 'مقالات الكتب والثقافة المالية' + (' — الصفحة ' + str(page) if page > 1 else '')
+    description = 'اقرأ مقالات TABO BOOKS عن اختيار الكتب والمال والأعمال والثقافة المالية، واستكشف قراءات مرتبطة تساعدك على مواصلة التعلم.'
+    canonical = origin() + '/blog' + ('?page=' + str(page) if page > 1 else '')
+    body, breadcrumb = breadcrumbs(canonical, title)
+    body += '<h1>' + title + '</h1><p class="blog-intro">' + description + '</p>'
     for row in rows[:20]:
-        body += '<article><h2><a href="' + seo.escape(post_url(row['slug'])) + '">' + seo.escape(row['title']) + '</a></h2><p>' + seo.escape(row['description']) + '</p></article>'
+        body += '<article><h2><a href="' + seo.escape(post_url(row['slug'])) + '">' + seo.escape(row['title']) + '</a></h2><time datetime="' + seo.escape(row['published_at']) + '">' + seo.escape(row['published_at'][:10]) + '</time><p>' + seo.escape(row['description']) + '</p></article>'
     if not rows:
         body += '<p>ستظهر المقالات هنا بعد نشرها. Articles will appear here after publication.</p>'
-    body += '<nav>'
+    body += '<nav aria-label="صفحات المقالات">'
     if page > 1:
-        body += '<a href="/blog?page=' + str(page - 1) + '">السابق · Previous</a>'
+        body += '<a rel="prev" href="' + ('/blog' if page == 2 else '/blog?page=' + str(page - 1)) + '">السابق · Previous</a>'
     if len(rows) > 20:
-        body += '<a href="/blog?page=' + str(page + 1) + '">التالي · Next</a>'
+        body += '<a rel="next" href="/blog?page=' + str(page + 1) + '">التالي · Next</a>'
     body += '</nav>'
-    return document('المقالات · Blog', 'مقالات TABO BOOKS', origin() + '/blog' + ('?page=' + str(page) if page > 1 else ''), body, host)
+    graph = {'@context': 'https://schema.org', '@graph': [breadcrumb,
+        {'@type': 'CollectionPage', '@id': canonical + '#webpage', 'url': canonical, 'name': title,
+         'description': description, 'inLanguage': 'ar', 'breadcrumb': {'@id': breadcrumb['@id']},
+         'mainEntity': {'@type': 'ItemList', 'numberOfItems': len(rows[:20]), 'itemListElement': [
+             {'@type': 'ListItem', 'position': (page - 1) * 20 + i + 1, 'url': post_url(row['slug']), 'name': row['title']}
+             for i, row in enumerate(rows[:20])]}}]}
+    return document(title, description, canonical, body, host, graph=graph)
 
 
 def sitemap():
@@ -455,3 +572,4 @@ def sitemap():
 
 
 STYLE = '''body{margin:0;background:#faf9f6;color:#242b35;font:18px/1.9 system-ui,sans-serif}header,main,footer{max-width:900px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd}header>a{font-weight:800;color:#9a7014}nav{display:flex;gap:24px}a{color:#795712;text-decoration-thickness:1px;text-underline-offset:4px}article{margin:30px 0;padding:24px;background:white;border:1px solid #e8e3d8;border-radius:14px}h1{font-size:clamp(28px,5vw,44px);line-height:1.5}h2,h3{line-height:1.5}img{max-width:100%;height:auto;border-radius:8px}.hero{display:block;margin:20px auto}time{font-size:14px;color:#647080}pre,table{overflow:auto;max-width:100%;display:block}pre{direction:ltr;background:#f2f4f6;padding:16px}blockquote{border-inline-start:3px solid #b88a18;margin:20px 0;padding:0 20px}td,th{padding:8px;border:1px solid #ddd}details{padding:15px;border-bottom:1px solid #ddd}summary{cursor:pointer;font-weight:600}footer{border-top:1px solid #ddd}@media(max-width:600px){header,main,footer{padding:16px}header{display:block}nav{font-size:15px}article{padding:16px}}'''
+STYLE += '''*{box-sizing:border-box}nav{flex-wrap:wrap}a:focus-visible,summary:focus-visible{outline:3px solid #b88a18;outline-offset:4px}.breadcrumbs{font-size:14px;gap:8px;line-height:1.8}.breadcrumbs [aria-current]{color:#647080}.article-meta{font-size:14px;color:#647080}.article-body{overflow-wrap:anywhere}.article-body :is(h2,h3,h4,h5,h6){scroll-margin-top:24px}.related-reading{border-top:1px solid #dfd5b8;margin-top:36px;padding-top:24px}.related-reading .seo-book{font-size:16px;margin:0}.related-reading .seo-book img{height:190px}.related-reading li{margin:12px 0}.blog-intro{color:#525d68;max-width:70ch}@media(max-width:600px){.related-reading .seo-book-grid{grid-template-columns:1fr}.related-reading .seo-book img{height:210px}header nav{gap:12px}}'''

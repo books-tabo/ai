@@ -1,5 +1,7 @@
 # TABO BOOKS SEO review — 2026-10-23
 
+Historical review snapshot. See [the 2026-10-30 article/SEO maintenance](articles-seo-20261030.md) for the current live-blog findings and repairs.
+
 This is a review-only change based on live application `1a7e01201f842268cf49faddcc5aff207ad94375` and draft PR #1. The SEO branch is stacked on that branch. Do not merge it or deploy it to the service serving tabobooks.com without owner approval.
 
 ## Public rendering
