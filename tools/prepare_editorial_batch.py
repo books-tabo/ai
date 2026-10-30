@@ -50,7 +50,7 @@ def to_html(source):
     return autoseo.sanitize(''.join(out), {})
 
 
-def prepare():
+def prepare(manifest_name='batch-one.json'):
     folder = ROOT / 'content/editorial'
     with (folder/'plan.tsv').open() as handle:
         rows = list(csv.DictReader(handle, delimiter='\t'))
@@ -59,8 +59,17 @@ def prepare():
     for key in ('slug','title','primary_keyword'):
         assert len({row[key] for row in rows}) == len(rows), key
     by_slug = {row['slug']:row for row in rows}
-    manifest = json.loads((folder/'batch-one.json').read_text())
+    assert re.fullmatch(r'batch-[a-z]+\.json', manifest_name), 'Invalid manifest name'
+    manifests = [json.loads(path.read_text()) for path in sorted(folder.glob('batch-*.json'))]
+    all_slugs = [item['slug'] for batch in manifests for item in batch['articles']]
+    assert len(all_slugs) == len(set(all_slugs)), 'Article appears in multiple batches'
+    assert len({batch['batch'] for batch in manifests}) == len(manifests), 'Duplicate batch ID'
+    manifest = json.loads((folder/manifest_name).read_text())
     posts, repeated = [], set()
+    for path in folder.glob('*.md'):
+        if path.stem not in {entry['slug'] for entry in manifest['articles']}:
+            repeated.update(paragraph for paragraph in path.read_text().split('\n\n')
+                            if len(paragraph) > 160 and not paragraph.startswith('##'))
     for entry in manifest['articles']:
         row = by_slug[entry['slug']]
         source = (folder/(entry['slug']+'.md')).read_text()
@@ -77,7 +86,7 @@ def prepare():
         for target in re.findall(r'href="([^"]+)"', body):
             target = html.unescape(target)
             if target.startswith('/blog/'):
-                assert target.removeprefix('/blog/') in {x['slug'] for x in manifest['articles']}, target
+                assert target.removeprefix('/blog/') in all_slugs, target
             if target.startswith('/books/'):
                 assert target.removeprefix('/books/') in seo.BOOKS, target
         number = 7_000_000_000_000_000_000 + int(hashlib.sha256(('tabo-editorial:'+entry['slug']).encode()).hexdigest()[:15],16)
@@ -88,15 +97,17 @@ def prepare():
             'hero_alt':'','faq':[],'source_article_id':None,'editorial_book_id':row['book_id'],
             'editorial_batch':manifest['batch'],'word_count':words})
     assert len(posts) == 12 and len({p['id'] for p in posts}) == 12
-    assert Counter(p['editorial_book_id'] for p in posts) == {'book9':4,'book18':4,'book19':4}
+    counts = Counter(p['editorial_book_id'] for p in posts)
+    assert len(counts) == 3 and set(counts.values()) == {4}, counts
     return rows, posts
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--manifest', default='batch-one.json')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    rows, posts = prepare()
+    rows, posts = prepare(args.manifest)
     args.output.write_text(json.dumps(posts, ensure_ascii=False, indent=2))
     print(json.dumps({'planned':len(rows),'ready':len(posts),'words':sum(p['word_count'] for p in posts),
         'byBook':dict(Counter(p['editorial_book_id'] for p in posts))}))
