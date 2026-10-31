@@ -55,7 +55,11 @@ def prepare(manifest_name='batch-one.json'):
     with (folder/'plan.tsv').open() as handle:
         rows = list(csv.DictReader(handle, delimiter='\t'))
     assert len(rows) == 84
-    assert Counter(row['book_id'] for row in rows) == Counter({bid:4 for bid in seo.BOOKS})
+    # This saved 84-article plan covers the original 21 titles. Adding a later
+    # catalog title does not silently expand or invalidate the approved plan.
+    planned_books = {f'book{number}' for number in range(1, 22)}
+    assert planned_books <= set(seo.BOOKS)
+    assert Counter(row['book_id'] for row in rows) == Counter({bid:4 for bid in planned_books})
     for key in ('slug','title','primary_keyword'):
         assert len({row[key] for row in rows}) == len(rows), key
     by_slug = {row['slug']:row for row in rows}
