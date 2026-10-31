@@ -69,7 +69,7 @@ def book_card(book_id, language='ar', home=False, position=0):
     image = book['image']
     loading = 'eager' if position < 2 else 'lazy'
     if home:
-        preview = ('<a class="book-sample-link" href="/previews/' + book_id + '" target="_blank" rel="noopener">اقرأ عينة مجانية</a>') if catalog.preview_enabled(book_id) else '<p class="fixed-price-note">سعر مستقل — خارج خصومات عدد الكتب</p>'
+        preview = ('<a class="book-sample-link" href="/previews/' + book_id + '" target="_blank" rel="noopener">اقرأ عينة مجانية</a>') if catalog.preview_enabled(book_id) else ''
         return f'''<div class="book-card"><a class="book-cover-link" href="/books/{book_id}"><img class="book-image" src="{image}" alt="{escape(name)}" width="{book['imageWidth']}" height="{book['imageHeight']}" loading="{loading}" decoding="async"><span class="pdf-badge">PDF</span></a><div class="book-content"><div class="book-title"><span>{escape(name)}</span><span class="title-pdf">PDF</span></div><div class="book-description">{escape(book['short'])}</div><a class="read-more-btn" href="/books/{book_id}">اقرأ المزيد</a><div class="book-bottom">{preview}<div class="book-price">السعر بحسب الدولة</div><div class="book-format">نسخة PDF</div><button class="add-cart-btn" id="addBtn-{position}" data-book-id="{book_id}">أضف للسلة</button></div></div></div>'''
     return f'''<article class="seo-book"><a href="/books/{book_id}"><img src="{image}" alt="{escape(name)}" width="{book['imageWidth']}" height="{book['imageHeight']}" loading="lazy" decoding="async"><h3>{escape(name)}</h3></a><p>{escape(text(book,'short',language))}</p></article>'''
 

@@ -5,6 +5,15 @@ from unittest.mock import patch
 import app,proxy_identity,supabase_store as store,localization
 
 class StoreAndProxyTests(unittest.TestCase):
+    def test_public_book_metadata_never_reads_or_exposes_download_counts(self):
+        row={'book_id':'book22','rating_sum':10,'review_count':2,
+             'download_count':987654,'page_count':419,'file_size_bytes':12185488}
+        with patch.object(store,'request',return_value=[row]) as request:
+            result=store.book_stats()
+        self.assertEqual(result['book22'],{'rating':5.0,'reviews':2,
+            'pageCount':419,'fileSizeBytes':12185488})
+        self.assertNotIn('download_count',request.call_args.kwargs['params']['select'])
+
     def test_error_classification_is_sanitized(self):
         with patch.dict(os.environ,{'SUPABASE_URL':'https://synthetic.invalid','SUPABASE_SECRET_KEY':'sb_secret_test'}):
             for status,code,expected in [(503,'XX000',store.StoreUnavailable),(409,'23505',store.UniqueConflict),(409,'23514',store.StoreError)]:

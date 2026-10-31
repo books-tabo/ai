@@ -2655,7 +2655,7 @@ const UI_COPY = {
         aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
         pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
         emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
-        promoLead:"عروض الباقات للكتب المشمولة فقط — السيجما بسعر مستقل", books:"كتب",
+        promoLead:"عروض الباقات للكتب المشمولة فقط", books:"كتب",
         addAnother:"أضف كتابًا من عروض الباقات مقابل {difference} إضافية ليصبح الإجمالي {next}.",
         moreBooks:"يمكنك إضافة المزيد من الكتب للحصول على السعر المناسب للعدد الجديد.",
         invalidCustomer:"أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.",
@@ -2681,7 +2681,7 @@ const UI_COPY = {
         aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
         pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
         emptyCart:"Your cart is currently empty.", delete:"Remove",
-        promoLead:"Bundle offers apply to eligible books — Sigma has a fixed price", books:"books",
+        promoLead:"Bundle offers apply to eligible books", books:"books",
         addAnother:"Add an eligible bundle book for {difference}; the new total is {next}.",
         moreBooks:"You can add more books to receive the bundle price for the new quantity.",
         invalidCustomer:"Enter a valid name, email address, and phone number to continue.",
@@ -2739,7 +2739,7 @@ function selectBookCategory(categoryId){
 }
 /* End book categories and author navigation */
 
-let BOOK_STATS=Object.fromEntries(BOOKS.map(book=>[book.id,{rating:null,reviews:0,downloads:0}]));
+let BOOK_STATS=Object.fromEntries(BOOKS.map(book=>[book.id,{rating:null,reviews:0}]));
 
 function ratingMarkup(bookId){
     const stats=BOOK_STATS[bookId]||{rating:null,reviews:0};
@@ -3067,7 +3067,6 @@ function renderBooks(){
                     <div class="book-bottom">
 
                         ${bookPolicy(book).previewEnabled?`<a class="book-sample-link" href="/previews/${book.id}" target="_blank" rel="noopener">${currentLanguage==="ar"?"اقرأ عينة مجانية":"Read a free sample"}</a>`:""}
-                        ${fixedPriceNotice(book)}
                         <div class="book-price">
                             ${formatMoney(bookPrice(book))}
                         </div>

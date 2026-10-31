@@ -30,19 +30,6 @@ for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD'
     assert.equal(vm.runInContext('bookPolicy(BOOKS[19]).previewEnabled', context), false);
 }
 
-// A new independent title must not advertise the Sigma-only pack in its row
-// or in a cart containing that title alone. Mixed carts retain the Sigma note.
-for (const language of ['ar', 'en']) {
-    context.currentLanguage = language;
-    context.cart = [{id:'book22'}];
-    assert.doesNotMatch(vm.runInContext('fixedPriceText()', context), /Sigma|السيجما/);
-    assert.doesNotMatch(vm.runInContext('fixedPriceNotice(BOOKS.find(b=>b.id==="book22"))', context), /Sigma|السيجما/);
-    context.cart.push({id:'book20'});
-    assert.match(vm.runInContext('fixedPriceText()', context), /Sigma|السيجما/);
-    assert.doesNotMatch(vm.runInContext('fixedPriceNotice(BOOKS.find(b=>b.id==="book22"))', context), /Sigma|السيجما/);
-    assert.match(vm.runInContext('fixedPriceNotice(BOOKS.find(b=>b.id==="book20"))', context), /Sigma|السيجما/);
-}
-
 function product(bookId, currency) {
     const detail = rendered('book.html','/books/'+bookId);
     const detailScript = detail.slice(detail.indexOf('const BOOKS='), detail.indexOf('async function submitRating('));
@@ -64,7 +51,8 @@ for (const currency of ['EGP', 'USD']) {
     assert.equal(nodes.get('previewLink').hidden, true);
     assert.equal(nodes.get('previewLink').href, undefined);
     assert.equal(nodes.get('previousPrice').hidden, true);
-    assert.equal(nodes.get('fixedPriceNote').hidden, false);
+    assert.equal(nodes.has('fixedPriceNote'), false);
+    assert.equal(nodes.has('downloads'), false);
     assert.match(nodes.get('price').textContent, currency === 'EGP' ? /500/ : /15\.90/);
     assert.equal(nodes.get('price').textContent, nodes.get('mobileBuyPrice').textContent);
     const companion = product('book21', currency);
@@ -77,8 +65,8 @@ for (const currency of ['EGP', 'USD']) {
     assert.equal(court.get('previewLink').hidden, true);
     assert.equal(court.get('previewLink').href, undefined);
     assert.equal(court.get('previousPrice').hidden, true);
-    assert.equal(court.get('fixedPriceNote').hidden, false);
-    assert.doesNotMatch(court.get('fixedPriceNote').textContent, /Sigma|السيجما/);
+    assert.equal(court.has('fixedPriceNote'), false);
+    assert.equal(court.has('downloads'), false);
     assert.match(court.get('price').textContent, currency === 'EGP' ? /500/ : /15\.99/);
     assert.equal(court.get('price').textContent, court.get('mobileBuyPrice').textContent);
     const ordinary = product('book19', currency);
