@@ -85,11 +85,12 @@
     "en": "Marriage & Family Relationships",
     "books": [
       "book20",
-      "book21"
+      "book21",
+      "book22"
     ],
     "description": {
-      "ar": "قراءات للبالغين عن التفاهم والتواصل والصحة والحميمية داخل الزواج. يضم القسم كتابَي السيجما للرجل والمرأة، مع الاهتمام بالمعرفة والرضا والاحترام المتبادل، دون أن تحل القراءة محل الاستشارة المتخصصة.",
-      "en": "Adult reading on understanding, communication, health and intimacy within marriage. This collection brings together the two Sigma books for men and women, emphasizing knowledge, consent and mutual respect without replacing professional advice."
+      "ar": "قراءات للبالغين عن التفاهم والتواصل والصحة والحميمية داخل الزواج. يضم القسم كتابَي السيجما و«محكمة الحب والجنس»، مع الاهتمام بالمعرفة والرضا والاحترام المتبادل، دون أن تحل القراءة محل الاستشارة المتخصصة.",
+      "en": "Adult reading on understanding, communication, health and intimacy within marriage. This collection includes the two Sigma books and The Court of Love & Sex, emphasizing knowledge, consent and mutual respect without replacing professional advice."
     }
   }
 }

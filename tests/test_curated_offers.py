@@ -51,7 +51,7 @@ class CuratedPricingTests(unittest.TestCase):
                (['book1','book2','book3'],399,24.99),
                (starter+['book20'],800,30.9),(money+['book20'],850,35.9),
                (growth+['book20'],900,38.9),
-               (list(catalog.BOOKS),2849,122.99)]
+               (list(catalog.BOOKS),3349,138.98)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('KW',usd)]:
                 with self.subTest(country=country,ids=ids):
@@ -83,7 +83,7 @@ class OfferPageTests(HTTPCase):
             if not offer.get('fixedPriceBundle'):
                 self.assertNotIn('href="/books/book20"',source)
         self.assertEqual(self.get('/offers/unknown')[0],404)
-        self.assertEqual(len(seo.public_paths()),41)
+        self.assertEqual(len(seo.public_paths()),42)
         self.assertIn('/offers',seo.public_paths())
         home=self.get('/')[2]
         self.assertIn('data-add-offer="change-starter"',home)
