@@ -36,13 +36,13 @@ class CatalogEditTests(unittest.TestCase):
  def test_one_snapshot_changes_public_metadata_order_and_both_price_engines(self):
   doc=editor.validate({'books':{'book1':{'name':'<script>synthetic</script>','short':'Edited summary'}},'order':list(reversed(catalog.BOOKS)), 'independentPrices':{'book1':{'EGP':250,'USD':12}}})
   with editor.context(doc):
-   self.assertEqual(list(seo.current_books())[0],'book21')
+   self.assertEqual(list(seo.current_books())[0],'book22')
    config=localization.pricing_for_country(catalog.PRICES,'EG')
    self.assertEqual(config['bookPolicies']['book1'],{'price':250,'bundleEligible':False,'previewEnabled':True})
    self.assertEqual(catalog.total_for_items(['book1','book2'],config),449)
    self.assertEqual(catalog.total_for_items(['book20','book21'],localization.pricing_for_country(catalog.PRICES,'SA')),20)
    html=seo.render((app.ROOT/'index.html').read_text(),'/','tabobooks.com','index.html')
-   self.assertIn('const BOOKS = [{"id":"book21"',html)
+   self.assertIn('const BOOKS = [{"id":"book22"',html)
    self.assertNotIn('<script>synthetic</script>',html)
    self.assertIn('&lt;script&gt;synthetic&lt;/script&gt;',html)
   self.assertEqual(seo.current_books()['book1']['name'],seo.BOOKS['book1']['name'])

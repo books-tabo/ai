@@ -18,7 +18,7 @@ for country in ('EG','KW'):
  c=localization.pricing_for_country(catalog.PRICES,country);cases=[]
  for mask in range(1<<len(members)):
   selected=[b for i,b in enumerate(members) if mask&(1<<i)]
-  for extra in ([],['book1']):
+  for extra in ([],['book1'],['book22'],['book1','book22']):
    ids=selected+extra;cases.append({'ids':ids,'total':catalog.total_for_items(ids,c)})
  result.append({'config':c,'cases':cases})
 print(json.dumps(result))

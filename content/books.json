@@ -1352,5 +1352,109 @@
     ],
     "imageWidth": 720,
     "imageHeight": 1080
+  },
+  "book22": {
+    "name": "محكمة الحب والجنس",
+    "enName": "The Court of Love & Sex",
+    "image": "/covers/book22.webp",
+    "size": 12185488,
+    "fixedPrices": {
+      "EGP": 500,
+      "USD": 15.99
+    },
+    "bundleEligible": false,
+    "previewEnabled": false,
+    "short": "أسرار الرغبة والمتعة من خلف الأبواب المغلقة: قراءة تثقيفية للزوجين البالغين عن الجسد والحب والتواصل والحميمية الزوجية.",
+    "enShort": "An educational exploration of the body, love, desire, communication and intimacy for adult couples.",
+    "about": "«محكمة الحب والجنس — أسرار الرغبة والمتعة من خلف الأبواب المغلقة» للمؤلف TABO NOOR يضع الأفكار الشائعة عن الحب والرغبة والجسد أمام محكمة رمزية، لفهم ما قد يختبئ خلف الخجل والصمت وسوء الفهم بين الزوجين.\n\nعبر ثلاثة أبواب وخمسة عشر فصلًا، ينتقل من محكمة الجسد وفهم الرغبة والاستجابة والمتعة والصعوبات الجنسية، إلى محكمة الحب والرغبة وتفاوت الاحتياجات وقلق الأداء وضغوط المقارنة، ثم محكمة التوافق والحوار وتجديد الحميمية عبر مراحل الزواج. يربط المعرفة بالتواصل والرضا والاحترام المتبادل. محتواه تثقيفي للبالغين ولا يحل محل التشخيص أو العلاج أو الاستشارة المتخصصة.",
+    "enAbout": "The Court of Love & Sex by TABO NOOR examines common assumptions about love, desire and the body through the metaphor of a court, exploring embarrassment, silence and misunderstanding between spouses.\n\nIts three parts and fifteen chapters move from the body, desire, response and sexual difficulties to differing needs, performance anxiety and comparison, then dialogue, mutual understanding and intimacy through different stages of marriage. It emphasizes knowledge, communication, consent and mutual respect. This is education for adults, not a substitute for professional diagnosis, treatment or advice.",
+    "adds": "يساعد الزوجين على التمييز بين الحب والرغبة والاستجابة الجسدية، ومناقشة الاحتياجات والحدود بوضوح، ومراجعة التوقعات والمقارنات، وفهم متى تكون الاستشارة المتخصصة ضرورية.",
+    "enAdds": "Helps couples distinguish love, desire and physical response, discuss needs and boundaries, examine expectations and comparisons, and recognize when professional advice is needed.",
+    "idea": "محاكمة الأفكار التي تعيق التفاهم، وبناء علاقة حميمة تقوم على الوعي والحوار والرضا المتبادل.",
+    "enIdea": "Examine the assumptions that obstruct understanding, and build intimacy through awareness, dialogue and mutual consent.",
+    "audience": {
+      "ar": "للزوجين البالغين والمقبلين على الزواج، ممن يريدون فهم الجسد والرغبة والتواصل والتوافق داخل العلاقة الزوجية.",
+      "en": "For adult couples and adults preparing for marriage who want to understand the body, desire, communication and marital intimacy."
+    },
+    "primaryCategory": "marriage-family",
+    "topics": {
+      "ar": [
+        "فهم الرغبة والاستجابة والمتعة",
+        "الصعوبات الجنسية وقلق الأداء",
+        "التفاوت في الرغبة وضغوط المقارنة",
+        "الحوار والاحتياجات والحدود المتبادلة",
+        "تجديد الحميمية عبر مراحل الزواج"
+      ],
+      "en": [
+        "Desire, response and well-being",
+        "Sexual difficulties and performance anxiety",
+        "Desire differences and comparison",
+        "Dialogue, needs and mutual boundaries",
+        "Intimacy through different stages of marriage"
+      ]
+    },
+    "related": [
+      "book20",
+      "book21",
+      "book16"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "لمن يناسب كتاب محكمة الحب والجنس؟",
+          "للزوجين البالغين والمقبلين على الزواج، وهو يتناول المعرفة والتواصل والتوافق والحميمية داخل الزواج."
+        ],
+        [
+          "هل الكتاب بديل عن الاستشارة الطبية أو النفسية؟",
+          "لا. يقدم تثقيفًا عامًا للبالغين، ولا يقدم تشخيصًا فرديًا أو علاجًا ولا يضمن نتائج محددة."
+        ],
+        [
+          "هل توجد معاينة أو خصومات لهذا الكتاب؟",
+          "لا توجد معاينة. سعره المستقل 500 جنيه داخل مصر أو 15.99 دولار عند التسعير بالدولار، ولا يدخل في خصومات السلة أو عرض كتابَي السيجما."
+        ],
+        [
+          "كيف أحصل على نسخة PDF؟",
+          "بعد تأكيد الدفع، تُتاح النسخة عبر مسار التحميل المحمي المرتبط بالطلب ومتصفح الشراء. لا يتاح الملف الأصلي عبر رابط عام."
+        ]
+      ],
+      "en": [
+        [
+          "Who is this book for?",
+          "Adult couples and adults preparing for marriage who want to explore communication, understanding and intimacy."
+        ],
+        [
+          "Does it replace medical or psychological advice?",
+          "No. It provides general adult education, not individual diagnosis or treatment, and does not guarantee results."
+        ],
+        [
+          "Is there a preview or a discount?",
+          "No preview is available. Its independent price is EGP 500 in Egypt or USD 15.99 when priced in dollars. It is excluded from cart discounts and the Sigma pair offer."
+        ],
+        [
+          "How do I receive the PDF?",
+          "After payment is confirmed, access is provided through the protected download process tied to the order and purchasing browser. The original is not available through a public link."
+        ]
+      ]
+    },
+    "pageCount": 419,
+    "chapters": [
+      "الجنس يبدأ من الدماغ",
+      "جسدان بلغة مختلفة",
+      "ما قبل الجماع",
+      "قضية النشوة الغائبة",
+      "الجسد تحت الاتهام",
+      "أحبك ولكنني لا أشتهيك",
+      "من يطلب ومن يرفض؟",
+      "الجنس تحت الضغط",
+      "الرغبات المحرّمة بالصمت",
+      "الطرف الثالث في غرفة النوم",
+      "لغة الجسد والحوار",
+      "هندسة المتعة المشتركة",
+      "إحياء الرغبة المفقودة",
+      "الجنس عبر مواسم الزواج",
+      "الحكم الأخير"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1080
   }
 }

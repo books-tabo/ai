@@ -172,9 +172,10 @@ class QuoteHTTPTests(HTTPCase):
         self.insert.assert_not_called()
 
     def test_sigma_egypt_orders_ignore_client_prices_and_bundle_position(self):
-        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book20','book21'],1000),(list(app.BOOKS),2849)]
+        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1000),(list(app.BOOKS),3349)]
         with patch.object(app.Handler,'pricing_country',return_value='EG'), patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')):
             for ids,total in cases:
+                app.RATE_LIMITER=app.SlidingWindowLimiter()
                 items=[{'id':book_id,'price':0.01,'bundleEligible':True} for book_id in ids]
                 status,data,_=self.post('/api/orders',{'items':items,'customer':self.customer,'total':1})
                 self.assertEqual(status,201)
@@ -182,9 +183,10 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(self.db.orders[data['order']['id']]['total'],total)
 
     def test_sigma_usd_orders_bind_fixed_price_to_actual_frozen_egp_charge(self):
-        cases=[(['book20'],Decimal('15.90')),(['book20','book1'],Decimal('25.89')),(['book1','book20','book2'],Decimal('33.89')),(['book21'],Decimal('15.99')),(['book20','book21'],Decimal('20')),(list(app.BOOKS),Decimal('122.99'))]
+        cases=[(['book20'],Decimal('15.90')),(['book20','book1'],Decimal('25.89')),(['book1','book20','book2'],Decimal('33.89')),(['book21'],Decimal('15.99')),(['book22'],Decimal('15.99')),(['book22','book1','book2'],Decimal('33.98')),(['book20','book21'],Decimal('20')),(list(app.BOOKS),Decimal('138.98'))]
         with patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')) as gateway:
             for ids,total in cases:
+                app.RATE_LIMITER=app.SlidingWindowLimiter()
                 self.items=[{'id':book_id} for book_id in ids]
                 q=self.quote()
                 status,data,_=self.post('/api/orders',{'items':self.items,'country':'KW','customer':self.customer,'quoteToken':q['token'],'total':1})
