@@ -1247,7 +1247,7 @@ class Handler(BaseHTTPRequestHandler):
     def _do_GET(self):
         parsed=urlparse(self.path); route=parsed.path; token=parse_qs(parsed.query).get('token',[''])[0]
         if seo.review_mode() and route=='/api/book-stats':
-            return self.respond(200,{key:{'rating':None,'reviews':0,'downloads':0,'pageCount':value.get('pageCount')} for key,value in seo.current_books().items()})
+            return self.respond(200,{key:{'rating':None,'reviews':0,'pageCount':value.get('pageCount')} for key,value in seo.current_books().items()})
         if seo.review_mode() and route.startswith('/api/') and route not in ('/api/config','/api/store-config','/api/book-comments'):
             return self.respond(503,{'ok':False,'error':'Read-only review environment'})
         if seo.review_mode() and route.startswith('/previews/'):
@@ -1438,7 +1438,7 @@ class Handler(BaseHTTPRequestHandler):
             config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']
             return self.respond(200,config)
         if route=='/api/book-stats':
-            defaults={book_id:{'rating':None,'reviews':0,'downloads':0,'pageCount':None}
+            defaults={book_id:{'rating':None,'reviews':0,'pageCount':None}
                       for book_id in BOOKS}
             if store.ready():
                 try: defaults.update(store.book_stats())

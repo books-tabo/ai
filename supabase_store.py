@@ -133,7 +133,7 @@ def apply_payment_event(order_id,provider,mode,transaction,kind,amount,currency,
 def book_stats():
     """Return only public-safe aggregate book metadata."""
     rows=request('/rest/v1/book_stats', params={
-        'select':'book_id,rating_sum,review_count,download_count,page_count,file_size_bytes',
+        'select':'book_id,rating_sum,review_count,page_count,file_size_bytes',
         'order':'book_id.asc'
     })
     result={}
@@ -143,7 +143,6 @@ def book_stats():
         result[row['book_id']]={
             'rating':round(rating,1) if rating is not None else None,
             'reviews':reviews,
-            'downloads':int(row.get('download_count') or 0),
             'pageCount':row.get('page_count'),
             'fileSizeBytes':int(row.get('file_size_bytes') or 0)
         }

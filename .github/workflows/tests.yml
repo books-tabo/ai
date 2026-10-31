@@ -99,7 +99,7 @@ jobs:
               assert 'data-google-tag-id' not in html and 'data-pixel-id' not in html and 'data-snap-pixel-id' not in html
           with urlopen('http://127.0.0.1:18080/api/book-stats') as r:
               data=json.load(r)
-              assert len(data)==22 and all(v['pageCount']==1 and v['downloads']==0 for v in data.values())
+              assert len(data)==22 and all(v['pageCount']==1 and 'downloads' not in v for v in data.values())
           for path,expected in (('/api/order-status?key='+'0'*64,403),('/api/autoseo/status',503)):
               try: response=urlopen('http://127.0.0.1:18080'+path)
               except HTTPError as error: response=error

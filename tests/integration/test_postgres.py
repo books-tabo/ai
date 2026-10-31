@@ -442,7 +442,11 @@ class PostgresTests(unittest.TestCase):
             for allowed in (True,True,False):
                 self.assertEqual(app.store.claim_download(oid,'book20','c'*64,'d'*64,1)['allowed'],allowed)
             self.assertEqual(app.store.download_usage(oid),{'book20':2})
-            self.assertEqual(app.store.book_stats()['book20']['downloads'],2)
+            # Recording remains durable for the owner, while public metadata
+            # no longer exposes how often a title has been downloaded.
+            with self.connect() as c:
+                self.assertEqual(c.execute("SELECT download_count FROM public.book_stats WHERE book_id='book20'").fetchone()[0],2)
+            self.assertNotIn('downloads',app.store.book_stats()['book20'])
             self.assertEqual(app.store.book_comments('book20'),{'comments':[],'total':0})
             event['kind']='refund'
             self.assertEqual(app.store.apply_paypal_event(order,event,'d'*64)['status'],'REFUNDED')
