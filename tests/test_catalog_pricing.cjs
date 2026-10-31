@@ -30,6 +30,19 @@ for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD'
     assert.equal(vm.runInContext('bookPolicy(BOOKS[19]).previewEnabled', context), false);
 }
 
+// A new independent title must not advertise the Sigma-only pack in its row
+// or in a cart containing that title alone. Mixed carts retain the Sigma note.
+for (const language of ['ar', 'en']) {
+    context.currentLanguage = language;
+    context.cart = [{id:'book22'}];
+    assert.doesNotMatch(vm.runInContext('fixedPriceText()', context), /Sigma|السيجما/);
+    assert.doesNotMatch(vm.runInContext('fixedPriceNotice(BOOKS.find(b=>b.id==="book22"))', context), /Sigma|السيجما/);
+    context.cart.push({id:'book20'});
+    assert.match(vm.runInContext('fixedPriceText()', context), /Sigma|السيجما/);
+    assert.doesNotMatch(vm.runInContext('fixedPriceNotice(BOOKS.find(b=>b.id==="book22"))', context), /Sigma|السيجما/);
+    assert.match(vm.runInContext('fixedPriceNotice(BOOKS.find(b=>b.id==="book20"))', context), /Sigma|السيجما/);
+}
+
 function product(bookId, currency) {
     const detail = rendered('book.html','/books/'+bookId);
     const detailScript = detail.slice(detail.indexOf('const BOOKS='), detail.indexOf('async function submitRating('));

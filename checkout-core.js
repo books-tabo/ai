@@ -55,8 +55,12 @@ function bookPolicy(book){
     return {...{price:book.fixedPrices?.[storeConfig.currency]??PRICING_LADDER[1],bundleEligible:book.bundleEligible!==false,previewEnabled:book.previewEnabled!==false},...(storeConfig.bookPolicies?.[book.id]||{})};
 }
 function bookPrice(book){return Number(bookPolicy(book).price)}
-function fixedPriceText(){return currentLanguage==="ar"?"سعر مستقل — خارج خصومات العدد، مع عرض خاص لكتابَي السيجما بالدولار":"Independent price — excluded from quantity discounts; a special USD Sigma pair offer is available"}
-function fixedPriceNotice(book){return bookPolicy(book).bundleEligible?"":`<div class="fixed-price-note">${fixedPriceText()}</div>`}
+function fixedPriceText(book){
+    const ids=book?[book.id]:cart.map(item=>item.id);
+    if(!ids.some(id=>id==="book20"||id==="book21"))return currentLanguage==="ar"?"سعر مستقل — غير مشمول بخصومات السلة":"Independent price — excluded from cart discounts";
+    return currentLanguage==="ar"?"سعر مستقل — خارج خصومات العدد، مع عرض خاص لكتابَي السيجما بالدولار":"Independent price — excluded from quantity discounts; a special USD Sigma pair offer is available";
+}
+function fixedPriceNotice(book){return bookPolicy(book).bundleEligible?"":`<div class="fixed-price-note">${fixedPriceText(book)}</div>`}
 function calculatePricing(){
     const books=cart.map(item=>BOOKS.find(book=>book.id===item.id)).filter(Boolean);
     const ordinary=books.filter(book=>bookPolicy(book).bundleEligible);
