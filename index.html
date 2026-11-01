@@ -4,6 +4,8 @@
 <head>
 
 <meta charset="UTF-8">
+<meta name="google-site-verification" content="2d4_14pt2xn5ViepH0aCpVos6S4uX_K4QUKruuXniP4" />
+<meta name="facebook-domain-verification" content="fzf9a2ww233qpjhtwbo4srsp7bpyts" />
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -14,73 +16,9 @@
     content="TABO BOOKS - مكتبة تابو الرقمية للكتب الإلكترونية في الوعي وتطوير الذات والمال والطموح."
 >
 
-<!-- =========================================================
-     FACEBOOK PIXEL
-     ضع Pixel ID مكان YOUR_PIXEL_ID_HERE
-========================================================= -->
-
-<script>
-
-!function(f,b,e,v,n,t,s)
-{
-    if(f.fbq)return;
-
-    n=f.fbq=function(){
-
-        n.callMethod ?
-        n.callMethod.apply(n,arguments) :
-        n.queue.push(arguments)
-
-    };
-
-    if(!f._fbq)f._fbq=n;
-
-    n.push=n;
-    n.loaded=!0;
-    n.version='2.0';
-    n.queue=[];
-
-    t=b.createElement(e);
-    t.async=!0;
-    t.src=v;
-
-    s=b.getElementsByTagName(e)[0];
-
-    s.parentNode.insertBefore(t,s)
-
-}
-(
-    window,
-    document,
-    'script',
-    'https://connect.facebook.net/en_US/fbevents.js'
-);
-
-fbq(
-    'init',
-    'YOUR_PIXEL_ID_HERE'
-);
-
-fbq(
-    'track',
-    'PageView'
-);
-
-</script>
-
-<noscript>
-
-<img
-    height="1"
-    width="1"
-    style="display:none"
-    src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID_HERE&ev=PageView&noscript=1"
-/>
-
-</noscript>
-
-
 <style>
+[hidden]{display:none!important}
+@font-face{font-family:"Tabo Kufi";src:url('/noto-kufi-arabic-bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
 
 /* =========================================================
    RESET
@@ -116,6 +54,19 @@ body{
    PROMO BAR
 ========================================================= */
 
+.store-toolbar{
+    position:sticky;
+    top:0;
+    z-index:1000;
+    display:grid;
+    grid-template-columns:56px minmax(0,1fr) 56px;
+    direction:ltr;
+    min-height:50px;
+    background:#050505;
+    border-bottom:1px solid #c9a227;
+    box-shadow:0 5px 18px rgba(0,0,0,.12);
+}
+
 .promo-bar{
 
     background:#050505;
@@ -126,8 +77,83 @@ body{
 
     white-space:nowrap;
 
-    border-bottom:1px solid #c9a227;
+    grid-column:2;
 
+}
+
+html[dir="rtl"] .promo-bar{
+    direction:rtl;
+}
+
+html[dir="ltr"] .promo-bar{
+    direction:ltr;
+}
+
+.toolbar-button{
+    position:relative;
+    width:56px;
+    min-height:50px;
+    border:0;
+    background:#050505;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .2s ease,color .2s ease;
+}
+
+.toolbar-button:hover,
+.toolbar-button:focus-visible{
+    background:#171717;
+    color:#e1bc42;
+    outline:none;
+}
+
+.toolbar-menu{
+    grid-column:3;
+    grid-row:1;
+    border-left:1px solid #262626;
+}
+
+.toolbar-cart{
+    grid-column:1;
+    grid-row:1;
+    border-right:1px solid #262626;
+}
+
+.hamburger-icon{
+    width:23px;
+    display:grid;
+    gap:5px;
+}
+
+.hamburger-icon span{
+    display:block;
+    height:2px;
+    border-radius:2px;
+    background:currentColor;
+}
+
+.toolbar-cart svg{
+    width:24px;
+    height:24px;
+}
+
+.mini-cart-badge{
+    position:absolute;
+    top:4px;
+    right:4px;
+    min-width:19px;
+    height:19px;
+    padding:0 4px;
+    border-radius:10px;
+    background:#c9a227;
+    color:#111;
+    font-size:10px;
+    font-weight:900;
+    line-height:19px;
+    text-align:center;
 }
 
 .promo-track{
@@ -171,6 +197,167 @@ body{
     }
 
 }
+
+
+/* =========================================================
+   STORE NAVIGATION DRAWER
+========================================================= */
+
+body.drawer-open{
+    overflow:hidden;
+}
+
+.drawer-overlay{
+    position:fixed;
+    inset:0;
+    z-index:2600;
+    background:rgba(0,0,0,.62);
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .25s ease,visibility .25s ease;
+}
+
+.drawer-overlay.active{
+    opacity:1;
+    visibility:visible;
+}
+
+.nav-drawer{
+    position:absolute;
+    top:0;
+    right:0;
+    width:min(88vw,390px);
+    height:100%;
+    overflow-y:auto;
+    background:#fff;
+    color:#111;
+    box-shadow:-20px 0 55px rgba(0,0,0,.24);
+    transform:translateX(105%);
+    transition:transform .28s ease;
+}
+
+.drawer-overlay.active .nav-drawer{
+    transform:translateX(0);
+}
+
+.drawer-header{
+    min-height:76px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:18px 20px;
+    border-bottom:1px solid #eee9da;
+}
+
+.drawer-header h2{
+    font-size:22px;
+    letter-spacing:.5px;
+}
+
+.drawer-close{
+    width:40px;
+    height:40px;
+    border:0;
+    border-radius:50%;
+    background:#f2efe7;
+    color:#111;
+    font-size:25px;
+    line-height:1;
+    cursor:pointer;
+}
+
+.drawer-tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-bottom:1px solid #eee9da;
+}
+
+.drawer-tab{
+    border:0;
+    border-bottom:3px solid transparent;
+    background:#fff;
+    color:#777;
+    padding:18px 10px 15px;
+    font:inherit;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.drawer-tab.active{
+    color:#111;
+    border-bottom-color:#c9a227;
+}
+
+.drawer-panel{
+    padding:24px 20px 34px;
+}
+
+.drawer-panel[hidden]{
+    display:none;
+}
+
+.drawer-card{
+    width:100%;
+    border:1px solid #e2dccb;
+    border-radius:16px;
+    background:#fff;
+    color:#111;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:15px;
+    text-align:start;
+    font:inherit;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.055);
+    transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+
+.drawer-card:hover,
+.drawer-card:focus-visible{
+    transform:translateY(-2px);
+    border-color:#c9a227;
+    box-shadow:0 12px 28px rgba(0,0,0,.09);
+    outline:none;
+}
+
+.drawer-card-icon{
+    flex:0 0 52px;
+    width:52px;
+    height:52px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#111;
+    color:#d9b83f;
+    font-size:24px;
+    font-weight:900;
+}
+
+.drawer-card strong,
+.drawer-card small{
+    display:block;
+}
+
+.drawer-card strong{
+    margin-bottom:2px;
+    font-size:18px;
+}
+
+.drawer-card small{
+    color:#777;
+    line-height:1.55;
+}
+
+.drawer-links{display:grid;gap:12px;margin-top:12px}
+.drawer-links a{text-decoration:none}
+.drawer-card[aria-pressed="true"]{border-color:#c9a227;background:#fbf7e9}
+.catalog-filter{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.catalog-filter h2{margin:0;font-size:22px}
+.catalog-filter .read-more-btn{width:auto;margin:0;padding:9px 14px}
+.catalog-empty{padding:30px 12px;text-align:center;color:#666;line-height:1.9}
 
 
 /* =========================================================
@@ -314,6 +501,7 @@ header p{
 .book-image{
 
     width:100%;
+    height:auto;
 
     aspect-ratio:
     1 / 1.42;
@@ -324,11 +512,23 @@ header p{
 
 }
 
+.book-cover-link{
+    position:relative;
+    display:block;
+    color:inherit;
+    text-decoration:none;
+}
+
+.book-cover-link:focus-visible{
+    outline:3px solid #c9a227;
+    outline-offset:3px;
+}
+
 .pdf-badge{
 
     position:absolute;
 
-    top:12px;
+    bottom:12px;
 
     right:12px;
 
@@ -354,9 +554,11 @@ header p{
 
 .book-title .title-pdf{
 
-    display:inline-block;
+    display:inline-flex;
 
-    margin-right:7px;
+    align-items:center;
+
+    flex:0 0 auto;
 
     padding:2px 6px;
 
@@ -394,6 +596,14 @@ header p{
 
     margin-bottom:10px;
 
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    flex-wrap:wrap;
+
 }
 
 .book-description{
@@ -422,6 +632,10 @@ header p{
 
     cursor:pointer;
 
+    display:inline-block;
+
+    text-decoration:none;
+
     text-align:right;
 
     padding:
@@ -429,6 +643,24 @@ header p{
     0
     14px;
 
+}
+
+.book-rating{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin:7px 0 5px;
+    font-size:12px;
+    color:#777;
+    text-decoration:none;
+}
+
+.rating-stars{
+    color:#c9a227;
+    letter-spacing:1px;
+    font-size:16px;
+    direction:ltr;
 }
 
 .book-bottom{
@@ -445,6 +677,19 @@ header p{
 
     margin-bottom:4px;
 
+}
+
+.book-price,
+.book-previous-price{
+    direction:ltr;
+    unicode-bidi:isolate;
+}
+
+.book-previous-price{
+    color:#999;
+    font-size:14px;
+    margin-bottom:5px;
+    text-decoration:line-through;
 }
 
 .book-format{
@@ -699,7 +944,8 @@ footer{
 
 }
 
-.footer-links button{
+.footer-links button,
+.footer-links a{
 
     background:none;
 
@@ -721,10 +967,34 @@ footer{
 
 }
 
-.footer-links button:hover{
+.footer-links button:hover,
+.footer-links a:hover{
 
     color:#c9a227;
 
+}
+
+footer .site-controls{
+    position:static;
+    background:transparent;
+    color:#ddd;
+    border:0;
+    border-bottom:1px solid #222;
+    padding:0 0 20px;
+    margin:0 auto 20px;
+    max-width:900px;
+}
+
+footer .site-controls select,
+footer .language-switch button{
+    background:#111;
+    color:#eee;
+    border-color:#4e4324;
+}
+
+footer .language-switch button.active{
+    background:#c9a227;
+    color:#111;
 }
 
 .footer-copy{
@@ -733,6 +1003,14 @@ footer{
 
     font-size:13px;
 
+}
+
+.footer-logo{
+    display:block;
+    width:min(220px,58vw);
+    height:auto;
+    margin:24px auto 0;
+    border-radius:10px;
 }
 
 
@@ -1034,6 +1312,9 @@ footer{
 
 }
 
+.summary-final.usd-summary{align-items:center;gap:12px;flex-wrap:wrap}
+.summary-final.usd-summary strong{font-size:32px;direction:ltr;unicode-bidi:isolate}
+
 .cart-next-message{
 
     background:#f7f3e6;
@@ -1266,6 +1547,66 @@ footer{
 
 }
 
+/* =========================================================
+   COUNTRY & LANGUAGE CONTROLS
+========================================================= */
+
+.site-controls{
+    position:sticky;
+    top:0;
+    z-index:30;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:10px 15px;
+    background:rgba(255,255,255,.96);
+    border-bottom:1px solid #ece7d8;
+    backdrop-filter:blur(10px);
+}
+
+.site-controls label{
+    font-size:13px;
+    font-weight:700;
+}
+
+.site-controls select,
+.language-switch button{
+    border:1px solid #d7c992;
+    background:#fff;
+    color:#111;
+    border-radius:8px;
+    padding:8px 10px;
+    font:inherit;
+    cursor:pointer;
+}
+
+.language-switch{
+    display:flex;
+    gap:5px;
+}
+
+.language-switch button.active{
+    background:#111;
+    color:#fff;
+    border-color:#111;
+}
+
+.location-note{
+    color:#777;
+    font-size:11px;
+}
+
+html[dir="ltr"] .info-content ul{
+    padding-right:0;
+    padding-left:22px;
+}
+
+html[dir="ltr"] .info-highlight{
+    border-right:0;
+    border-left:4px solid #c9a227;
+}
+
 
 /* =========================================================
    RESPONSIVE
@@ -1284,6 +1625,29 @@ footer{
 
 
 @media(max-width:600px){
+
+    .store-toolbar{
+        grid-template-columns:50px minmax(0,1fr) 50px;
+    }
+
+    .toolbar-button{
+        width:50px;
+    }
+
+    .promo-track{
+        gap:34px;
+    }
+
+    .site-controls{
+        flex-wrap:wrap;
+        gap:7px;
+    }
+
+    .site-controls label,
+    .location-note{
+        width:100%;
+        text-align:center;
+    }
 
     header{
 
@@ -1351,6 +1715,12 @@ footer{
 
     }
 
+    .book-previous-price{
+
+        font-size:12px;
+
+    }
+
     .book-format{
 
         font-size:10px;
@@ -1413,6 +1783,10 @@ footer{
 
     }
 
+    .footer-logo{
+        width:min(190px,56vw);
+    }
+
 }
 
 
@@ -1450,6 +1824,15 @@ footer{
 
 }
 
+.book-panorama{background:#050505;padding:42px 0}.panorama-track{display:flex;gap:18px;overflow-x:auto;padding:8px 24px 20px;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}.panorama-item{flex:0 0 190px;scroll-snap-align:start;text-decoration:none;color:#ddd}.panorama-cover{position:relative}.panorama-cover img{display:block;width:100%;height:285px;object-fit:cover;border-radius:10px}.panorama-pdf{position:absolute;bottom:10px;right:10px;background:#d2a500;color:#050505;padding:5px 9px;border-radius:7px;font-weight:bold}.panorama-item .book-rating{justify-content:center;font-size:13px;margin:14px 0 0;flex-wrap:wrap}@media(min-width:800px){.panorama-item{flex-basis:220px}.panorama-cover img{height:330px}}
+html[lang="ar"] #heroTitle{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(26px,6.5vw,48px);line-height:1.8;color:#111;margin-bottom:18px}
+html[lang="ar"] #heroDescription{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(13px,3.55vw,22px);line-height:2.3;color:#625631;letter-spacing:0;white-space:pre-line;max-width:900px;margin-inline:auto}
+html[lang="en"] #heroDescription{white-space:pre-line}
+
+.book-sample-link{display:block;text-align:center;color:#846410;border:1px solid #c9a227;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;padding:9px 6px;margin:0 0 15px}
+.book-sample-link:hover{background:#fbf7e9}
+@media(max-width:600px){.book-sample-link{font-size:11px;padding:8px 4px}}
+.fixed-price-note{font-size:12px;line-height:1.7;color:#806615;margin:7px 0}
 </style>
 
 </head>
@@ -1462,74 +1845,67 @@ footer{
      PROMO BAR
 ========================================================= -->
 
-<div class="promo-bar">
+<div class="store-toolbar" id="offersBar">
 
-    <div class="promo-track">
+    <button
+        type="button"
+        class="toolbar-button toolbar-menu"
+        id="menuButton"
+        aria-label="القائمة"
+        aria-controls="navDrawer"
+        aria-expanded="false"
+    >
+        <span class="hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
 
-        <div class="promo-item">
-            أضف أكثر من كتاب واحصل على سعر أفضل
-        </div>
-
-        <div class="promo-item">
-            2 كتب =
-            <span class="promo-highlight">
-                250 جنيه
-            </span>
-        </div>
-
-        <div class="promo-item">
-            3 كتب =
-            <span class="promo-highlight">
-                300 جنيه
-            </span>
-        </div>
-
-        <div class="promo-item">
-            4 كتب =
-            <span class="promo-highlight">
-                350 جنيه
-            </span>
-        </div>
-
-        <div class="promo-item">
-            5 كتب =
-            <span class="promo-highlight">
-                420 جنيه
-            </span>
-        </div>
-
-        <div class="promo-item">
-            6 كتب =
-            <span class="promo-highlight">
-                500 جنيه
-            </span>
-        </div>
-
-        <div class="promo-item">
-            7 كتب =
-            <span class="promo-highlight">
-                550 جنيه
-            </span>
-        </div>
-
-        <div class="promo-item">
-            8 كتب =
-            <span class="promo-highlight">
-                620 جنيه
-            </span>
-        </div>
-
-        <div class="promo-item">
-            9 كتب =
-            <span class="promo-highlight">
-                700 جنيه
-            </span>
-        </div>
-
+    <div class="promo-bar">
+        <div class="promo-track" id="promoTrack"></div>
     </div>
+
+    <button
+        type="button"
+        class="toolbar-button toolbar-cart"
+        id="miniCartButton"
+        aria-label="السلة"
+    >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M3 4h2l2.1 9.1a2 2 0 0 0 2 1.5h7.7a2 2 0 0 0 1.9-1.4L20 8H6.1"/>
+            <circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>
+        </svg>
+        <span class="mini-cart-badge" data-cart-count>0</span>
+    </button>
 
 </div>
 
+<div class="drawer-overlay" id="navDrawer" aria-hidden="true">
+    <aside class="nav-drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+        <div class="drawer-header">
+            <h2 id="drawerTitle">القائمة</h2>
+            <button type="button" class="drawer-close" id="drawerCloseButton" aria-label="إغلاق">×</button>
+        </div>
+
+        <div class="drawer-tabs" role="tablist">
+            <button type="button" class="drawer-tab active" id="categoriesTab" role="tab" aria-selected="true" aria-controls="categoriesPanel" data-drawer-tab="categories">الأقسام</button>
+            <button type="button" class="drawer-tab" id="authorsTab" role="tab" aria-selected="false" aria-controls="authorsPanel" data-drawer-tab="authors">المؤلفين</button>
+        </div>
+
+        <div class="drawer-panel" id="categoriesPanel" role="tabpanel" aria-labelledby="categoriesTab">
+            <button type="button" class="drawer-card" id="offersDrawerLink">
+                <span class="drawer-card-icon" aria-hidden="true">%</span>
+                <span><strong id="offersDrawerTitle">العروض</strong><small id="offersDrawerHint">باقات الكتب والأسعار الخاصة</small></span>
+            </button>
+            <div class="drawer-links" id="categoryLinks"></div>
+        </div>
+
+        <div class="drawer-panel" id="authorsPanel" role="tabpanel" aria-labelledby="authorsTab" hidden>
+            <button type="button" class="drawer-card" id="authorDrawerLink">
+                <span class="drawer-card-icon" aria-hidden="true">T</span>
+                <span><strong id="drawerAuthorName">تابو نور</strong><small id="drawerAuthorHint">تعرّف على المؤلف وكتبه</small></span>
+            </button>
+            <div class="drawer-links" id="additionalAuthorLinks"></div>
+        </div>
+    </aside>
+</div>
 
 <!-- =========================================================
      HEADER
@@ -1542,15 +1918,12 @@ footer{
     </div>
 
     <div class="brand-line"></div>
+    <a href="/offers" data-offers-label class="offers-home-link">عروض الباقات</a>
 
-    <h1>
-        كتب تغيّر طريقة تفكيرك
+    <h1 id="heroTitle">
+        مكتبة تابو الرقمية
     </h1>
 
-    <p>
-        مكتبة تابو الرقمية — كتب في الوعي، تطوير الذات،
-        المال، الطموح وفهم الإنسان لنفسه والعالم من حوله.
-    </p>
 
 </header>
 
@@ -1559,7 +1932,13 @@ footer{
      BOOKS
 ========================================================= -->
 
-<section class="books-section">
+<section class="books-section" id="booksSection">
+
+    <div class="catalog-filter" id="catalogFilter" hidden>
+        <h2 id="catalogFilterTitle"></h2>
+        <button type="button" class="read-more-btn" id="clearCategoryButton"></button>
+    </div>
+    <p class="catalog-empty" id="catalogEmpty" role="status" hidden></p>
 
     <div
         class="books-grid"
@@ -1569,95 +1948,12 @@ footer{
 </section>
 
 
-<!-- =========================================================
-     PAYMENT
-========================================================= -->
-
-<section class="payment-section">
-
-    <div class="payment-inner">
-
-        <h2>
-            طرق الدفع
-        </h2>
-
-        <p>
-            الدفع متاح حاليًا من خلال إنستاباي أو فودافون كاش.
-        </p>
-
-        <div class="payment-methods">
-
-
-            <div class="payment-card">
-
-                <img
-                    src="https://i.ibb.co/xKGM9mtP/image.png"
-                    alt="InstaPay"
-                >
-
-                <h3>
-                    InstaPay
-                </h3>
-
-                <div class="payment-number">
-                    01122965693
-                </div>
-
-            </div>
-
-
-            <div class="payment-card">
-
-                <img
-                    src="https://i.ibb.co/MyBMBZG7/image.png"
-                    alt="Vodafone Cash"
-                >
-
-                <h3>
-                    Vodafone Cash
-                </h3>
-
-                <div class="payment-number">
-                    01122965693
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-</section>
-
 
 <!-- =========================================================
      AUTHOR
 ========================================================= -->
 
-<section class="author-section">
-
-    <div class="author-label">
-        AUTHOR
-    </div>
-
-    <div class="author-name">
-        تابو نور
-    </div>
-
-    <div class="author-en">
-        TABONOOR
-    </div>
-
-    <p class="author-description">
-
-        كاتب ومؤلف يهتم بموضوعات الوعي،
-        تطوير الذات، المال، الطموح،
-        وفهم الإنسان لنفسه والعالم من حوله.
-
-    </p>
-
-</section>
+<section class="book-panorama" aria-label="الكتب"><div class="panorama-track" id="panoramaTrack" tabindex="0"></div></section>
 
 
 <!-- =========================================================
@@ -1666,53 +1962,56 @@ footer{
 
 <footer>
 
+    <div class="site-controls" aria-label="إعدادات الدولة واللغة">
+        <label for="countrySelect" id="countryLabel">الدولة</label>
+        <select id="countrySelect" aria-label="اختر الدولة"></select>
+        <div class="language-switch" aria-label="Language">
+            <button type="button" id="languageToggle">اللغة</button>
+        </div>
+    </div>
 
-    <div class="footer-links">
 
-        <button
-            onclick="openInfoModal('aboutModal')"
-        >
+    <div class="footer-links"><a href="/offers" data-offers-label>عروض الباقات</a><a href="/categories" data-seo-label="categories">أقسام الكتب</a>
+
+        <a id="footerAuthors" href="/authors">المؤلفين</a>
+        <a id="footerAbout" href="/about">
             من نحن
-        </button>
+        </a>
 
 
-        <button
-            onclick="openInfoModal('contactModal')"
-        >
+        <a id="footerOrderHelp" href="/order-help">مساعدة بخصوص طلبي</a>
+        <a id="footerContact" href="/contact">
             تواصل معنا
-        </button>
+        </a>
 
 
-        <button
-            onclick="openInfoModal('privacyModal')"
-        >
+        <a id="footerPrivacy" href="/privacy">
             سياسة الخصوصية
-        </button>
+        </a>
 
 
-        <button
-            onclick="openInfoModal('refundModal')"
-        >
+        <a id="footerRefund" href="/refund">
             الاسترداد والإلغاء
-        </button>
+        </a>
 
 
-        <button
-            onclick="openInfoModal('deliveryModal')"
-        >
+        <a id="footerDelivery" href="/delivery">
             التوصيل والتسليم
-        </button>
+        </a>
 
     </div>
 
 
-    <div class="footer-copy">
+    <div class="footer-copy" id="footerCopy">
 
         © 2026 TABO BOOKS — جميع الحقوق محفوظة
 
     </div>
 
+    <img class="footer-logo" src="/tabo-books-logo.webp" alt="TABO BOOKS" loading="lazy" decoding="async">
 
+
+<details style="font-size:11px;text-align:center;margin-top:12px"><summary style="cursor:pointer;color:#888">مصادر الموقع / Credits</summary><a href="https://db-ip.com" rel="noopener noreferrer" style="color:#888">IP Geolocation by DB-IP</a></details>
 </footer>
 
 
@@ -1722,7 +2021,7 @@ footer{
 
 <button
     class="floating-cart"
-    onclick="openCart()"
+    id="floatingCartBtn"
     aria-label="السلة"
 >
 
@@ -1731,6 +2030,7 @@ footer{
     <span
         class="cart-badge"
         id="cartBadge"
+        data-cart-count
     >
         0
     </span>
@@ -1745,17 +2045,15 @@ footer{
 <div
     class="modal-overlay"
     id="bookDetailsModal"
-    onclick="closeBookDetails(event)"
 >
 
     <div
         class="modal"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeBookDetails()"
+            id="closeBookDetailsBtn"
         >
             ×
         </button>
@@ -1768,7 +2066,7 @@ footer{
 
         <div class="modal-section">
 
-            <h3>
+            <h3 id="detailsAboutTitle">
                 عن الكتاب
             </h3>
 
@@ -1782,7 +2080,7 @@ footer{
 
         <div class="modal-section">
 
-            <h3>
+            <h3 id="detailsAddsTitle">
                 ماذا يضيف لك؟
             </h3>
 
@@ -1806,278 +2104,31 @@ footer{
 
 
 <!-- =========================================================
-     CART MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="cartModal"
-    onclick="closeCart(event)"
->
-
-    <div
-        class="modal"
-        onclick="event.stopPropagation()"
-    >
-
-        <button
-            class="modal-close"
-            onclick="closeCart()"
-        >
-            ×
-        </button>
-
-
-        <h2>
-            سلة الكتب
-        </h2>
-
-
-        <div id="cartItems"></div>
-
-
-        <div
-            class="cart-next-message"
-            id="cartNextMessage"
-        ></div>
-
-
-        <div class="cart-summary">
-
-
-            <div class="summary-row">
-
-                <span>
-                    السعر الأصلي
-                </span>
-
-                <strong id="cartOriginal">
-                    0 جنيه
-                </strong>
-
-            </div>
-
-
-            <div class="summary-row">
-
-                <span>
-                    الخصم
-                </span>
-
-                <strong id="cartDiscount">
-                    0 جنيه
-                </strong>
-
-            </div>
-
-
-            <div class="summary-row summary-final">
-
-                <span>
-                    السعر النهائي
-                </span>
-
-                <strong id="cartFinal">
-                    0 جنيه
-                </strong>
-
-            </div>
-
-
-        </div>
-
-
-        <div class="cart-actions">
-
-
-            <button
-                class="btn btn-dark"
-                onclick="continueShopping()"
-            >
-                متابعة التسوق
-            </button>
-
-
-            <button
-                class="btn btn-gold"
-                onclick="openPaymentChoice()"
-                id="checkoutBtn"
-            >
-                متابعة الدفع
-            </button>
-
-
-        </div>
-
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     PAYMENT CHOICE MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="paymentChoiceModal"
-    onclick="closePaymentChoice(event)"
->
-
-    <div
-        class="modal"
-        onclick="event.stopPropagation()"
-    >
-
-        <button
-            class="modal-close"
-            onclick="closePaymentChoice()"
-        >
-            ×
-        </button>
-
-
-        <h2>
-            اختر طريقة الدفع
-        </h2>
-
-
-        <p
-            style="
-            color:#666;
-            margin-bottom:20px;
-            "
-        >
-            بعد اختيار طريقة الدفع سيتم تجهيز طلبك
-            وإرساله إلى واتساب.
-        </p>
-
-
-        <div class="payment-choice">
-
-
-            <button
-                onclick="selectPaymentMethod('InstaPay')"
-            >
-
-                <strong>
-                    InstaPay
-                </strong>
-
-                <br>
-
-                <span>
-                    01122965693
-                </span>
-
-            </button>
-
-
-            <button
-                onclick="selectPaymentMethod('Vodafone Cash')"
-            >
-
-                <strong>
-                    Vodafone Cash
-                </strong>
-
-                <br>
-
-                <span>
-                    01122965693
-                </span>
-
-            </button>
-
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     CONFIRMATION MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="confirmationModal"
-    onclick="closeConfirmation(event)"
->
-
-    <div
-        class="modal"
-        onclick="event.stopPropagation()"
-    >
-
-        <button
-            class="modal-close"
-            onclick="closeConfirmation()"
-        >
-            ×
-        </button>
-
-
-        <h2>
-            تأكيد الطلب
-        </h2>
-
-
-        <p
-            id="confirmationText"
-            class="modal-text"
-        ></p>
-
-
-        <button
-            class="btn btn-gold"
-            style="
-            width:100%;
-            margin-top:20px;
-            "
-            onclick="sendOrderToWhatsApp()"
-        >
-            تأكيد وإرسال الطلب عبر واتساب
-        </button>
-
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
      ABOUT US MODAL
 ========================================================= -->
 
 <div
     class="modal-overlay info-modal"
     id="aboutModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
 
 
-        <h2>
+        <h2 id="aboutModalTitle">
             من نحن
         </h2>
 
 
-        <div class="info-content">
+        <div class="info-content" id="aboutModalBody">
 
 
             <p>
@@ -2137,28 +2188,25 @@ footer{
 <div
     class="modal-overlay info-modal"
     id="contactModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
 
 
-        <h2>
+        <h2 id="contactModalTitle">
             تواصل معنا
         </h2>
 
 
-        <div class="info-content">
+        <div class="info-content" id="contactModalBody">
 
 
             <p>
@@ -2242,28 +2290,25 @@ footer{
 <div
     class="modal-overlay info-modal"
     id="privacyModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
 
 
-        <h2>
+        <h2 id="privacyModalTitle">
             سياسة الخصوصية
         </h2>
 
 
-        <div class="info-content">
+        <div class="info-content" id="privacyModalBody">
 
 
             <p>
@@ -2376,28 +2421,25 @@ footer{
 <div
     class="modal-overlay info-modal"
     id="refundModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
 
 
-        <h2>
+        <h2 id="refundModalTitle">
             الاسترداد والإلغاء
         </h2>
 
 
-        <div class="info-content">
+        <div class="info-content" id="refundModalBody">
 
 
             <h3>
@@ -2467,28 +2509,25 @@ footer{
 <div
     class="modal-overlay info-modal"
     id="deliveryModal"
-    onclick="closeInfoModal(event)"
 >
 
     <div
         class="modal info-modal-content"
-        onclick="event.stopPropagation()"
     >
 
         <button
             class="modal-close"
-            onclick="closeInfoModal()"
         >
             ×
         </button>
 
 
-        <h2>
+        <h2 id="deliveryModalTitle">
             التوصيل والتسليم
         </h2>
 
 
-        <div class="info-content">
+        <div class="info-content" id="deliveryModalBody">
 
 
             <h3>
@@ -2568,6 +2607,7 @@ footer{
      JAVASCRIPT
 ========================================================= -->
 
+<script src="/checkout-core.js"></script>
 <script>
 
 
@@ -2578,15 +2618,87 @@ footer{
 const WHATSAPP_NUMBER =
     "201122965693";
 
+const BACKEND_URL = location.origin;
+let lastOrderId = localStorage.getItem("taboLastOrderId") || "";
+const BOOK_IDS = {"هرمون":"book1", "نحو القمة":"book2", "تمرد":"book3", "كيف تصنع المليون الأول":"book4", "شهوات":"book5", "دليل السمو":"book6", "إلى كل بنت":"book7", "أصنام":"book8", "تأثير الكوبرا":"book9", "دليل التحرر من العادة السرية":"book10", "الأفعى والمنشار":"book11", "جسد":"book12", "بنت تخطت الثلاثين":"book13", "أنت":"book14", "شفرة الحياة":"book15", "شفرة قلب الأنثى":"book16", "عجلة الفئران":"book17", "كيف تغير حياتك":"book18", "بدون شهادة جامعية":"book19", "السيجما: الذكر الملكي":"book20", "السيجما: أنوثة طاغية":"book21", "محكمة الحب والجنس":"book22"};
+let currentLanguage = localStorage.getItem("taboLanguage") ||
+    ((navigator.language || "ar").toLowerCase().startsWith("en") ? "en" : "ar");
+let storeConfig = {
+    country:"EG",
+    currency:"EGP",
+    checkoutEnabled:false,
+    checkoutSupported:true,
+    countries:[],
+    prices:{"1":199,"2":299,"3":399,"4":499,"5":599,"6":699,"7":799,"8":899,"9":999,"10":1099,"11":1199,"12":1299,"13":1399,"14":1499,"15":1599,"16":1699,"17":1799,"18":1899,"19":1999},
+    compareAtPrice:299
+};
 
-const PAYMENT_NUMBERS = {
 
-    "InstaPay":
-        "01122965693",
 
-    "Vodafone Cash":
-        "01122965693"
+const UI_COPY = {
+    ar:{
+        countryLabel:"الدولة", language:"اللغة", menu:"القائمة", close:"إغلاق", cartLabel:"السلة",
+        categories:"الأقسام", authors:"المؤلفين", offers:"العروض", offersHint:"باقات الكتب والأسعار الخاصة",
+        drawerAuthorHint:"تعرّف على المؤلف وكتبه",
+        heroTitle:"مكتبة تابو الرقمية",
+        heroDescription:"كتب في الوعي، تطوير الذات\nالمال، ريادة الأعمال، الطموح\nوفهم الإنسان لنفسه والعالم من حوله",
+        paymentTitle:"الدفع الإلكتروني", paymentDescription:"أضف الكتب للسلة، ثم اختر وسيلة الدفع في صفحة إتمام الطلب.",
+        authorName:"تابو نور", authorDescription:"كاتب ومؤلف يهتم بموضوعات الوعي، تطوير الذات، المال، الطموح، وفهم الإنسان لنفسه والعالم من حوله.",
+        about:"من نحن", orderHelp:"مساعدة بخصوص طلبي", contact:"تواصل معنا", privacy:"سياسة الخصوصية", refund:"الاسترداد والإلغاء", delivery:"التوصيل والتسليم",
+        footerCopy:"© 2026 TABO BOOKS — جميع الحقوق محفوظة", cartTitle:"سلة الكتب",
+        original:"السعر السابق", final:"السعر الحالي",
+        checkoutFields:"بيانات التواصل المطلوبة لصفحة الدفع", fullName:"الاسم الكامل",
+        email:"البريد الإلكتروني", phone:"رقم الهاتف بالأرقام الإنجليزية",
+        checkout:"متابعة الدفع",
+        preview:"الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.",
+        currencyPending:"الدفع بهذه العملة غير متاح حاليًا.",
+        aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
+        pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
+        emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
+        promoLead:"عروض الباقات للكتب المشمولة فقط", books:"كتب",
+        addAnother:"أضف كتابًا من عروض الباقات مقابل {difference} إضافية ليصبح الإجمالي {next}.",
+        moreBooks:"يمكنك إضافة المزيد من الكتب للحصول على السعر المناسب للعدد الجديد.",
+        invalidCustomer:"أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.",
+        checkoutError:"تعذر الاتصال بخادم الدفع."
+        ,aboutTitle:"من نحن",contactTitle:"تواصل معنا",privacyTitle:"سياسة الخصوصية",refundTitle:"سياسة الاسترداد والإلغاء",deliveryTitle:"سياسة التوصيل والتسليم"
+    },
+    en:{
+        countryLabel:"Country", language:"Language", menu:"Menu", close:"Close", cartLabel:"Cart",
+        categories:"Categories", authors:"Authors", offers:"Offers", offersHint:"Book bundles and special prices",
+        drawerAuthorHint:"Meet the author and explore his books",
+        heroTitle:"TABO Digital Library",
+        heroDescription:"Books on awareness and personal growth\nMoney, entrepreneurship and ambition\nUnderstanding yourself and the world around you",
+        paymentTitle:"Secure online payment", paymentDescription:"Add books to your cart, then choose your payment method on the checkout page.",
+        authorName:"TABO NOOR", authorDescription:"An author focused on awareness, personal growth, money, ambition, and understanding human nature and the world around us.",
+        about:"About us", orderHelp:"Help with my order", contact:"Contact us", privacy:"Privacy policy", refund:"Refunds & cancellation", delivery:"Digital delivery",
+        footerCopy:"© 2026 TABO BOOKS — All rights reserved", cartTitle:"Book cart",
+        original:"Previous price", final:"Current price",
+        checkoutFields:"Contact details required for checkout", fullName:"Full name",
+        email:"Email address", phone:"Phone number in English digits",
+        checkout:"Continue to payment",
+        preview:"Orders are currently unavailable; this is a store preview.",
+        currencyPending:"Payments in this currency are not available yet.",
+        aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
+        pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
+        emptyCart:"Your cart is currently empty.", delete:"Remove",
+        promoLead:"Bundle offers apply to eligible books", books:"books",
+        addAnother:"Add an eligible bundle book for {difference}; the new total is {next}.",
+        moreBooks:"You can add more books to receive the bundle price for the new quantity.",
+        invalidCustomer:"Enter a valid name, email address, and phone number to continue.",
+        checkoutError:"Could not connect to the payment server."
+        ,aboutTitle:"About us",contactTitle:"Contact us",privacyTitle:"Privacy policy",refundTitle:"Refunds and cancellation",deliveryTitle:"Digital delivery policy"
+    }
+};
 
+function t(key){ return UI_COPY[currentLanguage][key] || UI_COPY.ar[key] || key; }
+
+const INFO_AR={};
+const INFO_EN={
+    aboutModalBody:`<p>TABO BOOKS is a digital bookstore publishing original books about awareness, personal growth, money, ambition and understanding human nature.</p><p>All products are digital PDF editions delivered online after successful payment.</p>`,
+    contactModalBody:`<p>For questions about an order or download, contact us and include your order number.</p><p><strong>WhatsApp:</strong> +20 112 296 5693</p><p><strong>Email:</strong> taponoor@gmail.com</p>`,
+    privacyModalBody:`<p>We collect only the contact and order information needed to process payments, deliver purchased books and provide support.</p><p>Your country is estimated from your IP address to apply the correct currency and prevent pricing abuse. We do not request precise GPS location. Your country selection may be stored locally.</p><p>Payment details are handled by the payment provider and are not stored by TABO BOOKS. We do not sell personal data.</p><p>If you choose the optional checkout reminder, we may send one unfinished checkout reminder. You can stop these reminders using the email link.</p>`,
+    refundModalBody:`<p>Because PDF files are digital products, completed and delivered orders are generally non-refundable. Contact support if you were charged incorrectly, received a duplicate order, or could not access your purchased file.</p>`,
+    deliveryModalBody:`<p>Books are delivered digitally after successful payment. No physical product is shipped and no shipping fee applies. If your files do not arrive, contact support with your order number.</p>`
 };
 
 
@@ -2594,213 +2706,89 @@ const PAYMENT_NUMBERS = {
    BOOKS
 ========================================================= */
 
-const BOOKS = [
-
-
-    {
-
-        name:"هرمون",
-
-        price:150,
-
-        image:
-        "https://i.ibb.co/jPh93m1j/image.png",
-
-        shortDescription:
-        "رحلة لفهم القوة والانضباط والجسد والإرادة وبناء شخصية أكثر وعيًا وقدرة على قيادة نفسها.",
-
-        about:
-        `«هرمون» ليس كتابًا عن القوة الجسدية فقط، ولا عن مطاردة الهرمونات. إنه رحلة لفهم العلاقة بين الجسد والعقل والانضباط والشخصية.
-
-يناقش الكتاب كيف يمكن للعادات والرغبات والهاتف والضغوط والخوف من آراء الآخرين أن تؤثر في طريقة حياتنا، ثم ينتقل إلى فهم الجسد والهرمونات والنوم والتوتر والحركة، قبل أن يصل إلى مفاهيم مثل الشرف والعزة والشجاعة والقيادة.
-
-الهدف ليس أن تصبح مهووسًا بجسدك، بل أن تفهمه وتحترمه، وتحول المعرفة إلى سلوك، والسلوك إلى شخصية.`,
-
-        adds:
-        `يساعدك الكتاب على النظر إلى القوة بصورة أعمق: ليس فقط كيف تبدو قويًا، بل كيف تصبح قادرًا على إدارة نفسك ورغباتك وقراراتك، واستخدام قوتك في البناء وتحمل المسؤولية.`,
-
-        idea:
-        `القوة الحقيقية ليست أن تبدو قويًا، بل أن تصبح الإنسان الذي يستحق القوة.`
-
-    },
-
-
-    {
-
-        name:"نحو القمة",
-
-        price:150,
-
-        image:
-        "https://i.ibb.co/WCNrS7p/image.png",
-
-        shortDescription:
-        "رحلة عملية في الوعي والانضباط والعمل والمال والفشل والنجاح لبناء حياة أكثر صدقًا وقدرة.",
-
-        about:
-        `«نحو القمة» يبدأ من سؤال مختلف: ليس فقط كيف أنجح؟ بل أي إنسان يجب أن أصبح حتى أعيش الحياة التي أريدها؟
-
-ينتقل الكتاب من الوعي وتحمل المسؤولية إلى اكتشاف نقاط القوة، وبناء المهارات، والانضباط، والعمل، والمال، والعلاقات، والتعامل مع الفشل والنجاح.
-
-لا يقدم الكتاب وعودًا سريعة أو وصفة جاهزة، بل يركز على التفاصيل الصغيرة التي تصنع النتائج الكبيرة: مراجعة الأخطاء، دراسة الأرقام، التدريب، تحمل الملل، الالتزام، والعودة بعد الأيام السيئة.`,
-
-        adds:
-        `يمنحك طريقة أكثر عملية للنظر إلى الوقت والانضباط والفشل والنجاح، ويذكّرك بأن النجاح لا يُبنى في الصورة النهائية، بل في العملية والتفاصيل التي تسبقها.`,
-
-        idea:
-        `لا تنتظر أن تصبح مستعدًا بالكامل. ابدأ، تعلّم، صحّح، واستمر في الصعود.`
-
-    },
-
-
-    {
-
-        name:"تمرد",
-
-        price:150,
-
-        image:
-        "https://i.ibb.co/JRMHj8Wh/image.png",
-
-        shortDescription:
-        "رحلة نحو الحرية والوعي والاختيار، لفهم تأثير الخوف والعادات وتوقعات الآخرين على حياتنا.",
-
-        about:
-        `ماذا لو كانت بعض القرارات التي تظن أنك اخترتها قد تشكلت أصلًا من توقعات الآخرين والخوف والعادة والرغبة في الحصول على القبول؟
-
-«تمرد» لا يدعوك إلى الفوضى أو هدم حياتك أو مخالفة الجميع لمجرد المخالفة. بل يدعوك إلى نوع مختلف من التمرد: أن تستعيد حقك في اختيار حياتك بوعي.
-
-يناقش الكتاب الحرية والاختيار والعادات والضغوط والالتزامات، وكيف يمكن للإنسان أن يراجع طريقه دون أن يهرب من مسؤولياته.`,
-
-        adds:
-        `يساعدك الكتاب على مراجعة اختياراتك، وفهم الخوف والضغوط التي تؤثر فيك، والتمييز بين ما تريده فعلًا وما اعتدت أن تريده لإرضاء الآخرين، مع تحمل نتائج اختياراتك.`,
-
-        idea:
-        `لا يكفي أن تتحرر من القيد؛ عليك أن تعرف ماذا ستفعل بالحرية بعد ذلك.`
-
-    },
-
-
-    {
-
-        name:"كيف تصنع المليون الأول",
-
-        price:150,
-
-        image:
-        "https://i.ibb.co/xKXNjHH1/image.png",
-
-        shortDescription:
-        "دليل عملي لفهم المال والقيمة والدخل ورأس المال والاستثمار وبناء القدرة على صناعة الثروة.",
-
-        about:
-        `هذا الكتاب لا يقدم لك وعدًا بأنك ستصبح مليونيرًا، ولا يبحث عن سر سريع للثراء. بدلًا من ذلك، يبدأ من السؤال الأهم: كيف تتعلم صناعة المال؟
-
-ينتقل الكتاب من بناء القيمة والمهارة والدخل إلى المبيعات والتسويق والخدمات والتجارة والمنتجات الرقمية، ثم إلى الادخار ورأس المال والاستثمار وبناء الأصول والتوسع.
-
-الفكرة ليست أن تصل إلى رقم معين فقط، بل أن تبني القدرة التي تجعلك قادرًا على صناعة المال وإدارته وإعادة استثماره وتنمية ما تملك.`,
-
-        adds:
-        `يساعدك الكتاب على التفكير في المال والعمل والفرص بصورة أكثر وضوحًا، وفهم كيف يمكن أن تتحول المهارة والقيمة التي تقدمها إلى دخل، ثم إلى رأس مال وأصول ونظام قابل للنمو.`,
-
-        idea:
-        `لا تطارد المليون فقط؛ ابنِ القدرة التي تستطيع أن تصنع بها المليون.`
-
-    },
-
-    {
-
-        name:"شهوات",
-
-        price:150,
-
-        image:
-        "https://i.ibb.co/6cLgHxqY/image.png",
-
-        shortDescription:
-        "رحلة لفهم الرغبات الخفية وراء المال والحب والنجاح والاهتمام والمكانة، واكتشاف ما تقوله شهواتنا عن الإنسان الذي نكونه.",
-
-        about:
-        `«شهوات» لا يتعامل مع الشهوة باعتبارها رغبة جسدية فقط، بل ينظر إليها باعتبارها جزءًا أساسيًا من التجربة الإنسانية.
-
-يناقش الكتاب رغبات الإنسان في المال والحب والنجاح والشهرة والمكانة والاهتمام والقوة، ويحاول أن يتجاوز السؤال البسيط: ماذا نريد؟ إلى السؤال الأعمق: لماذا نريد ما نريده؟
-
-فالشيء الذي نطارده قد لا يكون دائمًا هو الغاية الحقيقية؛ فقد نبحث عن المال بحثًا عن الأمان، أو عن النجاح بحثًا عن إثبات الذات، أو عن الحب خوفًا من الوحدة.
-
-الكتاب يدعوك إلى النظر إلى رغباتك دون إدانة أو تبرير، وفهم الدوافع التي تقف خلفها، والتمييز بين الشعور والرغبة والقرار.`,
-
-        adds:
-        `يساعدك «شهوات» على فهم نفسك من زاوية مختلفة، ومراجعة الدوافع الخفية وراء بعض اختياراتك، والتمييز بين الحاجة والرغبة والشهوة، وبين الرغبة التي تدفعك إلى الأمام والرغبة التي تبدأ في التحكم في قراراتك.
-
-كما يمنحك مساحة للتوقف قبل الاستجابة لرغباتك، وسؤال نفسك: لماذا أريد هذا؟ وماذا أتوقع أن يمنحني عندما أحصل عليه؟`,
-
-        idea:
-        `السؤال ليس فقط: ماذا تشتهي؟ بل: لماذا تشتهي ما تشتهيه؟ وماذا تفعل بك هذه الشهوة؟`
-
-    },
-
-
-    {
-
-        name:"دليل السمو",
-
-        price:150,
-
-        image:
-        "https://i.ibb.co/JF0G8Jwq/image.png",
-
-        shortDescription:
-        "رحلة عملية للارتقاء بالإنسان من الداخل إلى الخارج؛ من سمو العقل والانضباط والعادات إلى المال والعلاقات والصحة والرسالة والأثر.",
-
-        about:
-        `«دليل السمو» ينطلق من فكرة بسيطة وعميقة: لم نختر نقطة البداية، لكننا نملك بدرجة كبيرة القدرة على اختيار الاتجاه الذي نتحرك إليه.
-
-لا يتعامل الكتاب مع السمو باعتباره تفوقًا على الآخرين، بل باعتباره ارتقاءً بالنفس؛ انتقالًا من الجهل إلى المعرفة، ومن الفوضى إلى النظام، ومن الخوف إلى الشجاعة، ومن الفشل إلى الخبرة، ومن النجاح إلى الأثر.
-
-تبدأ الرحلة من العقل، ثم تمتد إلى الانضباط وإدارة الوقت والعادات والقوة وتحمل المسؤولية، ثم إلى المال باعتباره أداة للاستقلال والاختيار، وإلى القلب والعلاقات والحدود والسلام، وصولًا إلى الصحة والفشل والرسالة والأثر.
-
-والكتاب لا يقدم وعودًا سحرية أو إنكارًا لصعوبة الحياة؛ بل يدعو إلى رؤية الواقع بوضوح، ثم البحث عما يمكن تغييره داخله، والبدء من الخطوة التي تستطيع القيام بها اليوم.`,
-
-        adds:
-        `يساعدك «دليل السمو» على إعادة النظر في علاقتك بظروفك وهويتك وعاداتك وقراراتك، وعلى تحويل تطوير الذات من أفكار عامة إلى أسئلة وتمارين وخطوات عملية.
-
-كما يدفعك إلى التمييز بين ما تستطيع التحكم فيه وما تستطيع التأثير فيه وما يقع خارج سيطرتك، وبناء التغيير من خطوات صغيرة تتراكم مع الوقت، مع الحفاظ على واقعية الطريق ومسؤوليته.`,
-
-        idea:
-        `السمو ليس أن تصبح أفضل من الآخرين؛ السمو أن ترتقي بنفسك.`
-
-    }
-
-
-
-
-
+const BOOKS = []; /* SSR_HOME_BOOKS */
+const BOOK_TRANSLATIONS = {}; /* SSR_HOME_TRANSLATIONS */
+
+BOOKS.forEach((book,index)=>{ book.id=book.id||`book${index+1}`; book.en=BOOK_TRANSLATIONS[book.id]; });
+
+/* Book categories and author navigation */
+const BOOK_CATEGORIES = []; /* SSR_CATEGORIES */
+const ADDITIONAL_AUTHORS = [
+    {id:"donald-trump",ar:"دونالد ترامب",en:"Donald Trump",initials:"DT"},
+    {id:"robert-kiyosaki",ar:"روبرت كيوزاكي",en:"Robert Kiyosaki",initials:"RK"},
+    {id:"stephen-r-covey",ar:"ستيفن آر. كوفي",en:"Stephen R. Covey",initials:"SC"},
+    {id:"brian-tracy",ar:"برايان تريسي",en:"Brian Tracy",initials:"BT"},
+    {id:"robert-greene",ar:"روبرت غرين",en:"Robert Greene",initials:"RG"}
 ];
+let selectedCategory=BOOK_CATEGORIES.some(c=>c.id===new URLSearchParams(location.search).get("category"))?new URLSearchParams(location.search).get("category"):"all";
+function categoryBooks(categoryId=selectedCategory){
+    const category=BOOK_CATEGORIES.find(item=>item.id===categoryId)||BOOK_CATEGORIES[0];
+    return category.id==="all"?BOOKS:BOOKS.filter(book=>category.books.includes(book.id));
+}
+function renderNavigation(){
+    const categories=document.getElementById("categoryLinks"),authors=document.getElementById("additionalAuthorLinks");
+    if(categories) categories.innerHTML=BOOK_CATEGORIES.map(category=>{
+        if(category.href) return `<a class="drawer-card" href="${escapeBookText(category.href)}"><span class="drawer-card-icon" aria-hidden="true">▤</span><span><strong>${category[currentLanguage]}</strong><small>${currentLanguage==="ar"?"اقرأ مقالات المتجر":"Read our articles"}</small></span></a>`;
+        return `<button type="button" class="drawer-card" data-category="${category.id}" aria-pressed="${selectedCategory===category.id}"><span class="drawer-card-icon" aria-hidden="true">${category.id==="all"?"≡":"▤"}</span><span><strong>${category[currentLanguage]}</strong><small>${category.id==="courses"?(currentLanguage==="ar"?"الكورسات المتاحة":"Available courses"):(currentLanguage==="ar"?"الكتب المتاحة":"Available books")}: ${categoryBooks(category.id).length}</small></span></button>`;
+    }).join("");
+    if(authors) authors.innerHTML=ADDITIONAL_AUTHORS.map(author=>`<a class="drawer-card" href="/authors#${author.id}"><span class="drawer-card-icon" aria-hidden="true">${author.initials}</span><span><strong>${author[currentLanguage]}</strong><small>${currentLanguage==="ar"?"تعرّف على المؤلف":"About the author"}</small></span></a>`).join("");
+}
+function selectBookCategory(categoryId){
+    selectedCategory=BOOK_CATEGORIES.some(category=>category.id===categoryId)?categoryId:"all";
+    renderNavigation();renderBooks();goToStoreSection("booksSection");
+}
+/* End book categories and author navigation */
+
+let BOOK_STATS=Object.fromEntries(BOOKS.map(book=>[book.id,{rating:null,reviews:0}]));
+
+function ratingMarkup(bookId){
+    const stats=BOOK_STATS[bookId]||{rating:null,reviews:0};
+    const value=Number(stats.rating)||0;
+    const filled=Math.max(0,Math.min(5,Math.round(value)));
+    const stars="★".repeat(filled)+"☆".repeat(5-filled);
+    const label=stats.reviews?`${value.toFixed(1)} (${stats.reviews})`:t("newBook");
+    return `<div class="book-rating" aria-label="${label}"><span class="rating-stars">${stars}</span><span>${label}</span></div>`;
+}
+
+async function loadBookStats(){
+    try{
+        const response=await fetch("/api/book-stats",{cache:"no-store"});
+        if(response.ok){BOOK_STATS={...BOOK_STATS,...await response.json()};renderBooks();}
+    }catch(error){}
+}
+
+function localizedBook(book){
+    return currentLanguage === "en" ? {...book,...book.en,id:book.id,image:book.image} : book;
+}
 
 
 /* =========================================================
    PRICING LADDER
 ========================================================= */
 
-const PRICING_LADDER = {
+let PRICING_LADDER = {
 
-    1:150,
+    1:199,
 
-    2:250,
+    2:299,
 
-    3:300,
+    3:399,
 
-    4:350,
+    4:499,
 
-    5:420,
+    5:599,
 
-    6:500,
+    6:699,
 
-    7:550,
+    7:799,
 
-    8:620,
+    8:899,
 
-    9:700
+    9:999,
+
+    10:1099,
+
+    11:1199
 
 };
 
@@ -2809,6 +2797,109 @@ const PRICING_LADDER = {
    STATE
 ========================================================= */
 
+function renderPromo(){
+    const track=document.getElementById("promoTrack");
+    if(!track) return;
+    const items=Object.keys(PRICING_LADDER).slice(0,BOOKS.filter(book=>bookPolicy(book).bundleEligible).length).map(count=>
+        `<span class="promo-item"><b>${count}</b> ${t("books")} — ${formatMoney(PRICING_LADDER[count])}</span>`
+    );
+    track.innerHTML=[`<span class="promo-item">${t("promoLead")}</span>`,...items,...items].join("");
+}
+
+function applyStaticCopy(){
+    window.TaboSEO?.render(currentLanguage);
+    document.documentElement.lang=currentLanguage;
+    document.documentElement.dir=currentLanguage==="ar"?"rtl":"ltr";
+    const ids={countryLabel:"countryLabel",heroTitle:"heroTitle",heroDescription:"heroDescription",
+        paymentTitle:"paymentTitle",paymentDescription:"paymentDescription",authorName:"authorName",authorDescription:"authorDescription",
+        orderHelp:"footerOrderHelp",authors:"footerAuthors",about:"footerAbout",contact:"footerContact",privacy:"footerPrivacy",refund:"footerRefund",delivery:"footerDelivery",footerCopy:"footerCopy",
+        cartTitle:"cartTitle",original:"originalPriceLabel",final:"finalPriceLabel",checkoutFields:"checkoutFieldsLabel",
+        checkout:"checkoutBtn",aboutBook:"detailsAboutTitle",adds:"detailsAddsTitle",
+        menu:"drawerTitle",categories:"categoriesTab",authors:"authorsTab",offers:"offersDrawerTitle",offersHint:"offersDrawerHint",
+        drawerAuthorHint:"drawerAuthorHint"};
+    Object.entries(ids).forEach(([key,id])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
+    const drawerAuthorName=document.getElementById("drawerAuthorName");
+    if(drawerAuthorName) drawerAuthorName.textContent=t("authorName");
+    const name=document.getElementById("checkoutName"), email=document.getElementById("checkoutEmail"), phone=document.getElementById("checkoutPhone");
+    if(name) name.placeholder=t("fullName"); if(email) email.placeholder=t("email"); if(phone) phone.placeholder=t("phone");
+    const languageToggle=document.getElementById("languageToggle");
+    if(languageToggle) languageToggle.textContent=t("language");
+    const menuButton=document.getElementById("menuButton"), miniCartButton=document.getElementById("miniCartButton"),
+        floatingCartButton=document.getElementById("floatingCartBtn"), drawerCloseButton=document.getElementById("drawerCloseButton");
+    if(menuButton) menuButton.setAttribute("aria-label",t("menu"));
+    if(miniCartButton) miniCartButton.setAttribute("aria-label",t("cartLabel"));
+    if(floatingCartButton) floatingCartButton.setAttribute("aria-label",t("cartLabel"));
+    if(drawerCloseButton) drawerCloseButton.setAttribute("aria-label",t("close"));
+    const modalTitles={aboutModalTitle:"aboutTitle",contactModalTitle:"contactTitle",privacyModalTitle:"privacyTitle",refundModalTitle:"refundTitle",deliveryModalTitle:"deliveryTitle"};
+    Object.entries(modalTitles).forEach(([id,key])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
+    Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) el.innerHTML=currentLanguage==="en"?INFO_EN[id]:(INFO_AR[id]||el.innerHTML);});
+    renderNavigation();
+    renderCuratedOffers();
+}
+
+function setLanguage(language){
+    currentLanguage=language==="en"?"en":"ar";
+    localStorage.setItem("taboLanguage",currentLanguage);
+    applyStaticCopy(); renderCountryOptions(); renderPromo(); renderBooks(); updateCart();
+    if(currentDetailsBook) openBookDetails(BOOKS.indexOf(currentDetailsBook));
+}
+
+function toggleLanguage(){
+    setLanguage(currentLanguage==="ar"?"en":"ar");
+}
+
+function setDrawerTab(tab){
+    const selected=tab==="authors"?"authors":"categories";
+    document.querySelectorAll("[data-drawer-tab]").forEach(button=>{
+        const active=button.dataset.drawerTab===selected;
+        button.classList.toggle("active",active);
+        button.setAttribute("aria-selected",String(active));
+    });
+    const categories=document.getElementById("categoriesPanel"), authors=document.getElementById("authorsPanel");
+    if(categories) categories.hidden=selected!=="categories";
+    if(authors) authors.hidden=selected!=="authors";
+}
+
+function openNavigation(){
+    const drawer=document.getElementById("navDrawer"), menuButton=document.getElementById("menuButton");
+    if(!drawer) return;
+    drawer.classList.add("active");
+    drawer.setAttribute("aria-hidden","false");
+    menuButton?.setAttribute("aria-expanded","true");
+    document.body.classList.add("drawer-open");
+    setDrawerTab("categories");
+    window.setTimeout(()=>document.getElementById("drawerCloseButton")?.focus(),180);
+}
+
+function closeNavigation(){
+    const drawer=document.getElementById("navDrawer"), menuButton=document.getElementById("menuButton");
+    if(!drawer) return;
+    drawer.classList.remove("active");
+    drawer.setAttribute("aria-hidden","true");
+    menuButton?.setAttribute("aria-expanded","false");
+    document.body.classList.remove("drawer-open");
+}
+
+function goToStoreSection(id){
+    closeNavigation();
+    window.setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}),220);
+}
+
+async function loadStoreConfig(country=browserCountryHint()){
+    try {
+        const response=await fetch(`/api/store-config?country=${encodeURIComponent(country)}`,{cache:"no-store"});
+        if(!response.ok) throw new Error("config");
+        storeConfig=await response.json();
+        PRICING_LADDER=storeConfig.prices;
+        localStorage.setItem("taboCountry",storeConfig.country);
+        window.TABO_CHECKOUT_READY=storeConfig.checkoutEnabled===true&&storeConfig.checkoutSupported===true;
+    } catch(error){ window.TABO_CHECKOUT_READY=false; }
+    renderCountryOptions(); renderPromo(); renderBooks(); updateCart();
+    if(window.TABO_CHECKOUT_READY || Array.isArray(storeConfig.offers))completeOfferIntent();
+    const notice=document.getElementById("checkoutNotice");
+    if(notice){notice.style.display=window.TABO_CHECKOUT_READY?"none":"block";notice.textContent=storeConfig.checkoutSupported?t("preview"):t("currencyPending");}
+}
+
 let cart =
     JSON.parse(
         localStorage.getItem(
@@ -2816,9 +2907,23 @@ let cart =
         )
     ) || [];
 
+cart=cart.map(item=>({type:"book",id:item.id||BOOK_IDS[item.name]})).filter(item=>BOOKS.some(book=>book.id===item.id));
+cart=[...new Map(cart.map(item=>[item.id,item])).values()];
 
-let selectedPaymentMethod =
-    "";
+/* Cart restoration start */
+function restoreStorefrontCart(){
+    try{
+        const saved=JSON.parse(localStorage.getItem('taboBooksCart')||'[]');
+        cart=Array.isArray(saved)?saved.map(item=>({type:'book',id:item?.id||BOOK_IDS[item?.name]})).filter(item=>BOOKS.some(book=>book.id===item.id)):[];
+        cart=[...new Map(cart.map(item=>[item.id,item])).values()];
+    }catch(_){cart=[];}
+    updateCart();
+}
+window.addEventListener('pageshow',event=>{if(event.persisted)restoreStorefrontCart();});
+/* Cart restoration end */
+
+
+
 
 
 let currentDetailsBook =
@@ -2846,93 +2951,56 @@ function saveCart(){
    CALCULATE PRICING
 ========================================================= */
 
-function calculatePricing(){
 
-    const count =
-        cart.length;
-
-
-    const original =
-        cart.reduce(
-
-            (total,item) =>
-
-                total +
-                Number(item.price),
-
-            0
-
-        );
-
-
-    if(count === 0){
-
-        return {
-
-            count:0,
-
-            original:0,
-
-            final:0,
-
-            discount:0
-
-        };
-
-    }
-
-
-    let finalPrice;
-
-
-    if(
-        PRICING_LADDER[count]
-    ){
-
-        finalPrice =
-            PRICING_LADDER[count];
-
-    }
-
-    else{
-
-        finalPrice =
-
-            PRICING_LADDER[9] +
-
-            (
-                (count - 9)
-                * 100
-            );
-
-    }
-
-
-    return {
-
-        count:count,
-
-        original:original,
-
-        final:finalPrice,
-
-        discount:
-            Math.max(
-                0,
-                original -
-                finalPrice
-            )
-
-    };
-
+/* Curated offer actions start */
+function renderCuratedOffers(){
+    if(typeof TaboOfferUI!=="undefined")TaboOfferUI.render(storeConfig,currentLanguage,cart.map(x=>x.id));
 }
+function addCuratedOffer(offerId){
+    const offer=(storeConfig.offers||[]).find(x=>x.id===offerId);
+    if(!offer)return false;
+    const before=calculatePricing().final;
+    const added=offer.books.filter(id=>!cart.some(item=>item.id===id));
+    added.forEach(id=>cart.push({type:"book",id}));
+    if(added.length){
+        saveCart();
+        const delta=Math.max(0,Math.round((calculatePricing().final-before)*100)/100);
+        window.TaboTracking?.track('AddToCart',{content_ids:added,value:delta,currency:storeConfig.currency});window.TaboAnalytics?.track('AddToCart',{content_ids:added,value:delta,currency:storeConfig.currency});
+    }
+    updateCart();openCart();return true;
+}
+function completeOfferIntent(){
+    const params=new URLSearchParams(location.search),id=params.get('offer');
+    if(id && addCuratedOffer(id)){
+        params.delete('offer');
+        const search=params.toString();
+        history.replaceState(history.state,'',location.pathname+(search?'?'+search:'')+location.hash);
+    }
+}
+/* Curated offer actions end */
+
 
 
 /* =========================================================
    RENDER BOOKS
 ========================================================= */
 
+function renderPanorama(){
+ const track=document.getElementById("panoramaTrack");if(!track)return;
+ const books=categoryBooks();
+ const section=track.closest(".book-panorama");if(section)section.hidden=!books.length;
+ track.innerHTML=books.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${escapeBookText(localizedBook(book).name)}"><div class="panorama-cover"><img src="${book.image}" alt="${escapeBookText(localizedBook(book).name)}" width="${book.imageWidth}" height="${book.imageHeight}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
+}
 function renderBooks(){
+    renderPanorama();
+    const visibleBooks=categoryBooks();
+    const category=BOOK_CATEGORIES.find(item=>item.id===selectedCategory)||BOOK_CATEGORIES[0];
+    document.getElementById("catalogFilter").hidden=category.id==="all";
+    document.getElementById("catalogFilterTitle").textContent=category[currentLanguage];
+    document.getElementById("clearCategoryButton").textContent=BOOK_CATEGORIES[0][currentLanguage];
+    const empty=document.getElementById("catalogEmpty");
+    empty.hidden=visibleBooks.length>0;
+    empty.textContent=category.id==="courses"?(currentLanguage==="ar"?"لا توجد كورسات متاحة حاليًا.":"No courses are available yet."):(currentLanguage==="ar"?"لا توجد إصدارات متاحة في هذا القسم حاليًا.":"No titles are available in this category yet.");
 
     const container =
         document.getElementById(
@@ -2947,6 +3015,11 @@ function renderBooks(){
     BOOKS.forEach(
         (book,index) => {
 
+            if(!visibleBooks.includes(book)) return;
+
+            const displayBook=localizedBook(book);
+            const cardName=escapeBookText(displayBook.cardName||displayBook.name);
+
 
             const card =
                 document.createElement(
@@ -2960,52 +3033,58 @@ function renderBooks(){
 
             card.innerHTML = `
 
-                <div style="position:relative;">
+                <a class="book-cover-link" href="/books/${book.id}" aria-label="${t("readMore")} — ${cardName}">
 
                     <img
                         class="book-image"
                         src="${book.image}"
-                        alt="${book.name}"
+                        alt="${cardName}" width="${book.imageWidth}" height="${book.imageHeight}" loading="${index<2?"eager":"lazy"}" decoding="async"
                     >
-
                     <span class="pdf-badge">PDF</span>
 
-                </div>
+                </a>
 
                 <div class="book-content">
 
                     <div class="book-title">
-                        ${book.name}
+                        <span>${cardName}</span>
                         <span class="title-pdf">PDF</span>
                     </div>
 
+                    ${ratingMarkup(book.id)}
+
                     <div class="book-description">
-                        ${book.shortDescription}
+                        ${escapeBookText(displayBook.shortDescription)}
                     </div>
 
-                    <button
+                    <a
                         class="read-more-btn"
-                        onclick="openBookDetails(${index})"
+                        href="/books/${book.id}"
                     >
-                        اقرأ المزيد
-                    </button>
+                        ${t("readMore")}
+                    </a>
 
                     <div class="book-bottom">
 
+                        ${bookPolicy(book).previewEnabled?`<a class="book-sample-link" href="/previews/${book.id}" target="_blank" rel="noopener">${currentLanguage==="ar"?"اقرأ عينة مجانية":"Read a free sample"}</a>`:""}
                         <div class="book-price">
-                            ${book.price} جنيه
+                            ${formatMoney(bookPrice(book))}
                         </div>
 
+                        ${bookPolicy(book).bundleEligible&&Number(storeConfig.compareAtPrice)>bookPrice(book)?`<div class="book-previous-price">
+                            ${formatMoney(storeConfig.compareAtPrice || PRICING_LADDER[1])}
+                        </div>`:""}
+
                         <div class="book-format">
-                            نسخة PDF
+                            ${t("pdfCopy")}
                         </div>
 
                         <button
                             class="add-cart-btn"
                             id="addBtn-${index}"
-                            onclick="addBookToCart('${book.name}')"
+                            data-book-id="${book.id}"
                         >
-                            🛒 أضف للسلة
+                            ${t("addCart")}
                         </button>
 
                     </div>
@@ -3033,7 +3112,7 @@ function renderBooks(){
 ========================================================= */
 
 function addBookToCart(
-    bookName
+    bookId
 ){
 
     /*
@@ -3042,7 +3121,7 @@ function addBookToCart(
 
     if(
         cart.some(
-            c => c.name === bookName
+            c => c.id === bookId
         )
     ){
 
@@ -3054,8 +3133,8 @@ function addBookToCart(
     const book =
         BOOKS.find(
             item =>
-                item.name ===
-                bookName
+                item.id ===
+                bookId
         );
 
 
@@ -3070,42 +3149,14 @@ function addBookToCart(
 
         type:"book",
 
-        name:book.name,
-
-        price:book.price
+        id:book.id
 
     });
 
+    window.TaboTracking?.track('AddToCart',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});window.TaboAnalytics?.track('AddToCart',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
+
 
     saveCart();
-
-
-    /* =========================
-       FACEBOOK PIXEL
-       AddToCart
-    ========================= */
-
-    if(
-        typeof fbq !==
-        'undefined'
-    ){
-
-        fbq(
-            'track',
-            'AddToCart',
-            {
-
-                value:
-                    calculatePricing()
-                    .final,
-
-                currency:
-                    'EGP'
-
-            }
-        );
-
-    }
 
 
     updateCart();
@@ -3121,8 +3172,8 @@ function addBookToCart(
     const index =
         BOOKS.findIndex(
             b =>
-                b.name ===
-                bookName
+                b.id ===
+                bookId
         );
 
 
@@ -3139,7 +3190,7 @@ function addBookToCart(
 
 
         button.innerHTML =
-            "✓ تمت الإضافة";
+            t("added");
 
 
         button.classList.add(
@@ -3188,15 +3239,15 @@ function updateBookButtons(){
             const exists =
                 cart.some(
                     c =>
-                        c.name ===
-                        book.name
+                        c.id ===
+                        book.id
                 );
 
 
             if(exists){
 
                 button.innerHTML =
-                    "✓ تمت الإضافة";
+                    t("added");
 
 
                 button.classList.add(
@@ -3208,7 +3259,7 @@ function updateBookButtons(){
             else{
 
                 button.innerHTML =
-                    "🛒 أضف للسلة";
+                    t("addCart");
 
 
                 button.classList.remove(
@@ -3228,19 +3279,11 @@ function updateBookButtons(){
 ========================================================= */
 
 function updateCart(){
+    renderCuratedOffers();
 
-    const badge =
-        document.getElementById(
-            "cartBadge"
-        );
-
-
-    if(badge){
-
-        badge.textContent =
-            cart.length;
-
-    }
+    document.querySelectorAll("[data-cart-count]").forEach(badge=>{
+        badge.textContent=cart.length;
+    });
 
 
     renderCart();
@@ -3254,195 +3297,6 @@ function updateCart(){
 /* =========================================================
    RENDER CART
 ========================================================= */
-
-function renderCart(){
-
-    const container =
-        document.getElementById(
-            "cartItems"
-        );
-
-
-    if(!container){
-
-        return;
-
-    }
-
-
-    const pricing =
-        calculatePricing();
-
-
-    if(
-        cart.length === 0
-    ){
-
-        container.innerHTML = `
-
-            <div
-                style="
-                text-align:center;
-                padding:30px 10px;
-                color:#777;
-                "
-            >
-                السلة فارغة حاليًا.
-            </div>
-
-        `;
-
-
-        document.getElementById(
-            "cartOriginal"
-        ).textContent =
-            "0 جنيه";
-
-
-        document.getElementById(
-            "cartDiscount"
-        ).textContent =
-            "0 جنيه";
-
-
-        document.getElementById(
-            "cartFinal"
-        ).textContent =
-            "0 جنيه";
-
-
-        document.getElementById(
-            "cartNextMessage"
-        ).textContent =
-            "";
-
-
-        document.getElementById(
-            "checkoutBtn"
-        ).disabled =
-            true;
-
-
-        return;
-
-    }
-
-
-    document.getElementById(
-        "checkoutBtn"
-    ).disabled =
-        false;
-
-
-    container.innerHTML =
-
-        cart.map(
-            (item,index)=>`
-
-                <div class="cart-item">
-
-                    <div>
-
-                        <div
-                            class="cart-item-name"
-                        >
-                            ${item.name}
-                        </div>
-
-                        <div
-                            class="cart-item-price"
-                        >
-                            ${item.price} جنيه
-                        </div>
-
-                    </div>
-
-                    <button
-                        class="delete-item"
-                        onclick="removeFromCart(${index})"
-                        title="حذف"
-                    >
-                        ×
-                    </button>
-
-                </div>
-
-            `
-        ).join("");
-
-
-    document.getElementById(
-        "cartOriginal"
-    ).textContent =
-
-        pricing.original +
-        " جنيه";
-
-
-    document.getElementById(
-        "cartDiscount"
-    ).textContent =
-
-        pricing.discount +
-        " جنيه";
-
-
-    document.getElementById(
-        "cartFinal"
-    ).textContent =
-
-        pricing.final +
-        " جنيه";
-
-
-    let nextMessage =
-        "";
-
-
-    const currentCount =
-        cart.length;
-
-
-    const nextCount =
-        currentCount + 1;
-
-
-    if(
-        PRICING_LADDER[nextCount]
-    ){
-
-        const nextPrice =
-            PRICING_LADDER[
-                nextCount
-            ];
-
-
-        const difference =
-            pricing.final -
-            nextPrice;
-
-
-        nextMessage =
-
-            `أضف كتابًا آخر مقابل ${difference > 0 ? difference : 0} جنيه إضافية لتحصل على السعر الجديد: ${nextPrice} جنيه.`;
-
-    }
-
-    else{
-
-        nextMessage =
-            "يمكنك إضافة المزيد من الكتب للحصول على السعر المناسب للعدد الجديد.";
-
-    }
-
-
-    document.getElementById(
-        "cartNextMessage"
-    ).textContent =
-        nextMessage;
-
-}
-
 
 /* =========================================================
    REMOVE FROM CART
@@ -3470,94 +3324,19 @@ function removeFromCart(
    OPEN CART
 ========================================================= */
 
+/* Checkout navigation start */
 function openCart(){
-
-    document
-        .getElementById(
-            "cartModal"
-        )
-        .classList.add(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "hidden";
-
-
-    renderCart();
-
+    const params=new URLSearchParams(location.search);
+    params.delete('cart'); params.delete('offer');
+    const search=params.toString();
+    window.location.assign('/checkout'+(search?'?'+search:''));
 }
-
-
-/* =========================================================
-   CLOSE CART
-========================================================= */
-
-function closeCart(
-    event
-){
-
-    if(
-        event &&
-        event.target.id !==
-        "cartModal"
-    ){
-
-        return;
-
-    }
-
-
-    document
-        .getElementById(
-            "cartModal"
-        )
-        .classList.remove(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "";
-
+function openCartFromQuery(){
+    const params=new URLSearchParams(location.search);
+    // Offer links must finish adding the pack after server configuration loads.
+    if(params.get('cart')==='1'&&!params.has('offer'))openCart();
 }
-
-
-/* =========================================================
-   CONTINUE SHOPPING
-========================================================= */
-
-function continueShopping(){
-
-    closeCart();
-
-
-    const booksSection =
-        document.querySelector(
-            ".books-section"
-        );
-
-
-    if(
-        booksSection
-    ){
-
-        window.scrollTo({
-
-            top:
-                booksSection.offsetTop -
-                20,
-
-            behavior:
-                "smooth"
-
-        });
-
-    }
-
-}
-
+/* Checkout navigation end */
 
 /* =========================================================
    BOOK DETAILS
@@ -3570,6 +3349,10 @@ function openBookDetails(
     const book =
         BOOKS[index];
 
+    const displayBook=localizedBook(book);
+
+    window.TaboTracking?.track('ViewContent',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});window.TaboAnalytics?.track('ViewContent',{content_ids:[book.id],value:bookPrice(book),currency:storeConfig.currency});
+
 
     currentDetailsBook =
         book;
@@ -3578,25 +3361,25 @@ function openBookDetails(
     document.getElementById(
         "detailsBookTitle"
     ).textContent =
-        book.name;
+        displayBook.name;
 
 
     document.getElementById(
         "detailsBookAbout"
     ).textContent =
-        book.about;
+        displayBook.about;
 
 
     document.getElementById(
         "detailsBookAdds"
     ).textContent =
-        book.adds;
+        displayBook.adds;
 
 
     document.getElementById(
         "detailsBookIdea"
     ).textContent =
-        book.idea;
+        displayBook.idea;
 
 
     document
@@ -3648,352 +3431,6 @@ function closeBookDetails(
    PAYMENT CHOICE
 ========================================================= */
 
-function openPaymentChoice(){
-
-    const pricing =
-        calculatePricing();
-
-
-    if(
-        pricing.count === 0
-    ){
-
-        return;
-
-    }
-
-
-    /* =========================
-       FACEBOOK PIXEL
-       InitiateCheckout
-    ========================= */
-
-    if(
-        typeof fbq !==
-        'undefined'
-    ){
-
-        fbq(
-            'track',
-            'InitiateCheckout',
-            {
-
-                value:
-                    pricing.final,
-
-                currency:
-                    'EGP',
-
-                num_items:
-                    cart.length
-
-            }
-        );
-
-    }
-
-
-    document
-        .getElementById(
-            "paymentChoiceModal"
-        )
-        .classList.add(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "hidden";
-
-}
-
-
-function closePaymentChoice(
-    event
-){
-
-    if(
-        event &&
-        event.target.id !==
-        "paymentChoiceModal"
-    ){
-
-        return;
-
-    }
-
-
-    document
-        .getElementById(
-            "paymentChoiceModal"
-        )
-        .classList.remove(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "";
-
-}
-
-
-/* =========================================================
-   SELECT PAYMENT METHOD
-========================================================= */
-
-function selectPaymentMethod(
-    method
-){
-
-    selectedPaymentMethod =
-        method;
-
-
-    closePaymentChoice();
-
-
-    const pricing =
-        calculatePricing();
-
-
-    document.getElementById(
-        "confirmationText"
-    ).textContent =
-
-        `سيتم إرسال طلبك عبر واتساب.
-
-عدد الكتب: ${pricing.count}
-
-السعر النهائي: ${pricing.final} جنيه
-
-طريقة الدفع: ${method}
-
-رقم الدفع: ${PAYMENT_NUMBERS[method]}
-
-بعد الإرسال ستتواصل مع TABO BOOKS لإتمام الدفع واستلام ملفات PDF.`;
-
-
-    document
-        .getElementById(
-            "confirmationModal"
-        )
-        .classList.add(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "hidden";
-
-}
-
-
-/* =========================================================
-   CLOSE CONFIRMATION
-========================================================= */
-
-function closeConfirmation(
-    event
-){
-
-    if(
-        event &&
-        event.target.id !==
-        "confirmationModal"
-    ){
-
-        return;
-
-    }
-
-
-    document
-        .getElementById(
-            "confirmationModal"
-        )
-        .classList.remove(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "";
-
-}
-
-
-/* =========================================================
-   SEND ORDER TO WHATSAPP
-========================================================= */
-
-function sendOrderToWhatsApp(){
-
-    const pricing =
-        calculatePricing();
-
-
-    if(
-        pricing.count === 0 ||
-        !selectedPaymentMethod
-    ){
-
-        return;
-
-    }
-
-
-    /* =========================
-       ORDER ID
-    ========================= */
-
-    const orderId =
-
-        'TABO-' +
-
-        Math.floor(
-            1000 +
-            Math.random() *
-            9000
-        );
-
-
-    /* =========================
-       FACEBOOK PIXEL
-       Lead
-    ========================= */
-
-    if(
-        typeof fbq !==
-        'undefined'
-    ){
-
-        fbq(
-            'track',
-            'Lead',
-            {
-
-                value:
-                    pricing.final,
-
-                currency:
-                    'EGP',
-
-                content_ids:
-                    cart.map(
-                        c =>
-                            c.name
-                    ),
-
-                num_items:
-                    cart.length
-
-            }
-        );
-
-    }
-
-
-    /* =========================
-       BOOKS LIST
-    ========================= */
-
-    const booksList =
-
-        cart
-
-        .map(
-            (item,index) =>
-
-                `${index + 1}. ${item.name}`
-
-        )
-
-        .join("\n");
-
-
-    /* =========================
-       WHATSAPP MESSAGE
-    ========================= */
-
-    const message =
-
-`كود الطلب: ${orderId}
-
-مرحبًا TABO BOOKS 👋
-
-أريد شراء الكتب التالية:
-
-${booksList}
-
-عدد الكتب: ${pricing.count}
-
-السعر الأصلي: ${pricing.original} جنيه
-
-الخصم: ${pricing.discount} جنيه
-
-السعر النهائي: ${pricing.final} جنيه
-
-طريقة الدفع: ${selectedPaymentMethod}
-
-رقم الدفع:
-${PAYMENT_NUMBERS[selectedPaymentMethod]}
-
-أرغب في إتمام الدفع واستلام ملفات PDF.
-
-شكرًا لكم.`;
-
-
-    /* =========================
-       OPEN WHATSAPP
-    ========================= */
-
-    const whatsappURL =
-
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
-
-    window.open(
-        whatsappURL,
-        "_blank"
-    );
-
-
-    /* =========================
-       CLEAR CART
-       بعد فتح الواتساب
-    ========================= */
-
-    cart = [];
-
-
-    saveCart();
-
-
-    updateCart();
-
-
-    /* =========================
-       CLOSE MODALS
-    ========================= */
-
-    document
-        .getElementById(
-            "confirmationModal"
-        )
-        .classList.remove(
-            "active"
-        );
-
-
-    document.body.style.overflow =
-        "";
-
-
-    selectedPaymentMethod =
-        "";
-
-}
 
 
 /* =========================================================
@@ -4106,6 +3543,8 @@ document.addEventListener(
         document.body.style.overflow =
             "";
 
+        closeNavigation();
+
     }
 );
 
@@ -4117,10 +3556,53 @@ document.addEventListener(
 document.addEventListener(
     "DOMContentLoaded",
     function(){
-
-        renderBooks();
-
-        updateCart();
+        Object.keys(INFO_EN).forEach(id=>{const el=document.getElementById(id);if(el) INFO_AR[id]=el.innerHTML;});
+        applyStaticCopy();
+        document.getElementById("languageToggle")?.addEventListener("click",toggleLanguage);
+        document.getElementById("floatingCartBtn")?.addEventListener("click",openCart);
+        document.getElementById("miniCartButton")?.addEventListener("click",openCart);
+        document.getElementById("menuButton")?.addEventListener("click",openNavigation);
+        document.getElementById("drawerCloseButton")?.addEventListener("click",closeNavigation);
+        document.getElementById("navDrawer")?.addEventListener("click",event=>{
+            if(event.target.id==="navDrawer") closeNavigation();
+        });
+        document.querySelectorAll("[data-drawer-tab]").forEach(button=>{
+            button.addEventListener("click",()=>setDrawerTab(button.dataset.drawerTab));
+        });
+        document.getElementById("offersDrawerLink")?.addEventListener("click",()=>{location.href="/offers";});
+        document.getElementById("authorDrawerLink")?.addEventListener("click",()=>{location.href="/authors"});
+        document.getElementById("categoryLinks")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-category]");
+            if(button) selectBookCategory(button.dataset.category);
+        });
+        document.getElementById("clearCategoryButton")?.addEventListener("click",()=>selectBookCategory("all"));
+        document.getElementById("closeBookDetailsBtn")?.addEventListener("click",()=>closeBookDetails());
+        document.getElementById("bookDetailsModal")?.addEventListener("click",event=>closeBookDetails(event));
+        document.getElementById("booksGrid")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-book-id]");
+            if(button) addBookToCart(button.dataset.bookId);
+        });
+        document.getElementById("cartItems")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-cart-index]");
+            if(button) removeFromCart(Number(button.dataset.cartIndex));
+        });
+        document.querySelectorAll(".info-modal").forEach(modal=>{
+            modal.addEventListener("click",event=>{
+                if(event.target===modal) closeInfoModal();
+            });
+            modal.querySelector(".modal-close")?.addEventListener("click",()=>closeInfoModal());
+        });
+        document.getElementById("countrySelect")?.addEventListener("change",event=>{
+            localStorage.setItem("taboCountry",event.target.value);
+            loadStoreConfig(event.target.value);
+        });
+        document.getElementById("curatedOffers")?.addEventListener("click",event=>{
+            const button=event.target.closest("[data-add-offer]");
+            if(button)addCuratedOffer(button.dataset.addOffer);
+        });
+        loadStoreConfig();
+        loadBookStats();
+        openCartFromQuery();
 
     }
 );
@@ -4131,3 +3613,4 @@ document.addEventListener(
 </body>
 
 </html>
+

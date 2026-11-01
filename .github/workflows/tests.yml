@@ -1,0 +1,114 @@
+name: Backend safety tests
+on:
+  push:
+    branches: [feature/tobo-books-render-preview]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  unit:
+    strategy:
+      matrix:
+        python: ['3.12', '3.14.3']
+    runs-on: ubuntu-latest
+    env:
+      TABO_CHECKOUT_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install -r requirements-dev.txt
+      - run: pip check
+      - run: python -m compileall -q app.py supabase_store.py localization.py proxy_identity.py pdf_limits.py book_previews.py checkout_pricing.py autoseo.py media_sandbox.py media_worker.py pdf_processing.py reader_comments.py paypal_checkout.py checkout_fields.py order_receipts.py order_help.py journey_tracking.py owner_dashboard.py store_catalog.py checkout_recovery.py store_tools.py book_emails.py
+      - run: python -m ruff check --select E9,F63,F7,F82 .
+      - run: python tools/prepare_editorial_batch.py --output /tmp/tabo-editorial-checked.json
+      - run: python tools/prepare_editorial_batch.py --manifest batch-two.json --output /tmp/tabo-editorial-batch-two-checked.json
+      - run: python tools/prepare_reference_resources.py --output /tmp/tabo-reference-resources-checked.json
+      - run: python -m unittest discover -s tests -v
+      - run: node tests/test_meta_tracking.cjs
+      - run: node tests/test_store_admin.cjs
+      - run: node tests/test_owner_dashboard.cjs
+      - run: node tests/test_ga4_tracking.cjs
+      - run: node tests/test_order_help.cjs
+      - run: node tests/test_google_ads_tracking.cjs
+      - run: node tests/test_snap_tracking.cjs
+      - run: node tests/test_checkout_quote.cjs
+      - run: node tests/test_paypal_checkout.cjs
+      - run: node tests/test_checkout_page.cjs
+      - run: node tests/test_seo_rendering.cjs
+      - run: node tests/test_reader_comments.cjs
+      - run: node tests/test_curated_offers.cjs
+      - run: node tests/test_catalog_pricing.cjs
+      - run: node tests/test_download_sharing.cjs
+      - run: node tests/test_store_tools.cjs
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: tabo_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic_test_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TABO_CHECKOUT_ENABLED: '0'
+      TABO_TEST_DATABASE_URL: postgresql://postgres:synthetic_test_only@127.0.0.1:5432/tabo_test
+      TABO_ALLOW_TEST_DATABASE_RESET: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: python -m unittest discover -s tests/integration -v
+  paypal-sandbox-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f testing/paypal-sandbox.Dockerfile -t tabo-paypal-sandbox .
+      - run: docker run -d --name tabo-paypal-sandbox -p 127.0.0.1:18080:10000 tabo-paypal-sandbox
+      - name: Verify isolated startup, synthetic data and disabled checkout
+        run: |
+          python3 - <<'PY'
+          import json,time
+          from urllib.request import urlopen
+          from urllib.error import HTTPError
+          deadline=time.monotonic()+90
+          while True:
+              try:
+                  with urlopen('http://127.0.0.1:18080/health',timeout=2) as r: assert r.status==200
+                  break
+              except Exception:
+                  if time.monotonic()>deadline: raise
+                  time.sleep(1)
+          with urlopen('http://127.0.0.1:18080/api/store-config?country=SA') as r:
+              data=json.load(r)
+              assert not data['checkoutEnabled'] and not data['paypalAvailable']
+          with urlopen('http://127.0.0.1:18080/') as r:
+              assert 'noindex' in r.headers['X-Robots-Tag']
+              html=r.read().decode()
+              assert 'data-paypal-sandbox="true"' in html
+              assert 'data-google-tag-id' not in html and 'data-pixel-id' not in html and 'data-snap-pixel-id' not in html
+          with urlopen('http://127.0.0.1:18080/api/book-stats') as r:
+              data=json.load(r)
+              assert len(data)==22 and all(v['pageCount']==1 and 'downloads' not in v for v in data.values())
+          for path,expected in (('/api/order-status?key='+'0'*64,403),('/api/autoseo/status',503)):
+              try: response=urlopen('http://127.0.0.1:18080'+path)
+              except HTTPError as error: response=error
+              with response: assert response.status==expected
+          PY
+      - if: always()
+        run: docker logs tabo-paypal-sandbox
+      - if: always()
+        run: docker rm -f tabo-paypal-sandbox
+

@@ -1,0 +1,96 @@
+{
+  "business": {
+    "ar": "كتب مال وأعمال",
+    "en": "Money & Business",
+    "books": [
+      "book4",
+      "book9",
+      "book17"
+    ],
+    "description": {
+      "ar": "كتب تناقش تكوين الدخل، وصناعة القيمة، والقرارات والحوافز، وعلاقة العمل بالاستهلاك والالتزامات. اختر قراءة تساعدك على فهم المال قبل اتخاذ خطواتك العملية.",
+      "en": "Explore income, value creation, decisions and incentives, and the relationship between work, spending and commitments. Choose a book that helps you understand money before acting."
+    }
+  },
+  "wealth": {
+    "ar": "كتب الثروة",
+    "en": "Wealth",
+    "books": [
+      "book4",
+      "book15",
+      "book17"
+    ],
+    "description": {
+      "ar": "قراءات عن بناء القدرة على الكسب، وإدارة الموارد، والعادات والاختيارات التي تشكل علاقتك بالمال. تتناول الثروة باعتبارها مسارًا يحتاج تعلمًا ومسؤولية، بعيدًا عن وعود الثراء السريع.",
+      "en": "Read about earning capacity, resource management and the habits that shape your relationship with money. These books approach wealth as a process of learning and responsibility, without promises of quick riches."
+    }
+  },
+  "entrepreneurship": {
+    "ar": "كتب ريادة أعمال",
+    "en": "Entrepreneurship",
+    "books": [
+      "book4"
+    ],
+    "description": {
+      "ar": "ابدأ بفهم القيمة التي تقدمها للناس، وكيف تتحول المهارة إلى خدمة أو منتج ودخل. يضم هذا القسم الكتاب المتاح الذي يناقش البيع والتسويق ورأس المال وبناء الأصول.",
+      "en": "Start with the value you offer and how a skill becomes a service, product and income. This collection contains the available book covering sales, marketing, capital and building assets."
+    }
+  },
+  "self-development": {
+    "ar": "كتب تطوير الذات",
+    "en": "Self-development",
+    "books": [
+      "book1",
+      "book2",
+      "book3",
+      "book6",
+      "book8",
+      "book10",
+      "book11",
+      "book14",
+      "book15",
+      "book18",
+      "book19"
+    ],
+    "description": {
+      "ar": "كتب عربية عن الوعي بالذات، والانضباط، والعادات، والتعلم، والحدود الشخصية. تساعدك على مراجعة اختياراتك وبناء خطوات قابلة للتطبيق بدل الاكتفاء بالحماس المؤقت.",
+      "en": "Arabic books on self-awareness, discipline, habits, learning and boundaries. Review your choices and build practical steps that can last beyond a brief burst of motivation."
+    }
+  },
+  "psychology": {
+    "ar": "كتب علم نفس",
+    "en": "Psychology",
+    "books": [
+      "book1",
+      "book3",
+      "book5",
+      "book7",
+      "book8",
+      "book9",
+      "book10",
+      "book11",
+      "book12",
+      "book13",
+      "book14",
+      "book16",
+      "book20"
+    ],
+    "description": {
+      "ar": "قراءات نفسية واجتماعية لفهم الدوافع والرغبات والضغوط والعلاقات وصورة الإنسان عن نفسه. تختلف موضوعاتها وجمهورها؛ اقرأ وصف كل كتاب لاختيار ما يناسب سؤالك.",
+      "en": "Psychological and social reading on motives, desires, pressure, relationships and self-image. The subjects and intended readers differ, so read each description to find a book that fits your question."
+    }
+  },
+  "marriage-family": {
+    "ar": "كتب العلاقات الزوجية والأسرية",
+    "en": "Marriage & Family Relationships",
+    "books": [
+      "book20",
+      "book21",
+      "book22"
+    ],
+    "description": {
+      "ar": "قراءات للبالغين عن التفاهم والتواصل والصحة والحميمية داخل الزواج. يضم القسم كتابَي السيجما و«محكمة الحب والجنس»، مع الاهتمام بالمعرفة والرضا والاحترام المتبادل، دون أن تحل القراءة محل الاستشارة المتخصصة.",
+      "en": "Adult reading on understanding, communication, health and intimacy within marriage. This collection includes the two Sigma books and The Court of Love & Sex, emphasizing knowledge, consent and mutual respect without replacing professional advice."
+    }
+  }
+}
