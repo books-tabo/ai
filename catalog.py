@@ -48,9 +48,9 @@ PRICES = {1: 199,
  19: 1999}
 
 # Fixed-price books never contribute to the ordinary bundle count.
-FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 15.90},
-                'book21': {'EGP': 500, 'USD': 15.99},
-                'book22': {'EGP': 500, 'USD': 15.99}}
+FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 19.99},
+                'book21': {'EGP': 500, 'USD': 19.99},
+                'book22': {'EGP': 500, 'USD': 19.99}}
 PREVIEW_DISABLED = frozenset({'book20', 'book21', 'book22'})
 OFFERS = json.loads((Path(__file__).resolve().parent / 'content/offers.json').read_text())
 for _offer in OFFERS.values():
@@ -109,7 +109,7 @@ def pricing_breakdown(ids, price_config):
                      if b in fixed_prices and b not in used), Decimal(0))
         return regular(len(ordinary - used)) + fixed
     baseline = remainder(set())
-    best, applied = baseline, []
+    best, applied, covered = baseline, [], 0
     eligible = [(key,offer) for key,offer in current_offers().items()
                 if currency in offer['prices'] and set(offer['books']) <= set(ids)]
     for mask in range(1, 1 << len(eligible)):
@@ -123,8 +123,9 @@ def pricing_breakdown(ids, price_config):
                 cost += Decimal(str(offer['prices'][currency]))
         else:
             cost += remainder(used)
-            if cost < best:
-                best, applied = cost, selected
+            # Prefer the fuller advertised pack when totals tie (pair + court = trio in USD).
+            if cost < best or (cost == best and applied and len(used) > covered):
+                best, applied, covered = cost, selected, len(used)
     return {'total':best,'offerIds':applied,'offerSavings':baseline-best}
 
 

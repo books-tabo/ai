@@ -15,7 +15,7 @@ class CatalogPolicyTests(unittest.TestCase):
     def test_fixed_price_is_added_after_every_ordinary_bundle_in_both_currencies(self):
         ordinary = [book_id for book_id in catalog.BOOKS if book_id not in catalog.FIXED_PRICES]
         self.assertEqual(len(ordinary), 19)
-        for country, fixed in [('EG', Decimal('500')), ('KW', Decimal('15.90'))]:
+        for country, fixed in [('EG', Decimal('500')), ('KW', Decimal('19.99'))]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             for count in range(20):
                 ids = ordinary[:count]
@@ -27,7 +27,7 @@ class CatalogPolicyTests(unittest.TestCase):
                 self.assertEqual(Decimal(str(catalog.total_for_items(ids, config))), subtotal)
 
     def test_known_mixed_totals_and_no_bundle_slot_for_sigma(self):
-        for country, expected in [('EG', [500, 699, 799, 3349]), ('KW', [15.9, 25.89, 33.89, 138.98])]:
+        for country, expected in [('EG', [500, 699, 799, 2849]), ('KW', [19.99, 29.98, 37.98, 142.98])]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             selections = [['book20'], ['book20', 'book1'], ['book1', 'book20', 'book2'], list(catalog.BOOKS)]
             self.assertEqual([catalog.total_for_items(ids, config) for ids in selections], expected)
@@ -39,7 +39,7 @@ class CatalogPolicyTests(unittest.TestCase):
                 catalog.total_for_items(ids, config)
 
     def test_public_policy_keeps_all_ordinary_books_unchanged(self):
-        for country, fixed in [('EG', 500), ('KW', 15.9)]:
+        for country, fixed in [('EG', 500), ('KW', 19.99)]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             self.assertEqual(config['bookPolicies']['book20'], {'price': fixed, 'bundleEligible': False, 'previewEnabled': False})
             self.assertEqual(config['bookPolicies']['book19'], {'price': config['prices']['1'], 'bundleEligible': True, 'previewEnabled': True})

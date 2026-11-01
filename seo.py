@@ -107,7 +107,7 @@ def book_extra(book_id, language):
     section += '<section class="section"><h2>' + ('كتب مرتبطة بالموضوع' if ar else 'Related reading') + '</h2>' + book_list(related(book_id), language) + '</section>'
     for offer_id, offer in catalog.current_offers().items():
         if offer.get('fixedPriceBundle') and book_id in offer['books']:
-            section += '<section class="section"><h2>' + ('عرض كتابَي السيجما' if ar else 'Sigma pair offer') + '</h2>' + paragraphs(offer['description'][language]) + link('/offers/' + offer_id, 'عرض الباقة والكتابين' if ar else 'View the pack and both books') + '</section>'
+            section += '<section class="section"><h2>' + escape(offer['title'][language]) + '</h2>' + paragraphs(offer['description'][language]) + link('/offers/' + offer_id, 'تفاصيل الباقة والكتب' if ar else 'View pack details and books') + '</section>'
     section += '<nav class="seo-categories" aria-label="' + ('أقسام الكتاب' if ar else 'Book categories') + '">' + ''.join(link('/categories/' + key, cat[language]) for key, cat in categories_for(book_id)) + '</nav>'
     return section
 

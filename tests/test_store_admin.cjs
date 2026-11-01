@@ -25,6 +25,7 @@ class Node{constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[
  assert.equal(state.published.order[1],'book1');
  nodes.editorBook.value='book20';nodes.editorBook.handlers.change();assert.equal(nodes.independentPrice.disabled,true);assert.equal(nodes.bookPriceUSD.disabled,true);
  nodes.editorOffer.value='sigma-couple';nodes.editorOffer.handlers.change();assert.equal(nodes.offerPriceUSD.disabled,true);
+ nodes.editorOffer.value='sigma-trilogy';nodes.editorOffer.handlers.change();assert.equal(nodes.offerPriceUSD.disabled,true);assert.equal(nodes.offerPriceEGP.disabled,true);assert.equal(nodes.offerBooks.querySelectorAll('input').length,3);assert(nodes.offerBooks.querySelectorAll('input').every(n=>n.disabled));
  c.TaboStoreAdmin.open('recovery');await flush();await flush();assert(nodes.recoveryState.textContent.includes('مفعّلة'));
  assert(calls.every(x=>x.url.startsWith('/api/admin-dashboard/')&&x.opts.credentials==='same-origin'&&x.opts.cache==='no-store'));
  assert(!JSON.stringify(calls).includes('SUPABASE_SECRET_KEY'));

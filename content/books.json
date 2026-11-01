@@ -1168,7 +1168,7 @@
     "size": 7658509,
     "fixedPrices": {
       "EGP": 500,
-      "USD": 15.9
+      "USD": 19.99
     },
     "bundleEligible": false,
     "previewEnabled": false,
@@ -1256,7 +1256,7 @@
     "size": 10079348,
     "fixedPrices": {
       "EGP": 500,
-      "USD": 15.99
+      "USD": 19.99
     },
     "bundleEligible": false,
     "previewEnabled": false,
@@ -1360,7 +1360,7 @@
     "size": 12185488,
     "fixedPrices": {
       "EGP": 500,
-      "USD": 15.99
+      "USD": 19.99
     },
     "bundleEligible": false,
     "previewEnabled": false,
@@ -1428,7 +1428,7 @@
         ],
         [
           "Is there a preview or a discount?",
-          "No preview is available. Its independent price is EGP 500 in Egypt or USD 15.99 when priced in dollars. It is excluded from cart discounts and the Sigma pair offer."
+          "No preview is available. Add this book and both Sigma books to your cart to receive the three-book offer for EGP 1000 or USD 39.99."
         ],
         [
           "How do I receive the PDF?",
