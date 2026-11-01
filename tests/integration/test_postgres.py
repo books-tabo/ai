@@ -414,7 +414,9 @@ class PostgresTests(unittest.TestCase):
         with self.connect() as c:
             c.execute('SET ROLE service_role')
             row=c.execute('SELECT public.claim_order_book_email(%s)',('a'*64,)).fetchone()[0]
-            c.execute("UPDATE public.orders SET status='REFUNDED' WHERE id=%s",(oid,))
+            refunded=c.execute('SELECT public.apply_paypal_event(%s,%s,%s,%s,%s,%s,%s)',
+                               (oid,'live','RECEIPTCAP00000002','refund',20,'PAYPALORDER000002','b'*64)).fetchone()[0]
+            self.assertEqual(refunded['status'],'REFUNDED')
             self.assertEqual(c.execute('SELECT public.prepare_order_book_email(%s,%s,%s,%s)',(oid,row['book_id'],'a'*64,'b'*64)).fetchone()[0],'ineligible')
             c.execute("UPDATE public.order_book_emails SET next_attempt_at=now()-interval '1 second'")
             self.assertIsNone(c.execute('SELECT public.claim_order_book_email(%s)',('c'*64,)).fetchone()[0])
