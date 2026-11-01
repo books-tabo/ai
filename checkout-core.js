@@ -360,6 +360,7 @@ async function checkoutWithPaymentLink(){
         if(!response.ok||!data.ok){
             if(data.code==='CATALOG_REFRESH_REQUIRED'&&typeof loadStoreConfig==='function')await loadStoreConfig();
             if(data.code==='QUOTE_REFRESH_REQUIRED')await refreshCheckoutQuote(true);
+            if(response.status>=500)window.TaboErrors?.capture('checkout_request_failed');
             const error=new Error(data.error||t('checkoutError'));
             if(data.code==='INVALID_CUSTOMER'&&data.fields)error.fieldErrors=data.fields;
             throw error;
@@ -371,7 +372,7 @@ async function checkoutWithPaymentLink(){
         sessionStorage.setItem('taboPayment:'+key,data.payment_url);
         try{window.TaboAnalytics?.track('PaymentInfo',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency,payment_type:data.order.paymentMethod|| (selected==='paypal'?'PayPal':'Kashier')});}catch(_){/* Measurement never blocks the payment redirect. */}
         window.location.assign(data.payment_url);
-    } catch(error){checkoutInFlight=false;button.disabled=!window.TABO_CHECKOUT_READY;if(paypalButton)paypalButton.disabled=storeConfig.paypalAvailable!==true;['countrySelect','languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{const field=document.getElementById(id);if(field)field.disabled=false;});if(error.fieldErrors)showCheckoutErrors(error.fieldErrors);else checkoutStatus(error.message||t('checkoutError'));}
+    } catch(error){if(error instanceof TypeError)window.TaboErrors?.capture('checkout_request_failed');checkoutInFlight=false;button.disabled=!window.TABO_CHECKOUT_READY;if(paypalButton)paypalButton.disabled=storeConfig.paypalAvailable!==true;['countrySelect','languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{const field=document.getElementById(id);if(field)field.disabled=false;});if(error.fieldErrors)showCheckoutErrors(error.fieldErrors);else checkoutStatus(error.message||t('checkoutError'));}
 }
 
 window.TABO_CHECKOUT_READY=false;

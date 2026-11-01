@@ -9,6 +9,7 @@ import order_help
 import owner_dashboard
 import store_catalog
 import checkout_recovery
+import store_tools
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -556,10 +557,13 @@ class Handler(BaseHTTPRequestHandler):
             snap_enabled=getattr(self,'_snap_enabled',False)
             snap_scripts=' https://sc-static.net' if snap_enabled else ''
             snap_endpoints=' https://tr.snapchat.com https://tr6.snapchat.com' if snap_enabled else ''
+            sentry_config=getattr(self,'_sentry_config',None)
+            sentry_scripts=' https://browser.sentry-cdn.com' if sentry_config else ''
+            sentry_connect=' '+sentry_config['ingest'] if sentry_config else ''
             self.send_header('Content-Security-Policy',
-                "default-src 'self'; script-src 'nonce-"+nonce+"'"+meta_scripts+google_scripts+snap_scripts+"; "
+                "default-src 'self'; script-src 'nonce-"+nonce+"'"+meta_scripts+google_scripts+snap_scripts+sentry_scripts+"; "
                 "style-src 'self' 'unsafe-inline'; img-src 'self' https://i.ibb.co data:"+meta_images+google_images+snap_endpoints+"; "
-                "connect-src 'self'"+meta_connect+google_connect+snap_endpoints+"; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
+                "connect-src 'self'"+meta_connect+google_connect+snap_endpoints+sentry_connect+"; font-src 'self' data:; object-src 'none'; base-uri 'none'; "
                 "frame-ancestors 'none'; frame-src "+google_frames+"; form-action 'self'; worker-src 'none'; "
                 "upgrade-insecure-requests")
         else:
@@ -672,7 +676,7 @@ class Handler(BaseHTTPRequestHandler):
                     **{key:book[key] for key in ('fixedPrices','bundleEligible','previewEnabled') if key in book}}
                    for bid,book in seo.current_books().items()]
             source=source.replace('__CHECKOUT_BOOKS__',seo.safe_json(books))
-        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js','admin-dashboard.js','admin-store.js','checkout-recovery.js','book-sharing.js','download-progress.js'):
+        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js','admin-dashboard.js','admin-store.js','checkout-recovery.js','book-sharing.js','download-progress.js','admin-tools.js'):
             if 'src="/'+asset+'"' in source:
                 version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
                 source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
@@ -683,6 +687,12 @@ class Handler(BaseHTTPRequestHandler):
         if filename in ('index.html','book.html','info.html','offers.html') and autoseo.enabled():
             source = source.replace('<a href="/offers" data-offers-label>',
                 '<a href="/blog" data-seo-label="blog">المقالات · Blog</a><a href="/offers" data-offers-label>', 1)
+        self._sentry_config=store_tools.sentry_config() if seo.indexable(self.headers.get('Host','')) and filename in ('index.html','book.html','checkout.html','info.html','offers.html','success.html') else None
+        if self._sentry_config:
+            config=self._sentry_config
+            version=hashlib.sha256((ROOT/'error-monitoring.js').read_bytes()).hexdigest()[:12]
+            tag='<script src="/error-monitoring.js?v='+version+'" data-sentry-dsn="'+seo.escape(config['dsn'])+'" data-release="'+config['release']+'"></script>'
+            source=source.replace('</head>',tag+'</head>',1)
         pixel_id=meta_tracking.pixel_id()
         self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','success.html','offers.html'))
         if self._meta_enabled:
@@ -1287,6 +1297,9 @@ class Handler(BaseHTTPRequestHandler):
                     if not auth:return self.respond(403,{'error':'سجّل الدخول أولًا.'})
                     if not store_catalog.enabled():return self.respond(503,{'error':'إدارة المتجر غير متاحة مؤقتًا.'})
                     return self.respond(200,store_catalog.read(auth) if route.endswith('/catalog') else checkout_recovery.admin(auth))
+                if route=='/api/admin-dashboard/tools':
+                    if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+                    return self.respond(200,store_tools.dashboard_tools())
                 if route=='/api/admin-dashboard/session':
                     if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):return self.respond(403,{'error':'سجّل الدخول أولًا.'})
                     return self.respond(200,{'ok':True})
@@ -1394,7 +1407,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/snap-tracking.js': return self.asset('snap-tracking.js','text/javascript; charset=utf-8')
         if route=='/seo.js': return self.asset('seo.js','text/javascript; charset=utf-8')
         if route=='/seo.css': return self.asset('seo.css','text/css; charset=utf-8')
-        if route in ('/checkout-core.js','/checkout-page.js','/offer-pricing.js','/book-sharing.js','/download-progress.js'):
+        if route in ('/checkout-core.js','/checkout-page.js','/offer-pricing.js','/book-sharing.js','/download-progress.js','/error-monitoring.js','/admin-tools.js'):
             return self.asset(route.lstrip('/'),'text/javascript; charset=utf-8')
         optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
         if optimized_cover and optimized_cover.group(1) in BOOKS:

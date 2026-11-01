@@ -57,7 +57,7 @@ async function loadStoreConfig(country=browserCountryHint()){
         notice.hidden=true;renderEmailHelp();renderCountryOptions();updateCart();
         const unavailable=document.getElementById('checkoutNotice');unavailable.hidden=window.TABO_CHECKOUT_READY;
         unavailable.textContent=data.checkoutSupported?t('preview'):t('currencyPending');
-    }catch(_){if(request===configRequest){notice.textContent=t('configError');document.getElementById('retryConfig').hidden=false;}}
+    }catch(_){window.TaboErrors?.capture('checkout_config_failed');if(request===configRequest){notice.textContent=t('configError');document.getElementById('retryConfig').hidden=false;}}
     finally{if(request===configRequest)document.getElementById('countrySelect').disabled=false;}
 }
 document.getElementById('cartItems').addEventListener('click',event=>{
