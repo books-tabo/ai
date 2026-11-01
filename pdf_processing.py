@@ -22,7 +22,7 @@ def watermarked(src, order, max_pages, output_limit, font_path):
     for page in reader.pages:
         width=float(page.mediabox.width); height=float(page.mediabox.height)
         pdf_limits.check_page_size(width,height)
-        overlay=io.BytesIO(); c=Canvas(overlay,pagesize=(width,height))
+        overlay=io.BytesIO(); c=Canvas(overlay,pagesize=(width,height),invariant=1)
         stamp=make_stamp(order['buyer']['name'],order['buyer']['phone'],order['id'],width,font_path)
         c.drawImage(ImageReader(stamp), width*.08, max(10,height*.025), width=width*.84, height=40, mask='auto')
         c.save(); overlay.seek(0)

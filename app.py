@@ -5,6 +5,7 @@ import reader_comments
 import paypal_checkout
 import checkout_fields
 import order_receipts
+import book_emails
 import order_help
 import owner_dashboard
 import store_catalog
@@ -951,6 +952,7 @@ class Handler(BaseHTTPRequestHandler):
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
                        'token':None,'buyer':{**customer,'language':'en' if data.get('language')=='en' else 'ar',
                                              'receiptRequested':order_receipts.enabled(),
+                                             'bookEmailRequested':book_emails.enabled(),
                                              'recoveryConsent':checkout_recovery.enabled() and data.get('recoveryConsent') is True},
                        'transactionId':None,'statusKey':secrets.token_hex(32),
                        'checkoutSessionHash':hash_secret(checkout_secret)}
@@ -1445,6 +1447,7 @@ class Handler(BaseHTTPRequestHandler):
             config['checkoutSupported']=payment_currency_supported(config['currency'])
             config['paypalAvailable']=paypal_ready(config['currency'])
             config['receiptEmailEnabled']=order_receipts.enabled()
+            config['bookEmailEnabled']=book_emails.enabled()
             config['catalogRevision']=store_catalog.revision()
             config['recoveryEmailEnabled']=checkout_recovery.enabled() and store_catalog.reminders_enabled()
             config['paymentProvider']=payment_provider()
@@ -1504,6 +1507,7 @@ if __name__=='__main__':
     missing=[name for name,ready in checkout_readiness().items() if not ready]
     print('Checkout readiness: '+('ready' if not missing else 'blocked: '+','.join(missing)),flush=True)
     order_receipts.start_worker()
+    book_emails.start_worker()
     order_help.start_worker()
     owner_dashboard.start_pruner()
     checkout_recovery.start_worker()

@@ -69,7 +69,7 @@ def provider_failure(error):
     return DeliveryError(error.code in (408, 429) or error.code >= 500, error.code, reason)
 
 
-def message(order):
+def message(order, *, attachment_book=None):
     """Only persisted, server-confirmed values; never caller-supplied prices/links."""
     buyer = order.get('buyer') or {}
     clean, errors = checkout_fields.customer(buyer)
@@ -84,6 +84,13 @@ def message(order):
     support = ORIGIN + '/order-help'
     amount = f"{Decimal(str(order['total'])):.2f} {order['currency']}"
     titles = [str(item['name']) for item in order['items']]
+    if attachment_book is not None:
+        if buyer.get('bookEmailRequested') is not True:
+            raise ValueError('Ineligible attachment message')
+        matching = [item for item in order['items'] if item.get('id') == attachment_book]
+        if len(matching) != 1:
+            raise ValueError('Book not purchased')
+        titles = [str(matching[0]['name'])]
     subject = ('Payment confirmed — ' if en else 'تم تأكيد شراء كتبك — ') + oid
     summary = ('Amount charged: ' if en else 'المبلغ المحصّل: ') + amount
     quote = order.get('pricingQuote')
@@ -92,6 +99,11 @@ def message(order):
     instruction = ('Open the order link in the same browser and device used for your purchase. '
                    'Your existing download protection and two-download limit per book still apply.' if en else
                    'افتح رابط طلبك من نفس المتصفح والجهاز المستخدمين للشراء. تظل حماية طلبك ومحاولتا تحميل كل كتاب كما هما.')
+    if attachment_book is not None:
+        subject = ('Your stamped book — ' if en else 'نسخة كتابك المختومة — ') + titles[0][:150] + ' — ' + oid
+        summary = summary.replace('Amount charged: ', 'Order total charged: ', 1).replace('المبلغ المحصّل: ', 'إجمالي الطلب المحصّل: ', 1)
+        instruction = ('Your PDF is attached, stamped with your name, phone number and order number. Each purchased book arrives in a separate email. Email delivery does not use either of your two website downloads. ' if en else
+                       'مرفق كتابك بصيغة PDF مختومًا باسمك ورقم هاتفك ورقم طلبك. يصل كل كتاب اشتريته في رسالة منفصلة. إرسال البريد لا يخصم من مرتَي تحميل كل كتاب من الموقع. ') + instruction
     action = 'Return to your books' if en else 'الرجوع لطلبك وتحميل كتبك'
     help_label = 'Help with my order' if en else 'مساعدة بخصوص طلبي'
     greeting = ('Thank you, ' if en else 'شكرًا لك، ') + clean['name']
@@ -105,13 +117,13 @@ def message(order):
             'subject': subject, 'html': body, 'text': text}
 
 
-def send(payload, order_id):
+def send(payload, order_id, *, namespace='paid-receipt'):
     req = Request(SEND_URL, method='POST', data=json.dumps(payload).encode(), headers={
         'Authorization': 'Bearer ' + os.environ['RESEND_API_KEY'],
         'User-Agent': 'TABO-Books/1.0 (+https://tabobooks.com)',
-        'Content-Type': 'application/json', 'Idempotency-Key': 'paid-receipt/' + order_id})
+        'Content-Type': 'application/json', 'Idempotency-Key': namespace + '/' + order_id})
     try:
-        with OPEN(req, timeout=10) as response:
+        with OPEN(req, timeout=30 if payload.get('attachments') else 10) as response:
             raw = response.read(8193)
             if len(raw) > 8192:
                 raise DeliveryError(True)

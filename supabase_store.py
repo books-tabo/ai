@@ -242,3 +242,19 @@ def help_finish(challenge, kind, lease, state, provider_id, retry_seconds, reaso
     return request('/rest/v1/rpc/finish_order_help_message', 'POST', {
         'p_id':challenge,'p_kind':kind,'p_lease':lease,'p_state':state,
         'p_provider_id':provider_id,'p_retry_seconds':retry_seconds,'p_reason':reason})
+
+
+# Server-only per-book email outbox; independent of download claims.
+def claim_book_email(lease):
+    return request('/rest/v1/rpc/claim_order_book_email', 'POST', {'p_lease':lease})
+
+
+def prepare_book_email(order_id, book_id, lease, digest):
+    return request('/rest/v1/rpc/prepare_order_book_email', 'POST', {
+        'p_order_id':order_id,'p_book_id':book_id,'p_lease':lease,'p_payload_sha256':digest})
+
+
+def finish_book_email(order_id, book_id, lease, state, provider_id, retry_seconds, reason):
+    return request('/rest/v1/rpc/finish_order_book_email', 'POST', {
+        'p_order_id':order_id,'p_book_id':book_id,'p_lease':lease,'p_state':state,
+        'p_provider_id':provider_id,'p_retry_seconds':retry_seconds,'p_reason':reason})
