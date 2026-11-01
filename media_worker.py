@@ -76,7 +76,7 @@ def main():
             from book_previews import _render_page
             payload = _render_page(source, options['page_number'], int(output))
             result = {'ok': True}
-        elif operation == 'watermark':
+        elif operation in ('watermark', 'email_watermark'):
             from pdf_processing import watermarked
             payload, count = watermarked(source, options['order'], options['max_pages'], int(output), options['font'])
             result = {'ok': True, 'pages': count}

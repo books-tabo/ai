@@ -129,7 +129,11 @@ class BookEmailTests(unittest.TestCase):
              patch.object(media_sandbox,'run',wraps=media_sandbox.run) as sandbox:
             first=emails.attachment(value,'book20');time.sleep(1.1);second=emails.attachment(value,'book20')
             self.assertEqual(first,second)
-            stamp=sandbox.call_args.args[2]['order']
+            self.assertEqual(sandbox.call_args.args[0],'email_watermark')
+            options=sandbox.call_args.args[2]
+            legacy,_=media_sandbox.run('watermark',buf.getvalue(),options,input_limit=pdf_limits.MAX_SOURCE_BYTES,output_limit=emails.MAX_PDF_BYTES)
+            self.assertEqual(first,legacy,'Elapsed-time allowance cannot change PDF bytes or idempotency')
+            stamp=options['order']
             self.assertEqual(stamp,{'id':value['id'],'buyer':{'name':'قارئ اختباري','phone':'01000000000'}})
             self.assertEqual(len(PdfReader(io.BytesIO(first)).pages),2)
 

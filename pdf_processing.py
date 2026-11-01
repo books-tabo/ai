@@ -19,12 +19,16 @@ def watermarked(src, order, max_pages, output_limit, font_path):
     pdf_limits.check_source(src)
     reader=PdfReader(io.BytesIO(src) if isinstance(src, bytes) else str(src)); writer=PdfWriter()
     if len(reader.pages)>max_pages:raise ValueError('PDF page limit')
+    # The licensed identity bitmap is identical on every page. Reuse it instead
+    # of repeating Arabic shaping, PNG encoding and image decoding for each page.
+    stamp_image=None
     for page in reader.pages:
         width=float(page.mediabox.width); height=float(page.mediabox.height)
         pdf_limits.check_page_size(width,height)
+        if stamp_image is None:
+            stamp_image=ImageReader(make_stamp(order['buyer']['name'],order['buyer']['phone'],order['id'],width,font_path))
         overlay=io.BytesIO(); c=Canvas(overlay,pagesize=(width,height),invariant=1)
-        stamp=make_stamp(order['buyer']['name'],order['buyer']['phone'],order['id'],width,font_path)
-        c.drawImage(ImageReader(stamp), width*.08, max(10,height*.025), width=width*.84, height=40, mask='auto')
+        c.drawImage(stamp_image, width*.08, max(10,height*.025), width=width*.84, height=40, mask='auto')
         c.save(); overlay.seek(0)
         page.merge_page(PdfReader(overlay).pages[0])
         writer.add_page(page)

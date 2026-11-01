@@ -10,7 +10,9 @@ import tempfile
 import threading
 
 class MediaError(ValueError):
-    pass
+    def __init__(self, message='Media processing rejected', *, code='rejected'):
+        self.code = code if code in ('rejected', 'timeout', 'resource') else 'rejected'
+        super().__init__(message)
 
 class MediaBusy(MediaError):
     pass
@@ -23,7 +25,8 @@ IMAGE_PIXELS = 25_000_000
 IMAGE_DIMENSION = 10000
 # Limits apply to the child address space, before importing any media library.
 POLICIES = {'image': (12, 256 * 1024**2), 'sample': (30, 384 * 1024**2),
-            'render': (15, 256 * 1024**2), 'watermark': (120, 384 * 1024**2)}
+            'render': (15, 256 * 1024**2), 'watermark': (120, 384 * 1024**2),
+            'email_watermark': (240, 384 * 1024**2)}
 
 
 def run(operation, source, options, *, input_limit, output_limit, timeout=None):
@@ -43,8 +46,13 @@ def run(operation, source, options, *, input_limit, output_limit, timeout=None):
             root = Path(directory)
             (root / 'input').write_bytes(source)
             (root / 'options.json').write_bytes(metadata)
+            cpu = max(1, math.floor(seconds * .75))
+            # Background email gets extra elapsed time on shared CPU. Retain
+            # the existing watermark CPU ceiling and all memory/output limits.
+            if operation == 'email_watermark':
+                cpu = min(cpu, 90)
             command = [sys.executable, '-I', str(WORKER), operation, directory,
-                       str(memory), str(max(1, math.floor(seconds * .75))), str(output_limit)]
+                       str(memory), str(cpu), str(output_limit)]
             # No payment/storage credentials are inherited; never log child output.
             process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                        stderr=subprocess.DEVNULL, start_new_session=True,
@@ -53,9 +61,9 @@ def run(operation, source, options, *, input_limit, output_limit, timeout=None):
                 try:
                     process.wait(timeout=seconds)
                 except subprocess.TimeoutExpired:
-                    raise MediaError('Media processing timed out') from None
+                    raise MediaError('Media processing timed out', code='timeout') from None
                 if process.returncode != 0:
-                    raise MediaError('Media processing rejected')
+                    raise MediaError('Media processing rejected', code='resource' if process.returncode < 0 else 'rejected')
                 result_path, output_path = root / 'result.json', root / 'output'
                 if result_path.stat().st_size > 4096 or not 0 < output_path.stat().st_size <= output_limit:
                     raise MediaError('Invalid media output')
