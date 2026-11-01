@@ -24,7 +24,7 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.order_book_emails,public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("UPDATE public.store_catalog_state SET published='{}'::jsonb,draft='{}'::jsonb,revision=0,draft_revision=0,reminders_enabled=true,published_at=NULL WHERE id")
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
@@ -359,6 +359,90 @@ class PostgresTests(unittest.TestCase):
             if barrier:barrier.wait(timeout=15)
             return c.execute('SELECT public.apply_paypal_event(%s,%s,%s,%s,%s,%s,%s)',
                              (oid,mode,f'RECEIPTCAP{number:08d}','paid',20,f'PAYPALORDER{number:06d}','f'*64)).fetchone()[0]
+
+    def book_email_order(self,number=2,mode='live',requested=True):
+        oid=self.receipt_order(number,mode=mode)
+        with self.connect() as c:
+            c.execute("UPDATE public.orders SET buyer=jsonb_set(buyer,'{bookEmailRequested}',%s::jsonb),items=%s::jsonb WHERE id=%s",
+                      (json.dumps(requested),json.dumps([{'id':'book20','name':'Synthetic book'},{'id':'book22','name':'Another book'},{'id':'book20','name':'Duplicate book'}]),oid))
+        return oid
+
+    def test_book_email_queue_is_future_live_paid_per_book_and_duplicate_safe(self):
+        oid=self.book_email_order();barrier=threading.Barrier(8)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            results=list(pool.map(lambda _:self.receipt_payment(oid,barrier=barrier),range(8)))
+        self.assertTrue(all(r['status']=='PAID' for r in results))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT book_id,state,attempts FROM public.order_book_emails ORDER BY book_id').fetchall(),[('book20','pending',0),('book22','pending',0)])
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_receipts').fetchone()[0],0)
+            c.execute("UPDATE public.orders SET buyer=jsonb_set(buyer,'{bookEmailRequested}','true') WHERE id='TABO-0000000000000001'")
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_book_emails').fetchone()[0],2)
+        test=self.book_email_order(3,mode='test');self.receipt_payment(test,number=3,mode='test')
+        legacy=self.book_email_order(4,requested=False);self.receipt_payment(legacy,number=4)
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_book_emails').fetchone()[0],2)
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_receipts').fetchone()[0],1)
+
+    def test_book_email_leases_hash_binding_and_no_download_consumption(self):
+        oid=self.book_email_order();self.receipt_payment(oid)
+        def claim(index):
+            with self.connect() as c:
+                c.execute('SET ROLE service_role')
+                return index,c.execute('SELECT public.claim_order_book_email(%s)',(f'{index:064x}',)).fetchone()[0]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:claimed=[x for x in pool.map(claim,range(1,9)) if x[1]]
+        self.assertEqual(len(claimed),2)
+        for index,row in claimed:
+            bid=row['book_id'];lease=f'{index:064x}'
+            with self.connect() as c:
+                c.execute('SET ROLE service_role')
+                self.assertIsNone(c.execute('SELECT public.prepare_order_book_email(%s,%s,%s,%s)',(oid,bid,'0'*64,'a'*64)).fetchone()[0])
+                self.assertEqual(c.execute('SELECT public.prepare_order_book_email(%s,%s,%s,%s)',(oid,bid,lease,'a'*64)).fetchone()[0],'ready')
+                self.assertEqual(c.execute('SELECT public.prepare_order_book_email(%s,%s,%s,%s)',(oid,bid,lease,'a'*64)).fetchone()[0],'ready')
+                self.assertEqual(c.execute('SELECT public.prepare_order_book_email(%s,%s,%s,%s)',(oid,bid,lease,'b'*64)).fetchone()[0],'changed')
+                self.assertFalse(c.execute('SELECT public.finish_order_book_email(%s,%s,%s,%s,%s,%s,%s)',(oid,bid,'0'*64,'sent','synthetic',30,None)).fetchone()[0])
+                self.assertTrue(c.execute('SELECT public.finish_order_book_email(%s,%s,%s,%s,%s,%s,%s)',(oid,bid,lease,'sent','synthetic',30,None)).fetchone()[0])
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM public.order_downloads WHERE order_id=%s',(oid,)).fetchone()[0],0)
+            c.execute("UPDATE public.orders SET download_session_hash=%s,download_device_hash=%s,download_session_expires_at=now()+interval '1 hour' WHERE id=%s",('c'*64,'d'*64,oid))
+            c.execute('SET ROLE service_role')
+            for expected in (True,True,False):
+                result=c.execute('SELECT public.claim_order_download(%s,%s,%s,%s,%s)',(oid,'book20','c'*64,'d'*64,20)).fetchone()[0]
+                self.assertIs(result['allowed'],expected)
+
+    def test_book_email_revocation_and_expiry_stop_sending(self):
+        oid=self.book_email_order();self.receipt_payment(oid)
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            row=c.execute('SELECT public.claim_order_book_email(%s)',('a'*64,)).fetchone()[0]
+            c.execute("UPDATE public.orders SET status='REFUNDED' WHERE id=%s",(oid,))
+            self.assertEqual(c.execute('SELECT public.prepare_order_book_email(%s,%s,%s,%s)',(oid,row['book_id'],'a'*64,'b'*64)).fetchone()[0],'ineligible')
+            c.execute("UPDATE public.order_book_emails SET next_attempt_at=now()-interval '1 second'")
+            self.assertIsNone(c.execute('SELECT public.claim_order_book_email(%s)',('c'*64,)).fetchone()[0])
+            self.assertEqual(c.execute("SELECT count(*) FROM public.order_book_emails WHERE state='skipped'").fetchone()[0],2)
+        oid2=self.book_email_order(3);self.receipt_payment(oid2,number=3)
+        with self.connect() as c:
+            c.execute("UPDATE public.order_book_emails SET created_at=now()-interval '21 hours' WHERE order_id=%s",(oid2,))
+            c.execute('SET ROLE service_role')
+            self.assertIsNone(c.execute('SELECT public.claim_order_book_email(%s)',('d'*64,)).fetchone()[0])
+            self.assertEqual(c.execute("SELECT count(*) FROM public.order_book_emails WHERE state='failed' AND reason='expired'").fetchone()[0],2)
+
+    def test_book_email_privacy_and_owner_delivery_reporting(self):
+        oid=self.book_email_order();self.receipt_payment(oid)
+        auth=self.owner_auth()
+        with self.connect() as c:
+            self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid='public.order_book_emails'::regclass").fetchone()[0])
+            for role in ('anon','authenticated'):
+                for privilege in ('SELECT','INSERT','UPDATE','DELETE'):
+                    self.assertFalse(c.execute("SELECT has_table_privilege(%s,'public.order_book_emails',%s)",(role,privilege)).fetchone()[0])
+                for sig in ('enqueue_order_book_emails()','claim_order_book_email(text)','prepare_order_book_email(text,text,text,text)','finish_order_book_email(text,text,text,text,text,integer,text)'):
+                    self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,'public.'+sig)).fetchone()[0])
+            self.assertEqual(c.execute("SELECT count(*) FROM pg_proc WHERE proname IN('enqueue_order_book_emails','claim_order_book_email','prepare_order_book_email','finish_order_book_email') AND prosecdef").fetchone()[0],0)
+            c.execute('SET ROLE service_role')
+            result=c.execute("SELECT public.owner_dashboard_report(%s,%s,%s,%s,now()-interval '1 day',now()+interval '1 day',NULL,NULL,NULL,0)",auth).fetchone()[0]
+            self.assertEqual(result['followup']['emailRetry'],1)
+            row=next(x for x in result['orders'] if x['id']==oid)
+            self.assertEqual(len(row['book_emails']),2)
+            self.assertNotIn('reader@example.invalid',json.dumps(result));self.assertNotIn('01000000000',json.dumps(result))
 
     def test_receipt_enqueue_is_atomic_future_paid_only_and_duplicate_safe(self):
         oid=self.receipt_order();barrier=threading.Barrier(8)

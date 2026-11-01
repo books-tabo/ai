@@ -13,6 +13,10 @@ added to public order responses, advertising events, PDF stamps or logs. No exis
 customer/order is backfilled or emailed. Purchase confirmation is transactional;
 this feature adds no marketing subscription or abandoned-cart campaign.
 
+## Stamped PDF delivery update
+
+See `paid-book-emails.md`: new eligible purchases receive a separate confirmation email with a privately stamped PDF for each book. The legacy plain receipt described below remains for purchases without `bookEmailRequested`. No historical purchases are backfilled.
+
 ## Sending flow
 
 The additive migration adds one server-only, RLS-enabled outbox and invoker-only

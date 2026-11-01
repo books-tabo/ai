@@ -23,7 +23,7 @@ jobs:
           node-version: '22'
       - run: pip install -r requirements-dev.txt
       - run: pip check
-      - run: python -m compileall -q app.py supabase_store.py localization.py proxy_identity.py pdf_limits.py book_previews.py checkout_pricing.py autoseo.py media_sandbox.py media_worker.py pdf_processing.py reader_comments.py paypal_checkout.py checkout_fields.py order_receipts.py order_help.py journey_tracking.py owner_dashboard.py store_catalog.py checkout_recovery.py store_tools.py
+      - run: python -m compileall -q app.py supabase_store.py localization.py proxy_identity.py pdf_limits.py book_previews.py checkout_pricing.py autoseo.py media_sandbox.py media_worker.py pdf_processing.py reader_comments.py paypal_checkout.py checkout_fields.py order_receipts.py order_help.py journey_tracking.py owner_dashboard.py store_catalog.py checkout_recovery.py store_tools.py book_emails.py
       - run: python -m ruff check --select E9,F63,F7,F82 .
       - run: python tools/prepare_editorial_batch.py --output /tmp/tabo-editorial-checked.json
       - run: python tools/prepare_editorial_batch.py --manifest batch-two.json --output /tmp/tabo-editorial-batch-two-checked.json
