@@ -38,7 +38,7 @@
    integrations:[s.globalHandlersIntegration({onerror:true,onunhandledrejection:true})],
    dataCollection:{userInfo:false,cookies:false,httpHeaders:false,httpBodies:[],urlQueryParams:false,graphQL:{document:false,variables:false},genAI:{inputs:false,outputs:false},mcp:{inputs:false,outputs:false},databaseQueryData:false},
    sendClientReports:false,autoSessionTracking:false,maxBreadcrumbs:0,beforeBreadcrumb:()=>null,
-   tracesSampleRate:0,replaysSessionSampleRate:0,replaysOnErrorSampleRate:0,enableLogs:false,
+   traceLifecycle:'static',tracesSampleRate:0,replaysSessionSampleRate:0,replaysOnErrorSampleRate:0,enableLogs:false,
    beforeSend:clean,beforeSendTransaction:()=>null,beforeSendLog:()=>null});
   sdk=s;queue.splice(0).forEach(capture);
  }catch(_){/* Monitoring cannot block shopping or delivery. */}};

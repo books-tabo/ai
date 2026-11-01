@@ -12,7 +12,7 @@ const r=runtime();
 assert.equal(r.loaders.length,1);assert.equal(r.loaders[0].async,true);assert.equal(r.loaders[0].nonce,'nonce123');
 assert.equal(r.loaders[0].referrerPolicy,'no-referrer');assert(r.loaders[0].integrity.startsWith('sha384-'));
 assert.equal(r.options.defaultIntegrations,false);assert.equal(r.options.integrations.length,1);
-assert.equal(r.options.maxBreadcrumbs,0);assert.equal(r.options.sendClientReports,false);assert.equal(r.options.autoSessionTracking,false);
+assert.equal(r.options.traceLifecycle,'static');assert.equal(r.options.maxBreadcrumbs,0);assert.equal(r.options.sendClientReports,false);assert.equal(r.options.autoSessionTracking,false);
 assert.equal(r.options.dataCollection.userInfo,false);assert.equal(r.options.dataCollection.cookies,false);assert.equal(r.options.dataCollection.urlQueryParams,false);assert.equal(r.options.dataCollection.httpBodies.length,0);
 const event={event_id:'1'.repeat(32),timestamp:1234,user:{email:'BUYER',ip_address:'PRIVATE'},request:{url:'https://tabobooks.com/success.html?order=SECRET',cookies:'COOKIE',headers:{Authorization:'TOKEN'}},breadcrumbs:[{message:'PHONE'}],extra:{buyer:'NAME'},contexts:{trace:{data:'SECRET'}},message:'CARD',tags:{email:'BUYER'},exception:{values:[{type:'TypeError',value:'BUYER SECRET PHONE',stacktrace:{frames:[{filename:'https://tabobooks.com/checkout-core.js?v=123&key=SECRET',function:'PRIVATE',lineno:30,colno:9,vars:{buyer:'PRIVATE'},pre_context:['CARD']},{filename:'https://evil.com/tracker.js?SECRET',lineno:10}]}}]}};
 const cleaned=r.options.beforeSend(event),serialized=JSON.stringify(cleaned);
