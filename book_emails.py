@@ -46,7 +46,7 @@ def attachment(order, book_id):
     # call claim_download, alter a session, or write a stamped file to public storage.
     with pdf_limits.work_slot():
         source = store.original(catalog.BOOKS[book_id][1])
-        payload, result = media_sandbox.run('watermark', source,
+        payload, result = media_sandbox.run('email_watermark', source,
             {'order': stamp_order, 'max_pages': pdf_limits.MAX_PAGES,
              'font': os.environ.get('TABO_ARABIC_FONT', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')},
             input_limit=pdf_limits.MAX_SOURCE_BYTES, output_limit=MAX_PDF_BYTES)
@@ -106,7 +106,11 @@ def process_one():
     except order_receipts.DeliveryError as exc:
         state = 'retry' if exc.retryable and claim['attempts'] < 8 else 'failed'
         reason = 'transient' if exc.retryable else 'provider_rejected'
-    except (pdf_limits.PDFBusy, media_sandbox.MediaError, store.StoreError, OSError, TimeoutError):
+    except media_sandbox.MediaError as exc:
+        # Fixed diagnostic only: no customer identity, order, URL or exception text.
+        print('Book email preparation: ' + exc.code, flush=True)
+        state, reason = ('retry' if claim['attempts'] < 8 else 'failed'), 'transient'
+    except (pdf_limits.PDFBusy, store.StoreError, OSError, TimeoutError):
         state, reason = ('retry' if claim['attempts'] < 8 else 'failed'), 'transient'
     except (ValueError, KeyError, TypeError, ArithmeticError):
         pass

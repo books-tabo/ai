@@ -100,6 +100,23 @@ class ProcessLimitTests(unittest.TestCase):
         self.assertEqual(list(Path(self.temp.name).glob('tabo-media-*')),[])
         self.assertTrue(sandbox._SLOT.acquire(blocking=False));sandbox._SLOT.release()
 
+    def test_background_email_extends_elapsed_time_but_keeps_cpu_and_memory_caps(self):
+        from unittest.mock import Mock
+        calls=[]
+        process=Mock(pid=99999999,returncode=0)
+        def launch(command,**kwargs):
+            calls.append(command)
+            root=Path(command[4]);(root/'output').write_bytes(b'%PDF-test')
+            (root/'result.json').write_text('{"ok":true,"pages":1}')
+            return process
+        with patch.object(sandbox.subprocess,'Popen',side_effect=launch),patch.object(sandbox.os,'killpg'):
+            payload,_=sandbox.run('email_watermark',b'%PDF-test',{},input_limit=100,output_limit=100)
+        self.assertEqual(payload,b'%PDF-test')
+        self.assertEqual(calls[0][-3:], [str(384*1024**2),'90','100'])
+        process.wait.assert_any_call(timeout=240)
+        self.assertEqual(sandbox.POLICIES['watermark'],(120,384*1024**2))
+        self.assert_clean()
+
     def test_wall_timeout_kills_child_and_cleans_private_files(self):
         pid_path=Path(self.temp.name)/'pid'
         with patch.dict(sandbox.POLICIES,{'image':(.5,64*1024**2)}):
