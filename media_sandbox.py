@@ -10,7 +10,7 @@ import tempfile
 import threading
 
 class MediaError(ValueError):
-    def __init__(self, message, *, code='rejected'):
+    def __init__(self, message='Media processing rejected', *, code='rejected'):
         self.code = code if code in ('rejected', 'timeout', 'resource') else 'rejected'
         super().__init__(message)
 

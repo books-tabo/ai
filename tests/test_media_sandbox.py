@@ -176,6 +176,15 @@ class PDFBoundaryTests(unittest.TestCase):
         with patch.object(pdf_limits,'MAX_PAGES',2):
             with self.assertRaises(ValueError):app.watermarked(pdf(3),order)
 
+    def test_watermark_reuses_identity_bitmap_across_pages(self):
+        import pdf_processing
+        order={'id':'TABO-0000000000000000','buyer':{'name':'قارئ اختباري','phone':'01000000000'}}
+        with patch.object(pdf_processing,'make_stamp',wraps=pdf_processing.make_stamp) as stamp:
+            output,count=pdf_processing.watermarked(pdf(3),order,pdf_limits.MAX_PAGES,pdf_limits.MAX_OUTPUT_BYTES,app.FONT)
+        self.assertEqual(count,3)
+        self.assertEqual(len(PdfReader(io.BytesIO(output)).pages),3)
+        stamp.assert_called_once()
+
     def test_471_page_synthetic_book_with_arabic_stamp(self):
         # Generated fixture; never opens a stored original or consumes an entitlement.
         order={'buyer':{'name':'قارئ اختباري','phone':'0000000000'},'id':'LOCAL-471-PAGES'}
