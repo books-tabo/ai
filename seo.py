@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+from urllib.parse import quote
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 import catalog
@@ -320,6 +321,9 @@ def render(source, path, host, filename, *, blog_enabled=False):
     elif filename == 'book.html':
         book_id = path.rsplit('/', 1)[-1]
         book = current_books()[book_id]
+        share_url = ORIGIN + '/books/' + book_id
+        share_target = 'https://wa.me/?text=' + quote(book['name']+'\n'+share_url, safe='')
+        source = source.replace('id="shareWhatsApp"', 'id="shareWhatsApp" href="'+escape(share_target)+'"')
         for key, value in {'title': book['name'], 'short': book['short'], 'about': book['about'], 'adds': book['adds'], 'idea': book['idea'], 'author': AUTHOR_BIO['ar']}.items():
             source = replace_id(source, key, escape(value))
         source = source.replace('id="cover" alt=""', 'id="cover" src="' + book['image'] + '" alt="غلاف كتاب ' + escape(book['name']) + '" width="' + str(book['imageWidth']) + '" height="' + str(book['imageHeight']) + '" fetchpriority="high"')

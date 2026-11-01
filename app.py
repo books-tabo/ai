@@ -672,7 +672,7 @@ class Handler(BaseHTTPRequestHandler):
                     **{key:book[key] for key in ('fixedPrices','bundleEligible','previewEnabled') if key in book}}
                    for bid,book in seo.current_books().items()]
             source=source.replace('__CHECKOUT_BOOKS__',seo.safe_json(books))
-        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js','admin-dashboard.js','admin-store.js','checkout-recovery.js'):
+        for asset in ('checkout-core.js','checkout-page.js','offer-pricing.js','order-help.js','admin-dashboard.js','admin-store.js','checkout-recovery.js','book-sharing.js','download-progress.js'):
             if 'src="/'+asset+'"' in source:
                 version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
                 source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
@@ -1394,7 +1394,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/snap-tracking.js': return self.asset('snap-tracking.js','text/javascript; charset=utf-8')
         if route=='/seo.js': return self.asset('seo.js','text/javascript; charset=utf-8')
         if route=='/seo.css': return self.asset('seo.css','text/css; charset=utf-8')
-        if route in ('/checkout-core.js','/checkout-page.js','/offer-pricing.js'):
+        if route in ('/checkout-core.js','/checkout-page.js','/offer-pricing.js','/book-sharing.js','/download-progress.js'):
             return self.asset(route.lstrip('/'),'text/javascript; charset=utf-8')
         optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
         if optimized_cover and optimized_cover.group(1) in BOOKS:
