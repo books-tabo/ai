@@ -53,6 +53,7 @@ async function downloadBook(id){
         window.TaboDownload.save(cachedFile.blob,id);
         transferStates.set(id,{phase:'done'});
     }catch(error){
+        if(error.code!=='http'&&error.message!==L.used&&error.message!==L.checkFailed)window.TaboErrors?.capture('download_transfer_failed');
         let message=error.code==='timeout'?L.timeout:(error.code==='http'||error.message===L.used||error.message===L.checkFailed)?error.message||L.failed:L.failed,known=false;
         try{await readBooks();known=true;}catch(_){message+=' '+L.checkFailed;}
         transferStates.set(id,{phase:'error',message,needsCheck:!known||!!books.get(id)?.remaining});
