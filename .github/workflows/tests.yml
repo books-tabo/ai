@@ -43,6 +43,7 @@ jobs:
       - run: node tests/test_reader_comments.cjs
       - run: node tests/test_curated_offers.cjs
       - run: node tests/test_catalog_pricing.cjs
+      - run: node tests/test_download_sharing.cjs
   postgres:
     runs-on: ubuntu-latest
     services:

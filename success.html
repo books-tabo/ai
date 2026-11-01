@@ -1,18 +1,69 @@
 <!doctype html>
-<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TABO BOOKS</title><style>body{font-family:Tahoma,Arial;background:#f6f5f2;color:#171717;margin:0}.box{max-width:640px;margin:7vh auto;background:#fff;padding:32px;border-radius:18px;box-shadow:0 8px 30px #0001}h1{font-size:25px}.gold{color:#aa8321}input,button{display:block;width:100%;padding:13px;margin:12px 0;box-sizing:border-box;border-radius:8px;border:1px solid #bbb;font:inherit}button{background:#171717;color:#fff;cursor:pointer}button:disabled{background:#aaa;cursor:not-allowed}.book{border-top:1px solid #ddd;padding:16px 0}.book b{display:block;margin-bottom:4px}.remaining{color:#725913;font-size:14px}.notice{padding:12px;background:#f8f4e9;border-radius:8px}.error{color:#a11}.success{color:#176b36}</style></head>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TABO BOOKS</title><style>body{font-family:Tahoma,Arial;background:#f6f5f2;color:#171717;margin:0}.box{max-width:640px;margin:7vh auto;background:#fff;padding:32px;border-radius:18px;box-shadow:0 8px 30px #0001}h1{font-size:25px}.gold{color:#aa8321}input,button{display:block;width:100%;padding:13px;margin:12px 0;box-sizing:border-box;border-radius:8px;border:1px solid #bbb;font:inherit}button{background:#171717;color:#fff;cursor:pointer}button:disabled{background:#aaa;cursor:not-allowed}.book{border-top:1px solid #ddd;padding:16px 0}.book b{display:block;margin-bottom:4px}.remaining{color:#725913;font-size:14px}.notice{padding:12px;background:#f8f4e9;border-radius:8px}.error{color:#a11}.success{color:#176b36}.download-state{margin-top:12px}.download-state progress{display:block;width:100%;height:12px;accent-color:#b38a24}.download-status{font-size:14px;line-height:1.8;margin:8px 0;overflow-wrap:anywhere}.download-state[data-phase="error"]{color:#a11}.download-state[data-phase="done"]{color:#176b36}button:focus-visible{outline:3px solid #c9a227;outline-offset:3px}@media(max-width:700px){.box{margin:20px 12px;padding:22px}}
+</style></head>
 <body><main class="box"><strong>TABO <span class="gold">BOOKS</span></strong><h1 id="title"></h1><div id="content"></div><p><a href="/order-help" id="orderHelpLink">مساعدة بخصوص طلبي</a></p></main>
+<script src="/download-progress.js"></script>
 <script>
 const en=localStorage.getItem('taboLanguage')==='en';document.documentElement.lang=en?'en':'ar';document.documentElement.dir=en?'ltr':'rtl';
-const L=en?{title:'Your secured books',checking:'Verifying this device…',invalid:'This page is not authorized on this device.',legacy:'To secure your previous purchase, enter the exact name and phone number used for the order. The old link will then be disabled.',name:'Full name',phone:'Phone number in English digits',activate:'Secure this device',error:'Something went wrong',ready:'This page works only on the device used to activate the purchase. Each book can be downloaded exactly twice.',download:'Download PDF',remaining:n=>`${n} of 2 downloads remaining`,used:'The two downloads have been used.',working:'Preparing your protected copy…'}:{title:'كتبك المؤمّنة',checking:'جارٍ التحقق من هذا الجهاز…',invalid:'هذه الصفحة غير مصرح بها على هذا الجهاز.',legacy:'لتأمين عملية الشراء السابقة، أدخل الاسم ورقم الهاتف المسجلين في الطلب بالضبط. بعدها يُلغى الرابط القديم نهائيًا.',name:'الاسم الكامل',phone:'رقم الهاتف بالأرقام الإنجليزية',activate:'تأمين هذا الجهاز',error:'حدث خطأ',ready:'هذه الصفحة تعمل على جهاز تفعيل الشراء فقط. ويمكن تنزيل كل كتاب مرتين بالضبط.',download:'تحميل PDF',remaining:n=>`متبقي ${n} من محاولتي التحميل`,used:'تم استهلاك محاولتي التحميل.',working:'جارٍ تجهيز نسختك المحمية…'};
+const L=en?{title:'Your secured books',checking:'Verifying this device…',invalid:'This page is not authorized on this device.',legacy:'To secure your previous purchase, enter the exact name and phone number used for the order. The old link will then be disabled.',name:'Full name',phone:'Phone number in English digits',activate:'Secure this device',error:'Something went wrong',ready:'This page works only on the device used to activate the purchase. Each book has two download attempts. An already received file can be saved again when available on this page.',download:'Download PDF',remaining:n=>`${n} of 2 downloads remaining`,used:'The two downloads have been used.',working:'Preparing your protected copy…',transferring:'Downloading your PDF…',received:'File received. Preparing to save…',done:'Your PDF was sent to the browser. Check your downloads to save or open it.',retry:'Try again',saveAgain:'Save PDF again',failed:'The download was interrupted. You can try again.',timeout:'The download took too long. Please try again.',checkFailed:'Could not check the remaining downloads. Try again to refresh the status.'}:{title:'كتبك المؤمّنة',checking:'جارٍ التحقق من هذا الجهاز…',invalid:'هذه الصفحة غير مصرح بها على هذا الجهاز.',legacy:'لتأمين عملية الشراء السابقة، أدخل الاسم ورقم الهاتف المسجلين في الطلب بالضبط. بعدها يُلغى الرابط القديم نهائيًا.',name:'الاسم الكامل',phone:'رقم الهاتف بالأرقام الإنجليزية',activate:'تأمين هذا الجهاز',error:'حدث خطأ',ready:'هذه الصفحة تعمل على جهاز تفعيل الشراء فقط. لكل كتاب محاولتا تنزيل، ويمكن حفظ الملف المستلم مرة أخرى ما دام متاحًا في هذه الصفحة.',download:'تحميل PDF',remaining:n=>`متبقي ${n} من محاولتي التحميل`,used:'تم استهلاك محاولتي التحميل.',working:'جارٍ تجهيز نسختك المحمية…',transferring:'جارٍ تنزيل ملف PDF…',received:'وصل الملف كاملًا، جارٍ إرساله للحفظ…',done:'أُرسل الملف إلى المتصفح. راجع التنزيلات لحفظه أو فتحه.',retry:'إعادة المحاولة',saveAgain:'حفظ الملف مرة أخرى',failed:'تعطل التنزيل. يمكنك إعادة المحاولة.',timeout:'استغرق التنزيل وقتًا طويلًا. يمكنك إعادة المحاولة.',checkFailed:'تعذر التحقق من المحاولات المتبقية. اضغط إعادة المحاولة لتحديث الحالة.'};
 const helpLink=document.getElementById('orderHelpLink');if(helpLink)helpLink.textContent=en?'Help with my order':'مساعدة بخصوص طلبي';document.getElementById('title').textContent=L.title;const content=document.getElementById('content'),params=new URLSearchParams(location.search);let order=params.get('order')||(history.state&&history.state.taboOrder),token=params.get('token');const escapeHTML=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function legacyForm(){content.innerHTML=`<p class="notice">${L.legacy}</p><form id="activate"><label>${L.name}<input name="name" maxlength="100" required autocomplete="name"></label><label>${L.phone}<input name="phone" inputmode="tel" pattern="\\+?[0-9]{8,15}" required autocomplete="tel"></label><button>${L.activate}</button></form><p id="error" class="error"></p>`;document.getElementById('activate').onsubmit=async e=>{e.preventDefault();const f=e.target,button=f.querySelector('button');button.disabled=true;try{const r=await fetch('/api/download-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,name:f.elements.namedItem('name').value,phone:f.elements.namedItem('phone').value})}),d=await r.json();if(!r.ok)throw Error(d.error||L.error);order=d.order_id;token=null;location.replace(d.success_url)}catch(error){document.getElementById('error').textContent=error.message||L.error;button.disabled=false}}}
-async function downloadBook(id,button){button.disabled=true;const old=button.textContent;button.textContent=L.working;try{const r=await fetch('/api/download/'+encodeURIComponent(id),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:order})});if(!r.ok){const d=await r.json();throw Error(d.error||L.error)}const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`TABO-${id}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);await refresh()}catch(error){alert(error.message||L.error);button.disabled=false;button.textContent=old}}
-async function refresh(){if(!order){if(token)return legacyForm();content.textContent=L.invalid;return}content.textContent=L.checking;try{const r=await fetch('/api/downloads?order='+encodeURIComponent(order),{cache:'no-store'}),d=await r.json();if(!r.ok)throw Error(d.error||L.invalid);if(d.metaPurchase||d.googleAdsPurchase||d.snapPurchase||d.ga4Purchase){
+const books=new Map(),transferStates=new Map();let busyId=null,cachedFile=null;
+function renderBooks(){
+    content.innerHTML=`<p class="notice">${L.ready}</p>`+[...books.values()].map(b=>{
+        const state=transferStates.get(b.id),cached=cachedFile&&cachedFile.id===b.id;
+        const label=busyId===b.id?L.working:cached?L.saveAgain:state&&state.needsCheck?L.retry:b.remaining?L.download:L.used;
+        return `<div class="book"><b>${escapeHTML(b.name)}</b><span class="remaining">${b.remaining?L.remaining(b.remaining):L.used}</span><button data-book="${escapeHTML(b.id)}" ${busyId||(!cached&&!b.remaining&&!(state&&state.needsCheck))?'disabled':''}>${label}</button><div class="download-state" id="download-state-${b.id}" hidden><progress id="download-progress-${b.id}" max="100" aria-label="${escapeHTML(L.transferring)}"></progress><p class="download-status" id="download-status-${b.id}" role="status" aria-live="polite"></p></div></div>`;
+    }).join('');
+    document.querySelectorAll('button[data-book]').forEach(button=>button.onclick=()=>downloadBook(button.dataset.book));
+    for(const [id,state] of transferStates)showTransfer(id,state);
+}
+function showTransfer(id,state){
+    const box=document.getElementById('download-state-'+id),bar=document.getElementById('download-progress-'+id),status=document.getElementById('download-status-'+id);
+    if(!box)return;box.hidden=false;box.dataset.phase=state.phase;
+    const mb=n=>(n/1048576).toFixed(1)+' MB';let message='';
+    if(state.phase==='preparing')message=L.working;
+    if(state.phase==='downloading')message=L.transferring+(state.total?' '+Math.min(99,Math.floor(state.loaded/state.total*100))+'% — '+mb(state.loaded)+' / '+mb(state.total):state.loaded?' '+mb(state.loaded):'');
+    if(state.phase==='received')message=L.received;
+    if(state.phase==='done')message=L.done;
+    if(state.phase==='error')message=state.message;
+    if(state.phase==='received'||state.phase==='done'){bar.value=100;bar.hidden=false;}
+    else if(state.phase==='error'){bar.hidden=true;bar.removeAttribute('value');}
+    else{bar.hidden=false;if(state.total)bar.value=Math.min(99,state.loaded/state.total*100);else bar.removeAttribute('value');}
+    status.textContent=message;
+}
+async function readBooks(){
+    const r=await fetch('/api/downloads?order='+encodeURIComponent(order),{cache:'no-store'}),d=await r.json();
+    if(!r.ok)throw Error(d.error||L.invalid);
+    books.clear();for(const b of d.books)books.set(b.id,b);return d;
+}
+async function downloadBook(id){
+    if(busyId||!books.has(id))return;
+    const previous=transferStates.get(id);busyId=id;
+    transferStates.set(id,{phase:'preparing'});renderBooks();
+    try{
+        if(!cachedFile||cachedFile.id!==id){
+            if(previous&&previous.needsCheck){try{await readBooks();}catch(_){throw Error(L.checkFailed);}}
+            const book=books.get(id);if(!book||!book.remaining)throw Error(L.used);
+            const file=await window.TaboDownload.receive(id,order,state=>{transferStates.set(id,state);showTransfer(id,state)});
+            cachedFile={id,blob:file.blob};
+            if(file.remaining!==null)book.remaining=file.remaining;
+            else try{await readBooks();}catch(_){book.remaining=0;}
+        }
+        window.TaboDownload.save(cachedFile.blob,id);
+        transferStates.set(id,{phase:'done'});
+    }catch(error){
+        let message=error.code==='timeout'?L.timeout:(error.code==='http'||error.message===L.used||error.message===L.checkFailed)?error.message||L.failed:L.failed,known=false;
+        try{await readBooks();known=true;}catch(_){message+=' '+L.checkFailed;}
+        transferStates.set(id,{phase:'error',message,needsCheck:!known||!!books.get(id)?.remaining});
+    }finally{busyId=null;renderBooks();}
+}
+async function refresh(){if(!order){if(token)return legacyForm();content.textContent=L.invalid;return}content.textContent=L.checking;try{const d=await readBooks();if(d.metaPurchase||d.googleAdsPurchase||d.snapPurchase||d.ga4Purchase){
     try{history.replaceState({taboOrder:order},'',location.pathname)}catch(_){/* Each tracker also requires a clean receipt URL. */}
     if(d.metaPurchase){try{window.TaboTracking?.purchase(d.metaPurchase)}catch(_){/* Keep book access independent of Meta. */}}
     if(d.ga4Purchase){try{window.TaboAnalytics?.purchase(d.ga4Purchase)}catch(_){/* Analytics never blocks delivery. */}}
     if(d.googleAdsPurchase){try{window.TaboGoogleAds?.purchase(d.googleAdsPurchase)}catch(_){/* Keep book access independent of Google. */}}
     if(d.snapPurchase){try{window.TaboSnapTracking?.purchase(d.snapPurchase)}catch(_){/* Keep book access independent of Snap. */}}
-}content.innerHTML=`<p class="notice">${L.ready}</p>`+d.books.map(b=>`<div class="book"><b>${escapeHTML(b.name)}</b><span class="remaining">${b.remaining?L.remaining(b.remaining):L.used}</span><button data-book="${escapeHTML(b.id)}" ${b.remaining?'':'disabled'}>${b.remaining?L.download:L.used}</button></div>`).join('');document.querySelectorAll('button[data-book]').forEach(button=>button.onclick=()=>downloadBook(button.dataset.book,button))}catch(error){content.innerHTML=`<p class="error">${escapeHTML(error.message||L.invalid)}</p>`}}refresh();
+}renderBooks()}catch(error){content.innerHTML=`<p class="error">${escapeHTML(error.message||L.invalid)}</p>`}}refresh();
 </script></body></html>
 
