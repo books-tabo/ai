@@ -13,7 +13,7 @@ var TaboOfferPricing = (() => {
         remaining.filter(fixed).reduce((total,id) => total + minor(config.bookPolicies[id].price), 0);
     }
     const baseline = remainder(new Set());
-    let totalMinor = baseline, offerIds = [];
+    let totalMinor = baseline, offerIds = [], covered = 0;
     const eligible = (config.offers || []).filter(offer => offer.books.every(id => selected.has(id)));
     for (let mask = 1; mask < (1 << eligible.length); mask++) {
       const used = new Set(), applied = [];
@@ -26,7 +26,9 @@ var TaboOfferPricing = (() => {
       }
       if (overlap) continue;
       cost += remainder(used);
-      if (cost < totalMinor) { totalMinor = cost; offerIds = applied; }
+      if (cost < totalMinor || (cost === totalMinor && offerIds.length && used.size > covered)) {
+        totalMinor = cost; offerIds = applied; covered = used.size;
+      }
     }
     return {totalMinor, offerIds, savingsMinor: baseline - totalMinor};
   }

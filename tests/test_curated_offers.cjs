@@ -18,7 +18,7 @@ for country in ('EG','KW'):
  c=localization.pricing_for_country(catalog.PRICES,country);cases=[]
  for mask in range(1<<len(members)):
   selected=[b for i,b in enumerate(members) if mask&(1<<i)]
-  for extra in ([],['book1'],['book22'],['book1','book22']):
+  for extra in ([],['book1']):
    ids=selected+extra;cases.append({'ids':ids,'total':catalog.total_for_items(ids,c)})
  result.append({'config':c,'cases':cases})
 print(json.dumps(result))
@@ -40,6 +40,17 @@ for(const group of fixture){
  }
 }
 c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
+for (const group of fixture) {
+ c.storeConfig={...group.config,offers:[...group.config.offers].reverse()};c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
+ c.addCuratedOffer('sigma-trilogy');c.addCuratedOffer('sigma-trilogy');assert.equal(c.cart.length,3);
+ assert.equal(vm.runInContext('calculatePricing().final',c),group.config.currency==='EGP'?1000:39.99);
+ assert.deepEqual(Array.from(c.TaboOfferPricing.best(c.cart.map(x=>x.id),c.storeConfig).offerIds),['sigma-trilogy']);
+ for (const removed of ['book20','book21','book22']) {
+  const ids=['book20','book21','book22'].filter(x=>x!==removed);
+  assert(!c.TaboOfferPricing.best(ids,c.storeConfig).offerIds.includes('sigma-trilogy'));
+ }
+}
+c.cart=[];events.length=0;c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;
 assert.equal(c.addCuratedOffer('unknown'),false);assert.equal(events.length,0);
 assert(c.addCuratedOffer('change-starter'));assert.equal(c.cart.length,3);
 assert.equal(vm.runInContext('calculatePricing().final',c),15);
@@ -47,7 +58,7 @@ assert.equal(events.length,1);assert.equal(events[0].data.value,15);
 c.addCuratedOffer('change-starter');assert.equal(c.cart.length,3);assert.equal(events.length,1);
 c.addCuratedOffer('self-growth');assert.equal(c.cart.length,5);assert.equal(events[1].data.value,8);
 assert.equal(vm.runInContext('calculatePricing().final',c),23);
-c.cart.push({id:'book20'});assert.equal(vm.runInContext('calculatePricing().final',c),38.9);
+c.cart.push({id:'book20'});assert.equal(vm.runInContext('calculatePricing().final',c),42.99);
 c.storeConfig=fixture[0].config;c.PRICING_LADDER=c.storeConfig.prices;
 assert.equal(vm.runInContext('calculatePricing().final',c),900);
 c.cart=c.cart.filter(x=>x.id!=='book19');assert.equal(vm.runInContext('calculatePricing().final',c),999);
@@ -59,9 +70,9 @@ c.cart=[];c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;
 c.addCuratedOffer('sigma-couple');assert.equal(c.cart.length,2);assert.equal(vm.runInContext('calculatePricing().final',c),20);
 assert.equal(events.at(-1).data.value,20);
 c.addCuratedOffer('sigma-couple');assert.equal(c.cart.length,2);
-c.cart=c.cart.filter(x=>x.id!=='book20');assert.equal(vm.runInContext('calculatePricing().final',c),15.99);
-c.cart=[{id:'book20'}];assert.equal(vm.runInContext('calculatePricing().final',c),15.9);
-c.addCuratedOffer('sigma-couple');assert.equal(events.at(-1).data.value,4.1);
+c.cart=c.cart.filter(x=>x.id!=='book20');assert.equal(vm.runInContext('calculatePricing().final',c),19.99);
+c.cart=[{id:'book20'}];assert.equal(vm.runInContext('calculatePricing().final',c),19.99);
+c.addCuratedOffer('sigma-couple');assert.equal(events.at(-1).data.value,0.01);
 assert.equal(vm.runInContext('calculatePricing().final',c),20);
 c.addCuratedOffer('change-starter');assert.equal(vm.runInContext('calculatePricing().final',c),35);
 c.storeConfig=fixture[0].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
@@ -87,7 +98,12 @@ assert.match(elements.get('[data-offer-availability]').textContent,/بالدول
 c.TaboOfferUI.render(fixture[1].config,'en');
 assert.equal(buy.hidden,false);assert.equal(buy.disabled,false);
 assert.match(elements.get('[data-offer-price]').textContent,/20\.00/);
-assert.match(elements.get('[data-offer-original]').textContent,/31\.89/);
+assert.match(elements.get('[data-offer-original]').textContent,/39\.98/);
+card.dataset.offerId='sigma-trilogy';
+for(const [config,price,original] of [[fixture[0].config,/1,000[.,]00|1000[.,]00/,/1,500[.,]00|1500[.,]00/],[fixture[1].config,/39[.,]99/,/59[.,]97/]]) {
+ c.TaboOfferUI.render(config,'en');assert.equal(buy.hidden,false);assert.match(elements.get('[data-offer-price]').textContent,price);
+ assert.match(elements.get('[data-offer-original]').textContent,original);
+}
 assert(!events.some(e=>e.name==='Purchase'));
 for(const route of ['/offers',...Object.keys(JSON.parse(fs.readFileSync('content/offers.json'))).map(id=>'/offers/'+id)]){
  const source=rendered('offers.html',route);

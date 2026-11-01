@@ -107,7 +107,7 @@ def book_extra(book_id, language):
     section += '<section class="section"><h2>' + ('كتب مرتبطة بالموضوع' if ar else 'Related reading') + '</h2>' + book_list(related(book_id), language) + '</section>'
     for offer_id, offer in catalog.current_offers().items():
         if offer.get('fixedPriceBundle') and book_id in offer['books']:
-            section += '<section class="section"><h2>' + ('عرض كتابَي السيجما' if ar else 'Sigma pair offer') + '</h2>' + paragraphs(offer['description'][language]) + link('/offers/' + offer_id, 'عرض الباقة والكتابين' if ar else 'View the pack and both books') + '</section>'
+            section += '<section class="section"><h2>' + escape(offer['title'][language]) + '</h2>' + paragraphs(offer['description'][language]) + link('/offers/' + offer_id, 'تفاصيل الباقة والكتب' if ar else 'View pack details and books') + '</section>'
     section += '<nav class="seo-categories" aria-label="' + ('أقسام الكتاب' if ar else 'Book categories') + '">' + ''.join(link('/categories/' + key, cat[language]) for key, cat in categories_for(book_id)) + '</nav>'
     return section
 
@@ -212,7 +212,7 @@ def page_data(path, include_drafts=False):
             description = 'باقات مختارة من كتب تابو نور العربية PDF في التغيير والمال وتطوير الذات، وعرض خاص لكتابَي السيجما معًا بالدولار. تصفح كتب كل باقة وأسعارها.' if ar else 'Curated Arabic PDF book packs by TABO NOOR on change, money and personal growth, plus a dedicated USD offer for the two Sigma books.'
             trail += [(None,title)]
             body = paragraphs(description) + offers_section(language)
-            body += paragraphs('يُطبق سعر الباقة عند اكتمال كتبها في السلة وفي العملة المحددة للعرض، ويُختار أقل إجمالي مستحق عند جمع العروض. حذف كتاب قد يغيّر العرض المستحق. كتابا السيجما خارج خصومات العدد، ولهما باقة مستقلة بالدولار فقط.' if ar else 'A pack price applies when all its books are in the cart and the offer supports the current currency. The lowest eligible total is used when packs are combined. Removing a book may change eligibility. The Sigma books do not count toward quantity discounts and have a dedicated USD-only pack.')
+            body += paragraphs('يُطبق سعر الباقة عند اكتمال كتبها في السلة وفي العملة المحددة للعرض، ويُختار أقل إجمالي مستحق عند جمع العروض. حذف كتاب قد يغيّر العرض المستحق. عرض السيجما ومحكمة الحب والجنس يشمل الكتب الثلاثة بسعر 1000 جنيه داخل مصر أو 39.99 دولار.' if ar else 'A pack price applies when all its books are in the cart and the offer supports the current currency. The lowest eligible total is used when packs are combined. Removing a book may change eligibility. The Sigma and Court of Love and Sex pack includes all three books for EGP 1000 in Egypt or USD 39.99.')
         elif path.startswith('/offers/') and path.rsplit('/',1)[-1] in catalog.current_offers():
             key = path.rsplit('/',1)[-1]
             offer = catalog.current_offers()[key]

@@ -92,6 +92,17 @@ async function pendingCase(status,ready,activationFails=false){
   nodes.checkoutEmail.value='';await nodes.checkoutBtn.events.click();assert(!calls.some(call=>call.url==='/api/orders'));
   nodes.languageToggle.events.click();assert.equal(c.document.documentElement.lang,'en');
  }
+ {
+  const {c,nodes,calls}=await boot(JSON.stringify(['book20','book21','book22'].map(id=>({id}))));
+  assert.match(nodes.cartFinal.textContent,/39[.,]99/);
+  assert.match(nodes.cartOfferSummary.textContent,/محكمة/);
+  const quoted=JSON.parse(calls.find(x=>x.url==='/api/checkout-quote').options.body);
+  assert.deepEqual(quoted.items.map(x=>x.id),['book20','book21','book22']);
+  await c.loadStoreConfig('EG');assert.match(nodes.cartFinal.textContent,/1,000|1000/);
+  assert.match(nodes.cartOfferSummary.textContent,/محكمة/);
+  assert.equal(nodes.paypalCheckoutBtn.hidden,true);
+  assert(!calls.some(x=>x.url==='/api/orders'));
+ }
  for(const saved of ['not-json','null','{}','[]']){const {nodes,calls}=await boot(saved);assert.equal(nodes.emptyCart.hidden,false);assert.equal(nodes.checkoutContent.hidden,true);assert(!calls.some(call=>call.url==='/api/orders'));}
  {
   const {c,nodes,values,handlers,calls}=await boot();vm.runInContext('checkoutInFlight=true',c);nodes.checkoutName.disabled=true;

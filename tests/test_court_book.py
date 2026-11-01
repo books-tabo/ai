@@ -12,22 +12,23 @@ import test_download_http
 
 
 class CourtBookTests(HTTPCase):
-    def test_new_book_keeps_its_full_price_beside_every_existing_pack(self):
-        for country, price in [('EG', Decimal('500')), ('KW', Decimal('15.99'))]:
+    def test_court_keeps_full_price_except_explicit_trio(self):
+        for country, price in [('EG', Decimal('500')), ('KW', Decimal('19.99'))]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             cases = [[], ['book20'], ['book21'], ['book20', 'book21']]
-            cases += [offer['books'] for offer in catalog.OFFERS.values()]
+            cases += [offer['books'] for offer in catalog.OFFERS.values() if 'book22' not in offer['books']]
             cases += [list(catalog.BOOKS)[:n] for n in range(1, 22)]
             for ids in cases:
-                expected = Decimal(str(catalog.total_for_items(ids, config))) + price
+                expected = (Decimal(str(catalog.total_for_items([b for b in ids if b not in ('book20','book21')], config))) + Decimal('1000' if country == 'EG' else '39.99')
+                            if {'book20','book21'} <= set(ids) else Decimal(str(catalog.total_for_items(ids, config))) + price)
                 self.assertEqual(Decimal(str(catalog.total_for_items(ids+['book22'], config))), expected)
             self.assertEqual(config['bookPolicies']['book22'], {
                 'price': float(price), 'bundleEligible': False, 'previewEnabled': False})
         self.assertEqual(seo.BOOKS['book22']['pageCount'], 419)
         self.assertEqual(seo.BOOKS['book22']['size'], 12185488)
         self.assertEqual(seo.categories_for('book22')[0][0], 'marriage-family')
-        self.assertEqual(catalog.FIXED_PRICES['book20'], {'EGP': 500, 'USD': 15.90})
-        self.assertEqual(catalog.FIXED_PRICES['book21'], {'EGP': 500, 'USD': 15.99})
+        self.assertEqual(catalog.FIXED_PRICES['book20'], {'EGP': 500, 'USD': 19.99})
+        self.assertEqual(catalog.FIXED_PRICES['book21'], {'EGP': 500, 'USD': 19.99})
         with self.assertRaises(ValueError):
             store_catalog.validate({'independentPrices': {'book22': {'EGP': 1, 'USD': 1}}})
 

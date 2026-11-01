@@ -36,7 +36,7 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
   assert.match(node('price').textContent,/تحميل السعر/);
   await flush();await flush();
   assert.equal(node('addBtn').disabled,false);
-  assert.match(node('price').textContent,/15\.90/);
+  assert.match(node('price').textContent,/19\.99/);
   assert.equal(node('pages').textContent,245);
   assert.equal(node('previewLink').hidden,true);
   assert.equal(events.filter(e=>e.name==='ViewContent').length,1);

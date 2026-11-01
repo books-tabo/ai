@@ -31,6 +31,10 @@ class CatalogEditTests(unittest.TestCase):
    with self.assertRaises((ValueError,TypeError)):editor.validate(value)
   offers=copy.deepcopy(catalog.OFFERS);offers['sigma-couple']['prices']['USD']=1
   with self.assertRaises(ValueError):editor.validate({'offers':offers})
+  for field,value in [('prices',{'EGP':1,'USD':1}),('books',['book20','book21']),('active',False)]:
+   offers=copy.deepcopy(catalog.OFFERS);offers['sigma-trilogy'][field]=value
+   with self.assertRaises(ValueError):editor.validate({'offers':offers})
+  self.assertEqual(editor.validate({'offers':copy.deepcopy(catalog.OFFERS)})['offers'],catalog.OFFERS)
   offers=copy.deepcopy(catalog.OFFERS);offers['change-starter']['books']=['book1','book20']
   with self.assertRaises(ValueError):editor.validate({'offers':offers})
  def test_one_snapshot_changes_public_metadata_order_and_both_price_engines(self):

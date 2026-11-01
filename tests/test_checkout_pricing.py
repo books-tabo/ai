@@ -168,11 +168,11 @@ class QuoteHTTPTests(HTTPCase):
             q=self.quote()
             subtotal=Decimal(str(app.localization.USD_PRICES[str(count)])) if count else Decimal(0)
             if count==19:subtotal=Decimal('102.99')
-            self.assertEqual(Decimal(q['displayTotal']),subtotal+Decimal('15.90'))
+            self.assertEqual(Decimal(q['displayTotal']),subtotal+Decimal('19.99'))
         self.insert.assert_not_called()
 
     def test_sigma_egypt_orders_ignore_client_prices_and_bundle_position(self):
-        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1000),(list(app.BOOKS),3349)]
+        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1000),(list(app.BOOKS),2849)]
         with patch.object(app.Handler,'pricing_country',return_value='EG'), patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')):
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
@@ -183,7 +183,7 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(self.db.orders[data['order']['id']]['total'],total)
 
     def test_sigma_usd_orders_bind_fixed_price_to_actual_frozen_egp_charge(self):
-        cases=[(['book20'],Decimal('15.90')),(['book20','book1'],Decimal('25.89')),(['book1','book20','book2'],Decimal('33.89')),(['book21'],Decimal('15.99')),(['book22'],Decimal('15.99')),(['book22','book1','book2'],Decimal('33.98')),(['book20','book21'],Decimal('20')),(list(app.BOOKS),Decimal('138.98'))]
+        cases=[(['book20'],Decimal('19.99')),(['book20','book1'],Decimal('29.98')),(['book1','book20','book2'],Decimal('37.98')),(['book21'],Decimal('19.99')),(['book22'],Decimal('19.99')),(['book22','book1','book2'],Decimal('37.98')),(['book20','book21'],Decimal('20')),(list(app.BOOKS),Decimal('142.98'))]
         with patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')) as gateway:
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
@@ -216,11 +216,19 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(gateway.call_args.args[0]['total'],order['total'])
 
     def test_curated_offer_quote_cannot_survive_removing_a_required_book(self):
-        for offer_id in ('self-growth','sigma-couple'):
+        for offer_id in ('self-growth','sigma-couple','sigma-trilogy'):
             self.items=[{'id':bid} for bid in app.catalog.OFFERS[offer_id]['books']]
             q=self.quote()
             with patch.object(app,'payment_checkout') as gateway:
                 status,body,_=self.post('/api/orders',{'items':self.items[:-1],'country':'KW','customer':self.customer,'quoteToken':q['token']})
+            self.assertEqual(status,409);self.assertEqual(body['code'],'QUOTE_REFRESH_REQUIRED');gateway.assert_not_called()
+
+    def test_old_individual_usd_quote_cannot_authorize_new_price(self):
+        for bid,old in [('book20',15.90),('book21',15.99),('book22',15.99)]:
+            self.items=[{'id':bid}]
+            old_quote=fx.issue([bid],'KW',old,app.payment_mode(),KEY)
+            with patch.object(app,'payment_checkout') as gateway:
+                status,body,_=self.post('/api/orders',{'items':self.items,'country':'KW','customer':self.customer,'quoteToken':old_quote['token']})
             self.assertEqual(status,409);self.assertEqual(body['code'],'QUOTE_REFRESH_REQUIRED');gateway.assert_not_called()
 
     def test_adapter_preserves_quote_and_legacy_rows(self):

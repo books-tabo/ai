@@ -34,5 +34,25 @@
       "USD": 20
     },
     "fixedPriceBundle": true
+  },
+  "sigma-trilogy": {
+    "title": {
+      "ar": "باقة السيجما ومحكمة الحب والجنس",
+      "en": "Sigma and The Court of Love and Sex"
+    },
+    "description": {
+      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية، ومحكمة الحب والجنس — الكتب الثلاثة معًا بسعر 1000 جنيه داخل مصر أو 39.99 دولار. أضف الكتب الثلاثة إلى السلة لتطبيق العرض تلقائيًا.",
+      "en": "Sigma: The Royal Male, Sigma: Captivating Femininity, and The Court of Love and Sex — all three for EGP 1000 in Egypt or USD 39.99. Add all three books to your cart to apply the offer automatically."
+    },
+    "books": [
+      "book20",
+      "book21",
+      "book22"
+    ],
+    "prices": {
+      "EGP": 1000,
+      "USD": 39.99
+    },
+    "fixedPriceBundle": true
   }
 }

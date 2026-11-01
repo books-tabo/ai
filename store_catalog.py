@@ -170,7 +170,7 @@ def validate(value):
             ids = offer.get('books')
             if not isinstance(ids,list) or not 2<=len(ids)<=5 or len(set(ids))!=len(ids) or set(ids)-set(catalog.BOOKS):
                 raise ValueError('الباقة يجب أن تحتوي من كتابين إلى خمسة كتب مختلفة.')
-            if oid=='sigma-couple':
+            if base.get('fixedPriceBundle'):
                 if offer!=base:
                     raise ValueError('عرض السيجما المعتمد محفوظ بسعره وكتبه وشروطه.')
             elif set(ids)&set(catalog.FIXED_PRICES) or offer.get('fixedPriceBundle'):
