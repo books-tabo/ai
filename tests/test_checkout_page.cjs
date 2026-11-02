@@ -23,7 +23,11 @@ async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}]),reminder
    const egp=new URL(url,c.location.origin).searchParams.get('country')==='EG';
    return {ok:true,json:async()=>({...fixtures[egp?'egp':'usd'],checkoutEnabled:true,checkoutSupported:true,paymentProvider:'kashier',paypalAvailable:!egp,recoveryEmailEnabled:reminders})};
   }
-  if(url==='/api/checkout-quote')return {ok:true,json:async()=>({ok:true,quote:{displayCurrency:'USD',displayTotal:'20.00',chargeCurrency:'EGP',chargeTotal:'1122.32',expiresAt:Date.now()/1000+300,token:'synthetic-quote'}})};
+  if(url==='/api/checkout-quote'){
+   const quartet=JSON.parse(options.body).items.some(x=>x.id==='book23');
+   return {ok:true,json:async()=>({ok:true,quote:{displayCurrency:'USD',displayTotal:quartet?'39.00':'20.00',chargeCurrency:'EGP',chargeTotal:quartet?'2188.52':'1122.32',expiresAt:Date.now()/1000+300,token:'synthetic-quote'}})};
+  }
+
   if(url==='/api/orders'){
    const paypal=JSON.parse(options.body).paymentProvider==='paypal';
    return {ok:true,json:async()=>({ok:true,order:{id:'TABO-0000000000000001',items:[{id:'book20'},{id:'book21'}],total:paypal?20:1122.32,currency:paypal?'USD':'EGP'},payment_url:paypal?'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567':'https://payments.kashier.io/session/synthetic',tracking_url:'/pending.html?key='+'a'.repeat(64)})};
@@ -93,13 +97,13 @@ async function pendingCase(status,ready,activationFails=false){
   nodes.languageToggle.events.click();assert.equal(c.document.documentElement.lang,'en');
  }
  {
-  const {c,nodes,calls}=await boot(JSON.stringify(['book20','book21','book22'].map(id=>({id}))));
-  assert.match(nodes.cartFinal.textContent,/39[.,]99/);
-  assert.match(nodes.cartOfferSummary.textContent,/محكمة/);
+  const {c,nodes,calls}=await boot(JSON.stringify(['book20','book21','book22','book23'].map(id=>({id}))));
+  assert.match(nodes.cartFinal.textContent,/39[.,]00/);
+  assert.match(nodes.cartOfferSummary.textContent,/السيجما/);
   const quoted=JSON.parse(calls.find(x=>x.url==='/api/checkout-quote').options.body);
-  assert.deepEqual(quoted.items.map(x=>x.id),['book20','book21','book22']);
-  await c.loadStoreConfig('EG');assert.match(nodes.cartFinal.textContent,/1,000|1000/);
-  assert.match(nodes.cartOfferSummary.textContent,/محكمة/);
+  assert.deepEqual(quoted.items.map(x=>x.id),['book20','book21','book22','book23']);
+  await c.loadStoreConfig('EG');assert.match(nodes.cartFinal.textContent,/1,250|1250/);
+  assert.match(nodes.cartOfferSummary.textContent,/السيجما/);
   assert.equal(nodes.paypalCheckoutBtn.hidden,true);
   assert(!calls.some(x=>x.url==='/api/orders'));
  }

@@ -69,6 +69,14 @@ for (const currency of ['EGP', 'USD']) {
     assert.equal(court.has('downloads'), false);
     assert.match(court.get('price').textContent, currency === 'EGP' ? /500/ : /19\.99/);
     assert.equal(court.get('price').textContent, court.get('mobileBuyPrice').textContent);
+    const hormones = product('book23', currency);
+    assert.equal(hormones.get('previewLink').hidden, true);
+    assert.equal(hormones.get('previewLink').href, undefined);
+    assert.equal(hormones.get('previousPrice').hidden, true);
+    assert.equal(hormones.has('fixedPriceNote'), false);
+    assert.equal(hormones.has('downloads'), false);
+    assert.match(hormones.get('price').textContent, currency === 'EGP' ? /500/ : /19\.99/);
+    assert.equal(hormones.get('price').textContent, hormones.get('mobileBuyPrice').textContent);
     const ordinary = product('book19', currency);
     assert.equal(ordinary.get('previewLink').hidden, false);
     assert.equal(ordinary.get('previewLink').href, '/previews/book19');

@@ -37,21 +37,22 @@
   },
   "sigma-trilogy": {
     "title": {
-      "ar": "باقة السيجما ومحكمة الحب والجنس",
-      "en": "Sigma and The Court of Love and Sex"
+      "ar": "باقة السيجما والعلاقات الزوجية",
+      "en": "Sigma and Marriage Relationships"
     },
     "description": {
-      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية، ومحكمة الحب والجنس. أضف الكتب الثلاثة إلى السلة لتطبيق العرض تلقائيًا.",
-      "en": "Sigma: The Royal Male, Sigma: Captivating Femininity, and The Court of Love and Sex. Add all three books to your cart to apply the offer automatically."
+      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية، ومحكمة الحب والجنس، وهرمونات أنثى. أضف الكتب الأربعة إلى السلة لتطبيق العرض تلقائيًا.",
+      "en": "Sigma: The Royal Male, Sigma: Captivating Femininity, The Court of Love and Sex, and Female Hormones. Add all four books to your cart to apply the offer automatically."
     },
     "books": [
       "book20",
       "book21",
-      "book22"
+      "book22",
+      "book23"
     ],
     "prices": {
-      "EGP": 1000,
-      "USD": 39.99
+      "EGP": 1250,
+      "USD": 39
     },
     "fixedPriceBundle": true
   }

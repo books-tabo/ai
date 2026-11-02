@@ -1428,7 +1428,7 @@
         ],
         [
           "Is there a preview or a discount?",
-          "No preview is available. Add this book and both Sigma books to your cart to receive the three-book offer."
+          "No preview is available. Add this book, both Sigma books and Female Hormones to your cart to receive the four-book offer."
         ],
         [
           "How do I receive the PDF?",
@@ -1453,6 +1453,114 @@
       "إحياء الرغبة المفقودة",
       "الجنس عبر مواسم الزواج",
       "الحكم الأخير"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1080
+  },
+  "book23": {
+    "name": "هرمونات أنثى",
+    "enName": "Female Hormones",
+    "image": "/covers/book23.webp",
+    "size": 10481983,
+    "fixedPrices": {
+      "EGP": 500,
+      "USD": 19.99
+    },
+    "bundleEligible": false,
+    "previewEnabled": false,
+    "short": "ما يحدث في جسدها… وما لا يفهمه الآخرون: قراءة في الهرمونات والمشاعر والرغبة والهوية والعلاقات، دون اختزال المرأة في كيمياء جسدها.",
+    "enShort": "Explore hormones, emotions, desire, identity and relationships without reducing women to their biology.",
+    "about": "«هرمونات أنثى — ما يحدث في جسدها… وما لا يفهمه الآخرون» للمؤلف TABO NOOR رحلة في التفاعل بين الجسد والعقل والتجربة الشخصية والمجتمع. يناقش كيف تُفهم التغيرات الهرمونية والنفسية عبر مراحل العمر، ولماذا لا يكفي تفسير واحد لفهم مشاعر امرأة أو اختياراتها.\n\nعبر أربعة أبواب، ينتقل من الهرمونات والبلوغ والدورة الشهرية والحمل والأمومة وما بعد الخصوبة، إلى الدماغ والغضب والذاكرة العاطفية، ثم الحب والرغبة والاحتياج العاطفي وصورة المرأة اجتماعيًا، وصولًا إلى حدود التفسير البيولوجي والمسؤولية والحوار بين الزوجين. يقدم تثقيفًا عامًا ولا يحل محل التشخيص أو العلاج أو الاستشارة المتخصصة.",
+    "enAbout": "Female Hormones by TABO NOOR explores the interaction between the body, mind, personal experience and society. It considers hormonal and emotional changes through different life stages and why no single explanation can account for a woman’s feelings or choices.\n\nFour parts move from hormones, puberty, menstruation, pregnancy, motherhood and life after fertility to the brain, anger and emotional memory, then love, desire, emotional needs and social expectations. The closing chapters examine the limits of biological explanations, responsibility and dialogue between spouses. This is general education, not a substitute for professional diagnosis, treatment or advice.",
+    "adds": "يساعد القارئة والقارئ على طرح أسئلة أدق عن التغيرات الجسدية والمشاعر، ومراجعة الأحكام الجاهزة، وفهم الاختلافات الفردية، وتطوير حوار أكثر احترامًا داخل العلاقة الزوجية.",
+    "enAdds": "Helps readers ask better questions about physical changes and emotions, question stereotypes, recognize individual differences and develop more respectful dialogue within marriage.",
+    "idea": "فهم أثر الجسد دون اختزال المرأة فيه، واحترام اختلاف تجربتها وصوتها واختياراتها.",
+    "enIdea": "Understand the influence of the body while respecting each woman’s individual experience, voice and choices.",
+    "audience": {
+      "ar": "للقارئات والقراء البالغين، وللزوجين والمقبلين على الزواج ممن يهتمون بفهم العلاقة بين الهرمونات والمشاعر والتواصل دون أحكام مسبقة.",
+      "en": "For adult readers, couples and adults preparing for marriage who want to explore hormones, emotions and communication without stereotypes."
+    },
+    "primaryCategory": "marriage-family",
+    "topics": {
+      "ar": [
+        "الهرمونات وتحولات الجسد عبر العمر",
+        "المشاعر والغضب والذاكرة العاطفية",
+        "الحب والرغبة والاحتياج العاطفي",
+        "الأمومة والصورة الاجتماعية للمرأة",
+        "الفهم والحوار والمسؤولية داخل العلاقة"
+      ],
+      "en": [
+        "Hormones and physical changes across life stages",
+        "Emotions, anger and emotional memory",
+        "Love, desire and emotional needs",
+        "Motherhood and social expectations",
+        "Understanding, dialogue and responsibility in relationships"
+      ]
+    },
+    "related": [
+      "book21",
+      "book22",
+      "book20"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "ما موضوع كتاب هرمونات أنثى؟",
+          "يناقش التفاعل بين الهرمونات والجسد والمشاعر والهوية والعلاقات، مع الاهتمام بالاختلافات الفردية وحدود التفسير البيولوجي."
+        ],
+        [
+          "هل يقدم تشخيصًا أو علاجًا؟",
+          "لا. محتواه تثقيفي عام، ولا يُستخدم لتشخيص حالة أو تغيير علاج دون استشارة مختص."
+        ],
+        [
+          "هل تتوفر معاينة للكتاب؟",
+          "لا تتوفر معاينة لهذا الكتاب."
+        ],
+        [
+          "كيف أحصل على الكتاب بعد الشراء؟",
+          "بعد تأكيد الدفع تتاح نسخة PDF المختومة عبر مسار التحميل المحمي، وتُرسل بالبريد وفق إعدادات المتجر وحدود التحميل المعتمدة."
+        ]
+      ],
+      "en": [
+        [
+          "What does Female Hormones cover?",
+          "It explores hormones, the body, emotions, identity and relationships, including individual differences and the limits of biological explanations."
+        ],
+        [
+          "Does it provide diagnosis or treatment?",
+          "No. It is general education and should not be used to diagnose a condition or change treatment without professional advice."
+        ],
+        [
+          "Is a preview available?",
+          "No preview is available for this book."
+        ],
+        [
+          "How do I receive the book?",
+          "After payment confirmation, the stamped PDF is available through the protected download process and emailed according to the store’s delivery settings and download policy."
+        ]
+      ]
+    },
+    "pageCount": 436,
+    "chapters": [
+      "الهرمونات: الرسائل الخفية داخل جسد الأنثى",
+      "البلوغ: عندما تستيقظ الأنثى داخل جسد جديد",
+      "الدورة الشهرية بين الحقيقة والأسطورة",
+      "الحمل والولادة والرضاعة: التحول الكبير",
+      "حين يتغير إيقاع الجسد: أنوثة ما بعد الخصوبة",
+      "الدماغ الأنثوي: لماذا تختلف الاستجابة للهرمونات؟",
+      "حين يرتفع الصوت: سيكولوجيا الغضب والعصبية",
+      "الدموع والصمت والانسحاب: اللغة غير المفهومة للمشاعر",
+      "الذاكرة العاطفية: ما الذي يجعل موقفًا صغيرًا مؤلمًا؟",
+      "حين تتحول المعاناة إلى اضطراب: الحدود بين المزاج والمرض",
+      "كيمياء الحب بين الهرمونات والاختيار",
+      "اقتربي مني… واتركيني وحدي: تناقض الاحتياج العاطفي",
+      "الأمومة ليست دائمًا وردية: المرأة خلف صورة الأم المثالية",
+      "إنها هرموناتها! عندما يستخدم المجتمع الجسد ضد المرأة",
+      "الهرمونات المنسية: ما وراء الإستروجين والبروجسترون",
+      "عندما يختل التوازن: أمراض وأدوية تغيّر التجربة الأنثوية",
+      "هل الهرمونات عذر؟ الحرية والمسؤولية في السلوك الإنساني",
+      "دليل الفهم: كيف تتعامل المرأة مع نفسها وكيف يفهمها الرجل؟",
+      "هرمونات أنثى: المرأة التي لا تختصرها الكيمياء"
     ],
     "imageWidth": 720,
     "imageHeight": 1080
