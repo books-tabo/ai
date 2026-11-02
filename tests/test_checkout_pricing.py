@@ -172,7 +172,7 @@ class QuoteHTTPTests(HTTPCase):
         self.insert.assert_not_called()
 
     def test_sigma_egypt_orders_ignore_client_prices_and_bundle_position(self):
-        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1000),(list(app.BOOKS),2849)]
+        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1000),(['book23'],500),(['book20','book21','book22'],1500),(['book20','book21','book22','book23'],1250),(list(app.BOOKS),3099)]
         with patch.object(app.Handler,'pricing_country',return_value='EG'), patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')):
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
@@ -183,7 +183,7 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(self.db.orders[data['order']['id']]['total'],total)
 
     def test_sigma_usd_orders_bind_fixed_price_to_actual_frozen_egp_charge(self):
-        cases=[(['book20'],Decimal('19.99')),(['book20','book1'],Decimal('29.98')),(['book1','book20','book2'],Decimal('37.98')),(['book21'],Decimal('19.99')),(['book22'],Decimal('19.99')),(['book22','book1','book2'],Decimal('37.98')),(['book20','book21'],Decimal('20')),(list(app.BOOKS),Decimal('142.98'))]
+        cases=[(['book20'],Decimal('19.99')),(['book20','book1'],Decimal('29.98')),(['book1','book20','book2'],Decimal('37.98')),(['book21'],Decimal('19.99')),(['book22'],Decimal('19.99')),(['book22','book1','book2'],Decimal('37.98')),(['book20','book21'],Decimal('20')),(['book23'],Decimal('19.99')),(['book20','book21','book22'],Decimal('39.99')),(['book20','book21','book22','book23'],Decimal('39')),(list(app.BOOKS),Decimal('141.99'))]
         with patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')) as gateway:
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()

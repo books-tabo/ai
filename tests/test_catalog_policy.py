@@ -22,12 +22,13 @@ class CatalogPolicyTests(unittest.TestCase):
                 subtotal = Decimal(str(config['prices'][str(count)])) if count else Decimal(0)
                 if country=='EG' and count>=17: subtotal=Decimal({17:1749,18:1849,19:1849}[count])
                 if country=='KW' and count==19: subtotal=Decimal('102.99')
-                for mixed in [ids + ['book20'], ['book20'] + list(reversed(ids))]:
-                    self.assertEqual(Decimal(str(catalog.total_for_items(mixed, config))), subtotal + fixed)
+                for bid in catalog.FIXED_PRICES:
+                    for mixed in [ids + [bid], [bid] + list(reversed(ids))]:
+                        self.assertEqual(Decimal(str(catalog.total_for_items(mixed, config))), subtotal + fixed)
                 self.assertEqual(Decimal(str(catalog.total_for_items(ids, config))), subtotal)
 
     def test_known_mixed_totals_and_no_bundle_slot_for_sigma(self):
-        for country, expected in [('EG', [500, 699, 799, 2849]), ('KW', [19.99, 29.98, 37.98, 142.98])]:
+        for country, expected in [('EG', [500, 699, 799, 3099]), ('KW', [19.99, 29.98, 37.98, 141.99])]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             selections = [['book20'], ['book20', 'book1'], ['book1', 'book20', 'book2'], list(catalog.BOOKS)]
             self.assertEqual([catalog.total_for_items(ids, config) for ids in selections], expected)
@@ -41,7 +42,8 @@ class CatalogPolicyTests(unittest.TestCase):
     def test_public_policy_keeps_all_ordinary_books_unchanged(self):
         for country, fixed in [('EG', 500), ('KW', 19.99)]:
             config = localization.pricing_for_country(catalog.PRICES, country)
-            self.assertEqual(config['bookPolicies']['book20'], {'price': fixed, 'bundleEligible': False, 'previewEnabled': False})
+            for bid in catalog.FIXED_PRICES:
+                self.assertEqual(config['bookPolicies'][bid], {'price': fixed, 'bundleEligible': False, 'previewEnabled': False})
             self.assertEqual(config['bookPolicies']['book19'], {'price': config['prices']['1'], 'bundleEligible': True, 'previewEnabled': True})
             self.assertNotIn('20', config['prices'])
 
@@ -49,7 +51,7 @@ class CatalogPolicyTests(unittest.TestCase):
 class NoSigmaPreviewHTTPTests(HTTPCase):
     def test_all_sigma_preview_routes_deny_access_before_reading_the_original(self):
         with patch.object(app.store, 'original') as original:
-            for book_id in ('book20', 'book21', 'book22'):
+            for book_id in ('book20', 'book21', 'book22', 'book23'):
                 token = app.book_previews.issue_session(book_id, 'SyntheticBrowser/1')
                 headers = {'User-Agent': 'SyntheticBrowser/1', 'X-Tabo-Preview': '1',
                            'Sec-Fetch-Site': 'same-origin', 'Sec-Fetch-Dest': 'empty',

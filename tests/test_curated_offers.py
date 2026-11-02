@@ -29,9 +29,9 @@ class CuratedPricingTests(unittest.TestCase):
         for bid,price in [('book20',19.99),('book21',19.99)]:
             self.assertEqual(usd['bookPolicies'][bid],{'price':price,'bundleEligible':False,'previewEnabled':False})
 
-    def test_trio_is_automatic_and_named_in_either_offer_order(self):
-        ids=['book20','book21','book22']
-        for country,total,saving in [('EG',1000,'500'),('KW',39.99,'19.98')]:
+    def test_four_book_pack_is_automatic_and_named_in_either_offer_order(self):
+        ids=['book20','book21','book22','book23']
+        for country,total,saving in [('EG',1250,'750'),('KW',39,'40.96')]:
             config=localization.pricing_for_country(catalog.PRICES,country)
             for offers in [catalog.OFFERS,dict(reversed(list(catalog.OFFERS.items())))]:
                 with patch.object(catalog,'current_offers',return_value=offers):
@@ -39,8 +39,15 @@ class CuratedPricingTests(unittest.TestCase):
                     self.assertEqual(result,{'total':Decimal(str(total)),'offerIds':['sigma-trilogy'],'offerSavings':Decimal(saving)})
                     for removed in ids:
                         self.assertNotIn('sigma-trilogy',catalog.pricing_breakdown([b for b in ids if b!=removed],config)['offerIds'])
-            self.assertEqual(catalog.total_for_items(ids+['book1'],config),1199 if country=='EG' else 49.98)
-            self.assertEqual(catalog.total_for_items(ids+catalog.OFFERS['change-starter']['books'],config),1300 if country=='EG' else 54.99)
+            self.assertEqual(catalog.total_for_items(ids+['book1'],config),1449 if country=='EG' else 48.99)
+            self.assertEqual(catalog.total_for_items(ids+catalog.OFFERS['change-starter']['books'],config),1550 if country=='EG' else 54)
+
+    def test_previous_three_book_cart_has_no_four_book_discount(self):
+        ids=['book20','book21','book22']
+        for country,total in [('EG',1500),('KW',39.99)]:
+            result=catalog.pricing_breakdown(ids,localization.pricing_for_country(catalog.PRICES,country))
+            self.assertEqual(result['total'],Decimal(str(total)))
+            self.assertNotIn('sigma-trilogy',result['offerIds'])
 
     def test_advertised_packs_and_related_book_identity(self):
         expected={'change-starter':(['book18','book14','book6'],300,15),
@@ -65,7 +72,7 @@ class CuratedPricingTests(unittest.TestCase):
                (['book1','book2','book3'],399,24.99),
                (starter+['book20'],800,34.99),(money+['book20'],850,39.99),
                (growth+['book20'],900,42.99),
-               (list(catalog.BOOKS),2849,142.98)]
+               (list(catalog.BOOKS),3099,141.99)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('KW',usd)]:
                 with self.subTest(country=country,ids=ids):
@@ -97,7 +104,7 @@ class OfferPageTests(HTTPCase):
             if not offer.get('fixedPriceBundle'):
                 self.assertNotIn('href="/books/book20"',source)
         self.assertEqual(self.get('/offers/unknown')[0],404)
-        self.assertEqual(len(seo.public_paths()),43)
+        self.assertEqual(len(seo.public_paths()),44)
         self.assertIn('/offers',seo.public_paths())
         home=self.get('/')[2]
         self.assertIn('data-add-offer="change-starter"',home)

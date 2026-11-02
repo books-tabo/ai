@@ -22,7 +22,7 @@ for country in ('EG','KW'):
    ids=selected+extra;cases.append({'ids':ids,'total':catalog.total_for_items(ids,c)})
  result.append({'config':c,'cases':cases})
 print(json.dumps(result))
-`],{encoding:'utf8',maxBuffer:4*1024*1024}));
+`],{encoding:'utf8',maxBuffer:8*1024*1024}));
 const events=[],saved=[],opened=[],histories=[];
 const c=vm.createContext({storeConfig:{},PRICING_LADDER:{},currentLanguage:'ar',cart:[],
   window:{TaboTracking:{track:(name,data)=>events.push({name,data})}},URLSearchParams,
@@ -42,11 +42,11 @@ for(const group of fixture){
 c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
 for (const group of fixture) {
  c.storeConfig={...group.config,offers:[...group.config.offers].reverse()};c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
- c.addCuratedOffer('sigma-trilogy');c.addCuratedOffer('sigma-trilogy');assert.equal(c.cart.length,3);
- assert.equal(vm.runInContext('calculatePricing().final',c),group.config.currency==='EGP'?1000:39.99);
+ c.addCuratedOffer('sigma-trilogy');c.addCuratedOffer('sigma-trilogy');assert.equal(c.cart.length,4);
+ assert.equal(vm.runInContext('calculatePricing().final',c),group.config.currency==='EGP'?1250:39);
  assert.deepEqual(Array.from(c.TaboOfferPricing.best(c.cart.map(x=>x.id),c.storeConfig).offerIds),['sigma-trilogy']);
- for (const removed of ['book20','book21','book22']) {
-  const ids=['book20','book21','book22'].filter(x=>x!==removed);
+ for (const removed of ['book20','book21','book22','book23']) {
+  const ids=['book20','book21','book22','book23'].filter(x=>x!==removed);
   assert(!c.TaboOfferPricing.best(ids,c.storeConfig).offerIds.includes('sigma-trilogy'));
  }
 }
@@ -100,7 +100,7 @@ assert.equal(buy.hidden,false);assert.equal(buy.disabled,false);
 assert.match(elements.get('[data-offer-price]').textContent,/20\.00/);
 assert.match(elements.get('[data-offer-original]').textContent,/39\.98/);
 card.dataset.offerId='sigma-trilogy';
-for(const [config,price,original] of [[fixture[0].config,/1,000[.,]00|1000[.,]00/,/1,500[.,]00|1500[.,]00/],[fixture[1].config,/39[.,]99/,/59[.,]97/]]) {
+for(const [config,price,original] of [[fixture[0].config,/1,250[.,]00|1250[.,]00/,/2,000[.,]00|2000[.,]00/],[fixture[1].config,/39[.,]00/,/79[.,]96/]]) {
  c.TaboOfferUI.render(config,'en');assert.equal(buy.hidden,false);assert.match(elements.get('[data-offer-price]').textContent,price);
  assert.match(elements.get('[data-offer-original]').textContent,original);
 }

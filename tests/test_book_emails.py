@@ -70,6 +70,27 @@ class BookEmailTests(unittest.TestCase):
         for pdf in (b'not a PDF', b'%PDF-'+b'x'*100):
             with patch.object(emails,'MAX_PDF_BYTES',100),self.assertRaises(ValueError):emails.message(value,'book20',pdf)
 
+    def test_hormones_attachment_is_paid_only_stamped_and_does_not_spend_downloads(self):
+        value=purchase()
+        with self.assertRaises(ValueError):emails.eligible(value,'book23')
+        value['items'].append({'id':'book23','name':'هرمونات أنثى'})
+        with patch.object(emails.store,'original',return_value=b'%PDF-original') as original, \
+             patch.object(media_sandbox,'run',return_value=(b'%PDF-stamped',{'pages':436})) as stamp, \
+             patch.object(emails.store,'claim_download') as download:
+            result=emails.attachment(value,'book23')
+        self.assertEqual(result,b'%PDF-stamped')
+        original.assert_called_once_with('book23.pdf');download.assert_not_called()
+        self.assertEqual(stamp.call_args.args[0],'email_watermark')
+        self.assertEqual(stamp.call_args.args[2]['order']['buyer']['phone'],'01000000000')
+        payload=emails.message(value,'book23',result)
+        self.assertEqual(len(payload['attachments']),1)
+        self.assertIn('book23',payload['attachments'][0]['filename'])
+        for status in ('PENDING','REFUNDED'):
+            value['status']=status
+            with patch.object(emails.store,'original') as original, self.assertRaises(ValueError):
+                emails.attachment(value,'book23')
+            original.assert_not_called()
+
     def worker(self, value=None, current=None, prepared='ready', attempts=1, error=None):
         value=value or purchase()
         claim={'order_id':value['id'],'book_id':'book20','created_at':datetime.now(timezone.utc).isoformat(),'attempts':attempts}
