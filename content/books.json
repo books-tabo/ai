@@ -1456,5 +1456,127 @@
     ],
     "imageWidth": 720,
     "imageHeight": 1080
+  },
+  "book23": {
+    "name": "هرمونات أنثى",
+    "enName": "Female Hormones: What Happens in Her Body—and What Others Don't Understand",
+    "image": "/covers/book23.webp",
+    "size": 10481983,
+    "fixedPrices": {
+      "EGP": 500,
+      "USD": 19.99
+    },
+    "bundleEligible": false,
+    "previewEnabled": false,
+    "short": "ما يحدث في جسدها… وما لا يفهمه الآخرون. رحلة عبر علم الهرمونات وسيكولوجيا المشاعر والحب والهوية والعلاقات من البلوغ إلى ما بعد انقطاع الطمث.",
+    "enShort": "An Arabic guide exploring hormones, psychology, identity and relationships throughout a woman's life.",
+    "about": "«هرمونات أنثى — ما يحدث في جسدها… وما لا يفهمه الآخرون» رحلة تثقيفية تجمع علم الهرمونات بالتحليل النفسي والاجتماعي. هل يمكن فهم تصرفات المرأة من خلال الكيمياء وحدها؟ ولماذا تختلف الاستجابة للتغيرات الجسدية بين النساء؟\n\nفي أربعة أبواب وعشرين فصلًا، يبدأ الكتاب بالبلوغ والدورة الشهرية والحمل والرضاعة وانقطاع الطمث، ثم ينتقل إلى الدماغ والغضب والذاكرة العاطفية والحدود بين المزاج والاضطراب النفسي. ويستكشف الحب والرغبة والاحتياجات العاطفية والأمومة والأحكام الاجتماعية، ويختتم بقضايا الأمراض والأدوية والمسؤولية والهوية وفهم الشريك.\n\nقراءة للنساء والرجال المهتمين بصحة المرأة والعلاقات، تؤكد التنوع الفردي واحترام الجسد والوعي بالعلامات التي تستدعي الاستشارة المتخصصة. لا يحل الكتاب محل التشخيص أو العلاج الطبي أو النفسي.",
+    "enAbout": "Female Hormones combines accessible endocrinology with psychology, identity and social context. Across twenty chapters and four parts it explores puberty, menstruation, pregnancy, menopause, emotion, memory, desire, motherhood, health conditions, medication effects, communication and personal responsibility. Its central argument is that women are more than hormone levels or social stereotypes. This educational book does not replace professional medical or psychological advice.",
+    "adds": "يساعدك على فهم التغيرات الجسدية والهرمونية عبر العمر، والتفريق بين الأعراض المعتادة والعلامات التي تستحق التقييم، وإدراك تفاعل الدماغ والمشاعر والعلاقات الزوجية بعيدًا عن الأحكام الجاهزة.",
+    "enAdds": "Understand hormonal transitions, recognize symptoms requiring medical attention, and explore how biology, emotions and relationships interact.",
+    "idea": "المرأة ليست معادلة هرمونية، وفهم الجسد بداية لفهم الإنسان لا تعريف كامل له.",
+    "enIdea": "Biology matters—but a woman cannot be reduced to chemistry.",
+    "audience": {
+      "ar": "للنساء البالغات والمهتمين بصحة المرأة وسيكولوجيا المشاعر، وللرجال والأزواج الراغبين في فهم العلاقة بين الجسد والنفس والتواصل.",
+      "en": "For adult women, couples and readers exploring women's health, emotions and communication."
+    },
+    "primaryCategory": "marriage-family",
+    "topics": {
+      "ar": [
+        "الهرمونات والبلوغ والدورة الشهرية",
+        "الحمل والرضاعة وانقطاع الطمث",
+        "سيكولوجيا المشاعر والذاكرة",
+        "الحب والرغبة والتواصل بين الزوجين",
+        "الأمراض والأدوية والهوية الأنثوية"
+      ],
+      "en": [
+        "Hormones, puberty and menstruation",
+        "Pregnancy, breastfeeding and menopause",
+        "Emotion and memory",
+        "Love, desire and relationship communication",
+        "Health conditions and personal identity"
+      ]
+    },
+    "related": [
+      "book20",
+      "book21",
+      "book22",
+      "book16"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "لمن يناسب كتاب هرمونات أنثى؟",
+          "للقارئات البالغات وللرجال والأزواج والمهتمين بفهم الهرمونات والمشاعر والعلاقات دون تعميمات."
+        ],
+        [
+          "هل يغني الكتاب عن الطبيب أو المختص النفسي؟",
+          "لا، يقدم تثقيفًا عامًا ولا يشخص الحالات ولا يحل محل الرعاية المتخصصة."
+        ],
+        [
+          "هل تتوفر معاينة للكتاب؟",
+          "لا تتوفر معاينة مجانية لهذا الكتاب."
+        ],
+        [
+          "هل الكتاب ضمن باقة السيجما؟",
+          "نعم، تشمل باقة السيجما الكاملة كتابَي السيجما ومحكمة الحب والجنس وهرمونات أنثى."
+        ],
+        [
+          "كيف أحصل على النسخة؟",
+          "بعد تأكيد الدفع، تُتاح نسخة PDF عبر مسار التحميل المحمي الخاص بالطلب، دون رابط عام للملف الأصلي."
+        ]
+      ],
+      "en": [
+        [
+          "Who is this book for?",
+          "Adult readers interested in hormones, psychology and relationships."
+        ],
+        [
+          "Does it replace medical care?",
+          "No, the content is educational rather than diagnostic or therapeutic."
+        ],
+        [
+          "Is there a free preview?",
+          "No preview is available."
+        ],
+        [
+          "Is this part of the Sigma bundle?",
+          "Yes, alongside two Sigma books and The Court of Love and Sex."
+        ],
+        [
+          "How is the PDF delivered?",
+          "Through the payment-gated order-linked download process."
+        ]
+      ]
+    },
+    "pageCount": 436,
+    "edition": {
+      "ar": "الطبعة الأولى — 2026",
+      "en": "First edition — 2026"
+    },
+    "chapters": [
+      "الهرمونات — الرسائل الخفية داخل جسد الأنثى",
+      "البلوغ — عندما تستيقظ الأنثى داخل جسد جديد",
+      "الدورة الشهرية — بين الحقيقة والأسطورة",
+      "الحمل والولادة والرضاعة — التحول الكبير",
+      "حين يتغير إيقاع الجسد — أنوثة ما بعد الخصوبة",
+      "الدماغ الأنثوي — لماذا تختلف الاستجابة للهرمونات؟",
+      "حين يرتفع الصوت — سيكولوجيا الغضب والعصبية",
+      "الدموع والصمت والانسحاب — اللغة غير المفهومة للمشاعر",
+      "الذاكرة العاطفية — ما الذي يجعل موقفًا صغيرًا مؤلمًا؟",
+      "حين تتحول المعاناة إلى اضطراب — الحدود بين المزاج والمرض",
+      "كيمياء الحب — بين الهرمونات والاختيار",
+      "الجسد الذي لا يرغب دائمًا — سيكولوجيا الفتور الجنسي",
+      "اقتربي مني… واتركيني وحدي — تناقض الاحتياج العاطفي",
+      "الأمومة ليست دائمًا وردية — المرأة خلف صورة الأم المثالية",
+      "إنها هرموناتها! — عندما يستخدم المجتمع الجسد ضد المرأة",
+      "الهرمونات المنسية — ما وراء الإستروجين والبروجسترون",
+      "عندما يختل التوازن — أمراض وأدوية تغير التجربة الأنثوية",
+      "هل الهرمونات عذر؟ — الحرية والمسؤولية في السلوك الإنساني",
+      "دليل الفهم — كيف تتعامل المرأة مع نفسها وكيف يفهمها الرجل؟",
+      "هرمونات أنثى — المرأة التي لا تختصرها الكيمياء"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1018
   }
 }
