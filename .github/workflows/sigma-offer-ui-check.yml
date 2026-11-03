@@ -1,0 +1,133 @@
+name: Sigma offer browser check
+on:
+  push:
+    branches: [feature/sigma-offer-ui-check]
+permissions:
+  contents: read
+  statuses: write
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      TABO_SITE_ENV: review
+      TABO_CHECKOUT_ENABLED: '0'
+      TABO_META_PIXEL_ID: ''
+      TABO_GOOGLE_ADS_ID: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt playwright==1.51.0
+      - run: python -m playwright install --with-deps chromium
+      - name: Verify layout and actual bundle link
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          import threading
+          from decimal import Decimal
+          from urllib.parse import urlparse
+          from playwright.sync_api import expect, sync_playwright
+          from app import Handler, ThreadingHTTPServer
+
+          class LocalReviewHandler(Handler):
+              def pricing_country(self, requested=None):
+                  if requested == 'EG':
+                      return 'EG'
+                  return super().pricing_country(requested)
+
+          digits = str.maketrans('٠١٢٣٤٥٦٧٨٩٫٬', '0123456789.,')
+          book_ids = ['book20', 'book21', 'book22', 'book23']
+          offer_url = '/offers/sigma-trilogy'
+          forbidden_paths = {'/api/orders', '/api/checkout-quote', '/api/paypal/capture'}
+
+          def shown_amount(locator):
+              value = locator.inner_text().translate(digits)
+              return Decimal(re.search(r'[0-9][0-9,.]*', value)[0].replace(',', ''))
+
+          def check(browser, origin, width, height, country, expected):
+              context = browser.new_context(base_url=origin, viewport={'width':width,'height':height},
+                                            locale='ar-EG', is_mobile=width < 500, has_touch=width < 500)
+              attempts = []
+              def local_gets_only(route):
+                  request = route.request
+                  path = urlparse(request.url).path
+                  if path in forbidden_paths:
+                      attempts.append(path)
+                      route.abort()
+                  elif request.url.startswith(origin + '/') and request.method in {'GET','HEAD'}:
+                      route.continue_()
+                  else:
+                      route.abort()
+              context.route('**/*', local_gets_only)
+              context.add_init_script(
+                  "if (location.origin === " + json.dumps(origin) + ") {"
+                  "localStorage.setItem('taboCountry', " + json.dumps(country) + ");"
+                  "localStorage.setItem('taboLanguage', 'ar');}"
+              )
+              assert context.request.get('/api/store-config?country=' + country).json()['checkoutEnabled'] is False
+              page = context.new_page()
+              for attempt in (1, 2):
+                  page.goto(offer_url, wait_until='domcontentloaded')
+                  hero = page.locator('.sigma-offer-detail')
+                  title = page.locator('#title')
+                  intro = hero.locator('.sigma-offer-intro')
+                  books = hero.locator('.sigma-offer-books')
+                  price = hero.locator('[data-offer-price]')
+                  button = hero.locator('[data-offer-buy]')
+                  expect(button).to_have_attribute('aria-disabled','false')
+                  expect(books.locator('li')).to_have_count(4)
+                  links = books.locator('a').evaluate_all("links => links.map(a => a.getAttribute('href'))")
+                  assert links == ['/books/' + book_id for book_id in book_ids], links
+                  assert shown_amount(price) == expected, (country, price.inner_text())
+                  page.evaluate('window.scrollTo(0, 0)')
+                  boxes = []
+                  for element in (title, intro, books, price, button):
+                      expect(element).to_be_visible()
+                      boxes.append(element.bounding_box())
+                  assert all(a['y'] + a['height'] <= b['y'] + 1 for a,b in zip(boxes,boxes[1:])), boxes
+                  assert page.evaluate('document.documentElement.scrollWidth') <= width + 1
+                  if width == 390:
+                      assert boxes[-1]['y'] >= 0 and boxes[-1]['y'] + boxes[-1]['height'] <= height, boxes[-1]
+                  button.click()
+                  page.wait_for_url('**/checkout*')
+                  final = page.locator('#cartFinal')
+                  expect(final).to_be_visible()
+                  expect(final).not_to_be_empty()
+                  assert shown_amount(final) == expected, (country, final.inner_text())
+                  saved = page.evaluate("JSON.parse(localStorage.getItem('taboBooksCart'))")
+                  assert sorted(x['id'] for x in saved) == sorted(book_ids), (attempt, saved)
+                  expect(page.locator('#cartOfferSummary')).to_be_visible()
+                  assert not attempts, attempts
+              print(f'PASS {width}x{height} {country} total={expected} and repeat CTA deduplication', flush=True)
+              context.close()
+
+          with ThreadingHTTPServer(('127.0.0.1', 0), LocalReviewHandler) as server:
+              threading.Thread(target=server.serve_forever, daemon=True).start()
+              origin = f'http://127.0.0.1:{server.server_port}'
+              try:
+                  with sync_playwright() as playwright:
+                      browser = playwright.chromium.launch()
+                      for width,height in ((390,844),(1280,900)):
+                          for country,amount in (('KW','49'),('EG','1250')):
+                              check(browser,origin,width,height,country,Decimal(amount))
+                      browser.close()
+              finally:
+                  server.shutdown()
+          PY
+      - name: Record check result on test branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_RESULT: ${{ job.status }}
+          CHECK_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          case "$CHECK_RESULT" in
+            success|failure) state="$CHECK_RESULT" ;;
+            *) state=error ;;
+          esac
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -f state="$state" -f context="sigma-offer-ui" \
+            -f description="Browser check $CHECK_RESULT" -f target_url="$CHECK_RUN"
