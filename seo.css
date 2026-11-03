@@ -23,3 +23,58 @@
   .sigma-offer-books span{font-size:13px}
   .sigma-offer-detail .offer-button{min-height:44px;padding-block:10px}
 }
+
+/* Studio display for the dedicated offers listing. */
+.body > .curated-offers{
+    padding-inline:0;
+}
+
+@media(min-width:801px){
+    .body > .curated-offers .curated-offer-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+}
+
+.body > .curated-offers .offer-covers{
+    align-items:center;
+    min-height:144px;
+    gap:clamp(4px, .65vw, 9px);
+    padding:14px 8px 18px;
+    background:radial-gradient(ellipse at 50% 86%, var(--offer-stage-light, #e4e8ed), var(--offer-stage-edge, #9aa6b3));
+}
+
+.body > .curated-offers .offer-covers img{
+    width:min(26%, 76px);
+    min-width:0;
+    max-width:none;
+    height:auto;
+    max-height:112px;
+    object-fit:contain;
+    transform:perspective(400px) rotateY(-12deg);
+    filter:drop-shadow(2px 6px 3px #0006);
+}
+
+.body > .curated-offers [data-offer-id="change-starter"]{
+    --offer-stage-light:#d6eae3;
+    --offer-stage-edge:#7fa39a;
+}
+
+.body > .curated-offers [data-offer-id="money-and-wealth"]{
+    --offer-stage-light:#e7e2f0;
+    --offer-stage-edge:#9b8eae;
+}
+
+.body > .curated-offers [data-offer-id="self-growth"]{
+    --offer-stage-light:#e5eef5;
+    --offer-stage-edge:#8da9bd;
+}
+
+.body > .curated-offers [data-offer-id="sigma-couple"]{
+    --offer-stage-light:#eee0e2;
+    --offer-stage-edge:#af8995;
+}
+
+.body > .curated-offers [data-offer-id="sigma-trilogy"]{
+    --offer-stage-light:#e2e6d9;
+    --offer-stage-edge:#a1ad91;
+}
