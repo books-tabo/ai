@@ -519,15 +519,19 @@ header p{
     text-decoration:none;
 }
 
-/* Studio-style cover trial for Hormones of a Woman on catalog cards. */
-.book-cover-link[href="/books/book23"]{
+/* Studio-style presentation for selected catalog covers. */
+.book-cover-link[href="/books/book22"]{
+    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #c8d0c1 0%, #9eae9d 52%, #6e8074 100%);
+}
+
+.book-cover-link:is([href="/books/book22"], [href="/books/book23"]){
     aspect-ratio:1 / 1.42;
     overflow:hidden;
     isolation:isolate;
-    background:radial-gradient(ellipse at 49% 88%, #604045 0%, #2a1b28 49%, #151017 86%);
+    background:var(--cover-stage-background, radial-gradient(ellipse at 49% 88%, #604045 0%, #2a1b28 49%, #151017 86%));
 }
 
-.book-cover-link[href="/books/book23"]::before{
+.book-cover-link:is([href="/books/book22"], [href="/books/book23"])::before{
     content:"";
     position:absolute;
     top:7%;
@@ -539,7 +543,7 @@ header p{
     box-shadow:inset 2px 0 2px #37251e;
 }
 
-.book-cover-link[href="/books/book23"]::after{
+.book-cover-link:is([href="/books/book22"], [href="/books/book23"])::after{
     content:"";
     position:absolute;
     z-index:-1;
@@ -550,7 +554,7 @@ header p{
     filter:blur(7px);
 }
 
-.book-cover-link[href="/books/book23"] .book-image{
+.book-cover-link:is([href="/books/book22"], [href="/books/book23"]) .book-image{
     position:absolute;
     display:block;
     top:7%;
