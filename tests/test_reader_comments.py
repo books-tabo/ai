@@ -134,6 +134,20 @@ class CommentHTTPTests(HTTPCase):
             self.assertEqual(self.get_comments(url+'?kind=subscribers'),(200,{'rows':[],'more':False}))
             subscribers.assert_called_once_with(0)
 
+    def test_owner_can_list_and_remove_a_published_comment(self):
+        url='/api/admin-dashboard/comments'
+        row={'id':'11111111-1111-4111-8111-111111111111','book_id':'book1',
+             'display_name':'قارئ اختباري','body':'تعليق لاختبار لوحة التحكم',
+             'status':'approved','created_at':'2026-11-04T00:00:00Z'}
+        with patch.object(app.owner_dashboard,'enabled',return_value=True), \
+             patch.object(app.owner_dashboard,'authenticated',return_value=True), \
+             patch.object(app.store,'admin_reader_comments',side_effect=[[row.copy()],[]]), \
+             patch.object(app.store,'remove_reader_comment',return_value=True) as remove:
+            self.assertEqual(self.get_comments(url),(200,{'rows':[{**row,'book_name':'هرمون'}],'more':False}))
+            self.assertEqual(self.post(url,{'id':row['id']})[0],200)
+            remove.assert_called_once_with(row['id'])
+            self.assertEqual(self.get_comments(url),(200,{'rows':[],'more':False}))
+
     def test_form_present_for_both_sigma_books_and_browser_asset_available(self):
         for bid in ('book20','book21'):
             with self.opener.open(self.base+'/books/'+bid,timeout=3) as response:
