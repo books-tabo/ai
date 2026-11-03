@@ -519,6 +519,51 @@ header p{
     text-decoration:none;
 }
 
+/* Studio-style cover trial for Hormones of a Woman on catalog cards. */
+.book-cover-link[href="/books/book23"]{
+    aspect-ratio:1 / 1.42;
+    overflow:hidden;
+    isolation:isolate;
+    background:radial-gradient(ellipse at 49% 88%, #604045 0%, #2a1b28 49%, #151017 86%);
+}
+
+.book-cover-link[href="/books/book23"]::before{
+    content:"";
+    position:absolute;
+    top:7%;
+    bottom:8%;
+    left:7%;
+    width:10%;
+    background:repeating-linear-gradient(90deg, #907761 0, #e9d3af 2px, #b49a7c 3px);
+    clip-path:polygon(0 3%, 100% 0, 100% 100%, 0 97%);
+    box-shadow:inset 2px 0 2px #37251e;
+}
+
+.book-cover-link[href="/books/book23"]::after{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    inset:auto 9% 5% 5%;
+    height:8%;
+    background:#080507;
+    border-radius:50%;
+    filter:blur(7px);
+}
+
+.book-cover-link[href="/books/book23"] .book-image{
+    position:absolute;
+    display:block;
+    top:7%;
+    left:14%;
+    width:80%;
+    height:auto;
+    aspect-ratio:auto;
+    border-radius:2% 0.8% 0.8% 2%;
+    transform:perspective(520px) rotateY(12deg);
+    transform-origin:left center;
+    box-shadow:-2px 0 3px #3b252b, 5px 9px 12px rgba(0,0,0,.48);
+}
+
 .book-cover-link:focus-visible{
     outline:3px solid #c9a227;
     outline-offset:3px;
