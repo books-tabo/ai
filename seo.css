@@ -4,3 +4,22 @@
 .curated-offers{max-width:1280px;margin:36px auto;padding:24px}.curated-offers>h2{font-size:28px}.curated-offer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.curated-offer{min-width:0;background:#fff;border:1px solid #e5dcc2;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:10px;line-height:1.8}.curated-offer h2,.curated-offer h3,.curated-offer p{margin:0}.curated-offer ul{margin:0;padding-inline-start:20px}.curated-offer a{color:#705617}.offer-covers{display:flex;justify-content:center;gap:6px;overflow:hidden;background:#f9f6ed;border-radius:8px;padding:12px 8px}.offer-covers img{width:calc((100% - 24px)/5);max-width:92px;height:110px;object-fit:contain;flex-shrink:1}.offer-price{font-size:25px;font-weight:bold;direction:ltr;unicode-bidi:isolate;margin-top:auto}.offer-original{font-size:13px;color:#666;text-decoration:line-through}.curated-offer .offer-button{display:block;width:100%;text-align:center;color:#fff;background:#111;border:0;border-radius:8px;padding:12px 8px;font:inherit;font-weight:bold;text-decoration:none;cursor:pointer}.offer-button:hover{background:#382e15}.offer-details{font-size:13px;text-align:center}.offer-applied{background:#fcf6e2;border:1px solid #d8c681;border-radius:9px;padding:12px;margin:12px 0;font-size:14px;line-height:1.9}.offer-applied[hidden]{display:none}@media(max-width:800px){.curated-offer-grid{grid-template-columns:1fr}.curated-offers{padding:18px}.offer-covers img{height:125px}.curated-offer{padding:20px}}
 
 .offers-home-link{display:inline-block;margin-top:20px;padding:9px 18px;border:1px solid #c9a227;border-radius:8px;color:#755a12;text-decoration:none;font-size:15px;font-weight:bold}
+
+.sigma-offer-detail .sigma-offer-intro{color:#171717;font-weight:bold}
+.sigma-offer-detail .sigma-offer-books{list-style:none;padding:0;display:grid;gap:8px}
+.sigma-offer-books li{line-height:1.5}
+.sigma-offer-books a{font-weight:bold;text-underline-offset:3px}
+.sigma-offer-books span{display:block;font-size:14px;color:#635d50}
+.sigma-offer-detail [data-offer-availability]:empty{display:none}
+@media(max-width:600px){
+  .page:has(.sigma-offer-detail){margin-block:12px;padding-inline:10px}
+  .page:has(.sigma-offer-detail) .seo-crumbs{margin-bottom:8px}
+  .page:has(.sigma-offer-detail) .seo-crumbs ol{margin-block:0}
+  .card:has(.sigma-offer-detail){padding:14px}
+  .card:has(.sigma-offer-detail) h1{font-size:23px;line-height:1.35;margin-bottom:10px}
+  .curated-offer.sigma-offer-detail{padding:12px;gap:7px;line-height:1.5}
+  .sigma-offer-detail .sigma-offer-intro{font-size:15px}
+  .sigma-offer-detail .sigma-offer-books{gap:6px;font-size:14px}
+  .sigma-offer-books span{font-size:13px}
+  .sigma-offer-detail .offer-button{min-height:44px;padding-block:10px}
+}
