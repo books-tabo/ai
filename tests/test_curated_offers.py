@@ -110,3 +110,20 @@ class OfferPageTests(HTTPCase):
         self.assertIn('data-add-offer="change-starter"',home)
         self.assertIn('height:auto',home)
         self.assertIn('id="cartOfferSummary"',self.get('/checkout')[2])
+
+    def test_sigma_detail_explains_each_book_before_the_purchase_action(self):
+        for language in ('ar', 'en'):
+            with self.subTest(language=language):
+                body = seo.page_data('/offers/sigma-trilogy')[language]['body']
+                summary = body.split('</article>', 1)[0]
+                positions = [summary.index('class="sigma-offer-intro"')]
+                positions += [summary.index('href="/books/' + bid + '"') for bid in
+                              ('book20', 'book21', 'book22', 'book23')]
+                positions += [summary.index('data-offer-price'), summary.index('data-offer-buy')]
+                self.assertEqual(positions, sorted(positions))
+                self.assertEqual(summary.count('<li>'), 4)
+                self.assertEqual(summary.count('<span>'), 4)
+                self.assertIn('href="/?offer=sigma-trilogy&amp;cart=1"', summary)
+        self.assertIn('أربعة كتب لفهم الرغبة والجسد والتواصل بين الزوجين', self.get('/offers/sigma-trilogy')[2])
+        for path in ('/', '/offers', '/offers/sigma-couple'):
+            self.assertNotIn('sigma-offer-detail', self.get(path)[2])
