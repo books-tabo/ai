@@ -25,6 +25,16 @@
 }
 
 /* Studio display for the dedicated offers listing. */
+.body > .curated-offers{
+    padding-inline:0;
+}
+
+@media(min-width:801px){
+    .body > .curated-offers .curated-offer-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+}
+
 .body > .curated-offers .offer-covers{
     align-items:center;
     min-height:144px;
