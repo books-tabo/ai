@@ -25,7 +25,7 @@
 <section class="section" style="margin-top:24px;text-align:center"><h2 id="paymentTitle">الدفع الإلكتروني</h2><p id="paymentDescription">أضف الكتب للسلة، ثم اختر وسيلة الدفع في صفحة إتمام الطلب.</p></section>
 <div class="sections"><section class="section"><h2 id="aboutTitle">نبذة عن الكتاب</h2><p id="about"></p></section><section class="section"><h2 id="addsTitle">ماذا يضيف لك؟</h2><p id="adds"></p></section><section class="section quote"><p id="idea"></p></section><section class="section author"><h2 id="authorTitle">عن المؤلف</h2><p id="author"></p></section></div><section class="section reader-comments" id="bookComments" aria-labelledby="commentsTitle">
 <h2 id="commentsTitle">تعليقات القرّاء</h2>
-<p class="comment-note" id="commentsPolicy">شارك رأيك الحقيقي في الكتاب. نراجع التعليقات لمنع الإساءة والرسائل المزعجة، سواء كان الرأي إيجابيًا أو سلبيًا.</p>
+<p class="comment-note" id="commentsPolicy">شارك رأيك الحقيقي في الكتاب. يُنشر التعليق فور إرساله، وقد تُزال التعليقات المسيئة أو المزعجة.</p>
 <div id="commentsList" aria-live="polite"><p id="commentsLoading">جارٍ تحميل التعليقات…</p></div>
 <button type="button" class="button secondary" id="commentsMore" hidden>عرض المزيد</button>
 <form id="commentForm" method="post" action="/api/book-comments">
@@ -34,8 +34,9 @@
 <p class="comment-note" id="commentPrivacy">بريدك لن يظهر للزوار. لا تضع بياناتك الشخصية داخل التعليق.</p>
 <label for="commentBody" id="commentBodyLabel">تعليقك عن الكتاب</label><textarea id="commentBody" name="body" minlength="5" maxlength="2000" required></textarea>
 <div hidden aria-hidden="true"><label for="commentWebsite">Website</label><input id="commentWebsite" name="website" tabindex="-1" autocomplete="off"></div>
-<label class="comment-consent"><input id="commentConsent" type="checkbox" required> <span id="commentConsentText">أوافق على نشر اسمي المعروض وتعليقي بعد المراجعة وفق سياسة الخصوصية.</span> <a href="/privacy" id="commentPrivacyLink">سياسة الخصوصية</a></label>
-<button type="submit" class="button primary" id="commentSubmit" disabled>إرسال التعليق للمراجعة</button>
+<label class="comment-consent"><input id="commentConsent" type="checkbox" required> <span id="commentConsentText">أوافق على نشر اسمي المعروض وتعليقي فورًا وفق سياسة الخصوصية.</span> <a href="/privacy" id="commentPrivacyLink">سياسة الخصوصية</a></label>
+<label class="comment-consent"><input id="commentUpdates" type="checkbox"> <span id="commentUpdatesText">أرغب في تلقي عروض تابو بوكس وأخبار إصدارات الكتب عبر البريد الإلكتروني (اختياري).</span></label>
+<button type="submit" class="button primary" id="commentSubmit" disabled>نشر التعليق</button>
 <p id="commentStatus" role="status" aria-live="polite"></p>
 </form></section></main>
 <div class="mobile-buy-bar" id="mobileBuyBar" aria-label="شراء الكتاب"><span class="mobile-buy-price" id="mobileBuyPrice"></span><button type="button" class="button primary" id="mobileBuyBtn">شراء الكتاب</button></div>
@@ -67,6 +68,6 @@ async function load(country=browserCountry()){
 async function loadStats(){try{const r=await fetch("/api/book-stats",{cache:"no-store"});if(r.ok){const all=await r.json();stats=all[id]||stats;render();}}catch(e){}}
 document.getElementById("stars").onclick=e=>{const button=e.target.closest("button[data-rating]");if(button)submitRating(Number(button.dataset.rating))};document.getElementById("addBtn").onclick=()=>{if(!pricingLoaded)return;const items=cart();if(!items.some(x=>x.id===id)){items.push({type:"book",id});localStorage.setItem("taboBooksCart",JSON.stringify(items));window.TaboTracking?.track("AddToCart",{content_ids:[id],value:bookPrice(),currency:config.currency});window.TaboAnalytics?.track('AddToCart',{content_ids:[id],value:bookPrice(),currency:config.currency})}render()};document.getElementById("cartLink").href="/checkout"+location.search;document.getElementById("mobileBuyBtn").onclick=()=>{document.getElementById("addBtn").click();location.href="/checkout"+location.search};document.getElementById("country").onchange=e=>load(e.target.value);document.getElementById("languageToggle").onclick=()=>{lang=lang==="ar"?"en":"ar";localStorage.setItem("taboLanguage",lang);render()};render();load();loadStats();
 </script>
-<script src="/book-comments.js?v=1" defer></script>
+<script src="/book-comments.js?v=2" defer></script>
 </body></html>
 

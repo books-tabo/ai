@@ -774,6 +774,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond(200,{'ok':True})
             if route.startswith('/api/admin-dashboard/'):
                 if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
+                if route=='/api/admin-dashboard/comments':
+                    if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):
+                        return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+                    comment_id=data.get('id')
+                    if not isinstance(comment_id,str) or not re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}',comment_id):
+                        return self.respond(400,{'error':'معرّف التعليق غير صالح.'})
+                    if not store.remove_reader_comment(comment_id):
+                        return self.respond(404,{'error':'التعليق غير متاح.'})
+                    return self.respond(200,{'ok':True})
                 if route.startswith('/api/admin-dashboard/catalog/') or route=='/api/admin-dashboard/recovery':
                     auth=owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash())
                     if not auth:return self.respond(403,{'error':'سجّل الدخول أولًا.'})
@@ -881,7 +890,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not store.ready():
                     return self.respond(503,{'ok':False,'error':'Comments temporarily unavailable'})
                 if data.get('website'):
-                    return self.respond(202,{'ok':True,'status':'pending'})
+                    return self.respond(202,{'ok':True,'status':'accepted'})
                 comment=reader_comments.validate(data,BOOKS)
                 verified_hash=None
                 order_id=data.get('order_id')
@@ -891,7 +900,7 @@ class Handler(BaseHTTPRequestHandler):
                     if order and comment['book_id'] in [item.get('id') for item in order['items'] if isinstance(item,dict)]:
                         verified_hash=reader_comments.fingerprint('order',order['id'])
                 store.submit_comment(comment,verified_hash)
-                return self.respond(202,{'ok':True,'status':'pending'})
+                return self.respond(202,{'ok':True,'status':'accepted'})
             if route=='/api/ratings':
                 book_id=data.get('book_id'); rating=data.get('rating')
                 if book_id not in BOOKS or isinstance(rating,bool) or not isinstance(rating,int) or not 1<=rating<=5:
@@ -1294,6 +1303,19 @@ class Handler(BaseHTTPRequestHandler):
         if route.startswith('/api/admin-dashboard/'):
             if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
             try:
+                if route=='/api/admin-dashboard/comments':
+                    if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):
+                        return self.respond(403,{'error':'سجّل الدخول أولًا.'})
+                    query=parse_qs(parsed.query,keep_blank_values=True)
+                    offset=query.get('offset',['0'])[0]
+                    kind=query.get('kind',['comments'])[0]
+                    if not re.fullmatch(r'[0-9]{1,7}',offset) or kind not in ('comments','subscribers'):
+                        return self.respond(400,{'error':'صفحة غير صالحة.'})
+                    rows=store.reader_comment_subscribers(int(offset)) if kind=='subscribers' else store.admin_reader_comments(int(offset))
+                    if kind=='comments':
+                        for row in rows:
+                            row['book_name']=BOOKS.get(row['book_id'],{}).get('name',row['book_id'])
+                    return self.respond(200,{'rows':rows[:20],'more':len(rows)>20})
                 if route in ('/api/admin-dashboard/catalog','/api/admin-dashboard/recovery'):
                     auth=owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash())
                     if not auth:return self.respond(403,{'error':'سجّل الدخول أولًا.'})

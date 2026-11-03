@@ -1,7 +1,7 @@
 /* Owner-only UI: every value comes from an authenticated backend report. */
 (()=>{'use strict';const $=id=>document.getElementById(id);let challenge='',data=null,offset=0,busy=false,view='overview';
 const states={PAID:'مدفوع',PENDING:'بانتظار التأكيد',REFUNDED:'مسترد',VOIDED:'ملغى',REVERSED:'عملية معكوسة',REVIEW:'يحتاج مراجعة'};
-const names={tools:['السرعة والأخطاء','متجر أسرع وأخطاء أوضح.','افحص الصفحات العامة وتابع حالة رصد الأخطاء.'],catalog:['الكتب والعروض','أدر كتبك من مكان واحد.','حفظ مسودة ومعاينة ونشر بيانات الكتب والأغلفة والأسعار والعروض.'],recovery:['استكمال الطلبات','ساعد القارئ على إكمال اختياره.','تابع التذكيرات التي وافق عليها العملاء للطلبات غير المكتملة.'],overview:['نظرة عامة','أداء متجرك، بوضوح.','تابع مبيعات كتبك وطلباتك من بيانات المتجر الفعلية.'],orders:['الطلبات','كل طلب، بتفاصيله.','ابحث برقم الطلب وتابع الدفع والرسالة واستخدام التحميل.'],audience:['الزيارات ورحلة الشراء','افهم الطريق إلى الشراء.','جلسات ومصادر فعلية من قياس المتجر الداخلي، من وقت تفعيله.'],followup:['التسليم والمتابعة','تابع ما بعد الشراء.','رؤية لحالة رسائل الشراء والطلبات التي لم يبدأ تحميلها بعد.']};
+const names={comments:['التعليقات والمشتركون','تعليقات القرّاء.','أدر التعليقات وراجع عناوين البريد المشتركة.'],tools:['السرعة والأخطاء','متجر أسرع وأخطاء أوضح.','افحص الصفحات العامة وتابع حالة رصد الأخطاء.'],catalog:['الكتب والعروض','أدر كتبك من مكان واحد.','حفظ مسودة ومعاينة ونشر بيانات الكتب والأغلفة والأسعار والعروض.'],recovery:['استكمال الطلبات','ساعد القارئ على إكمال اختياره.','تابع التذكيرات التي وافق عليها العملاء للطلبات غير المكتملة.'],overview:['نظرة عامة','أداء متجرك، بوضوح.','تابع مبيعات كتبك وطلباتك من بيانات المتجر الفعلية.'],orders:['الطلبات','كل طلب، بتفاصيله.','ابحث برقم الطلب وتابع الدفع والرسالة واستخدام التحميل.'],audience:['الزيارات ورحلة الشراء','افهم الطريق إلى الشراء.','جلسات ومصادر فعلية من قياس المتجر الداخلي، من وقت تفعيله.'],followup:['التسليم والمتابعة','تابع ما بعد الشراء.','رؤية لحالة رسائل الشراء والطلبات التي لم يبدأ تحميلها بعد.']};
 const sources={direct:'زيارة مباشرة',google:'Google',meta:'Facebook / Instagram',snapchat:'Snapchat',bing:'Bing',other:'إحالات أخرى'},mediums={direct:'مباشرة',paid:'إعلان / نقرة إعلانية',organic:'بحث طبيعي',referral:'إحالة',unknown:'غير متاح'};
 const num=n=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:0}).format(Number(n)||0);
 const money=(v,c)=>new Intl.NumberFormat('en-US',{style:'currency',currency:c,maximumFractionDigits:2}).format(Number(v)||0);
@@ -11,7 +11,51 @@ function empty(target,text='لا توجد بيانات خلال الفترة ا�
 function message(id,text,error=true){$(id).textContent=text;$(id).className=text?(error?'error':'notice'):'';}
 async function api(path,body){const r=await fetch('/api/admin-dashboard/'+path,{method:body===undefined?'GET':'POST',credentials:'same-origin',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});let d={};try{d=await r.json()}catch(_){}if(!r.ok){const e=Error(d.error||'تعذر الاتصال. حاول مرة أخرى.');e.status=r.status;throw e}return d;}
 function authenticated(on){$('loginView').hidden=on;$('dashboardView').hidden=!on;}
-function selectView(v){view=Object.hasOwn(names,v)?v:'overview';const n=names[view];$('sectionCaption').textContent=n[0];$('viewHeading').textContent=n[1];$('viewDescription').textContent=n[2];document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==view);$('filters').hidden=view==='tools';$('reportCaption').hidden=view==='tools';if(globalThis.TaboStoreTools)globalThis.TaboStoreTools.open(view);if(globalThis.TaboStoreAdmin)globalThis.TaboStoreAdmin.open(view);}
+function selectView(v){view=Object.hasOwn(names,v)?v:'overview';const n=names[view];$('sectionCaption').textContent=n[0];$('viewHeading').textContent=n[1];$('viewDescription').textContent=n[2];document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==view);$('filters').hidden=['tools','comments'].includes(view);$('reportCaption').hidden=['tools','comments'].includes(view);if(view==='comments')loadReaderAdmin();if(globalThis.TaboStoreTools)globalThis.TaboStoreTools.open(view);if(globalThis.TaboStoreAdmin)globalThis.TaboStoreAdmin.open(view);}
+const readerAdmin={
+ comments:{target:'readerAdminComments',more:'readerCommentsMore',offset:0,loading:false},
+ subscribers:{target:'readerAdminSubscribers',more:'readerSubscribersMore',offset:0,loading:false}
+};
+async function loadReaderAdminPage(kind, reset=false){
+ const state=readerAdmin[kind],target=$(state.target),more=$(state.more);
+ if(state.loading)return;
+ state.loading=true;more.disabled=true;
+ try{
+  const start=reset?0:state.offset;
+  const result=await api('comments?kind='+kind+'&offset='+start);
+  if(reset)target.replaceChildren();
+  for(const row of result.rows){
+   const item=el('article',undefined,'ranking-row');
+   if(kind==='subscribers'){
+    const email=el('bdi',row.email);email.dir='ltr';
+    item.append(email,el('small',' · '+when(row.consented_at)));
+   }else{
+    item.append(el('strong',row.display_name+' · '+row.book_name),el('small',' · '+when(row.created_at)+(row.status==='pending'?' · تعليق سابق قيد المراجعة':'')),el('p',row.body));
+    const remove=el('button','حذف التعليق','secondary');remove.type='button';
+    remove.addEventListener('click',async()=>{
+     if(state.loading||!window.confirm('إزالة هذا التعليق من المتجر؟'))return;
+     remove.disabled=true;
+     try{
+      await api('comments',{id:row.id});
+      message('readerAdminMessage','تم حذف التعليق.',false);
+      await loadReaderAdminPage('comments',true);
+     }catch(e){message('readerAdminMessage',e.message)}finally{remove.disabled=false}
+    });
+    item.append(remove);
+   }
+   target.append(item);
+  }
+  state.offset=start+result.rows.length;
+  more.hidden=!result.more;
+  if(!state.offset)empty(target,kind==='comments'?'لا توجد تعليقات.':'لا يوجد مشتركون حتى الآن.');
+ }catch(e){message('readerAdminMessage',e.message)}finally{state.loading=false;more.disabled=false}
+}
+function loadReaderAdmin(){
+ message('readerAdminMessage','');
+ loadReaderAdminPage('comments',true);
+ loadReaderAdminPage('subscribers',true);
+}
+for(const [kind,state] of Object.entries(readerAdmin))$(state.more)?.addEventListener('click',()=>loadReaderAdminPage(kind));
 function setRange(days){const end=new Date(Date.now()+3*3600000),start=new Date(end.getTime()-(days-1)*86400000);$('dateFrom').value=start.toISOString().slice(0,10);$('dateTo').value=end.toISOString().slice(0,10);document.querySelectorAll('[data-days]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.days)===days));}
 function rank(target,rows,label,value){target.replaceChildren();if(!rows.length)return empty(target);const max=Math.max(1,...rows.map(value));rows.slice(0,6).forEach((r,i)=>{const row=el('div',undefined,'ranking-row'),top=el('div',undefined,'rank-top'),title=el('div',undefined,'rank-title');title.append(el('span',String(i+1).padStart(2,'0'),'rank-number'),el('span',label(r)));top.append(title,el('span',num(value(r)),'rank-value'));const bar=el('div',undefined,'bar-track'),fill=el('div',undefined,'bar-fill');fill.style.width=String(value(r)/max*100)+'%';bar.append(fill);row.append(top,bar);target.append(row)});}
 function chart(){const target=$('salesChart');if(!data)return;const currency=$('chartCurrency').value;const from=new Date(data.range.from),to=new Date(data.range.to),days=Math.round((to-from)/86400000),points=[];for(let i=0;i<days;i++){const date=new Date(from.getTime()+i*86400000+3*3600000).toISOString().slice(0,10),row=data.daily.find(x=>x.day===date&&x.currency===currency);points.push({day:date,value:row?Number(row.amount):0})}target.replaceChildren();$('chartStart').textContent=points[0]?.day||'';$('chartEnd').textContent=points.at(-1)?.day||'';if(!points.some(x=>x.value>0))return empty(target,'لا توجد مبيعات مؤكدة بهذه العملة خلال الفترة.');
