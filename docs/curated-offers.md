@@ -8,7 +8,7 @@ The named packs apply only when every listed book is present in the cart. Existi
 | /offers/money-and-wealth | book4, book17, book9, book8 | 350 | 20 |
 | /offers/self-growth | book18, book14, book6, book2, book19 | 400 | 23 |
 | /offers/sigma-couple | book20, book21 | No EGP discount | 20 |
-| /offers/sigma-trilogy | book20, book21, book22, book23 | 1250 | 39 |
+| /offers/sigma-trilogy | book20, book21, book22, book23 | 1250 | 49 |
 
 `content/offers.json` is the editorial/price source. `catalog.py` validates membership and computes the authoritative minimum of the ordinary quantity ladder and every eligible disjoint pack combination plus the ordinary remainder. Shared titles are never charged twice. Both Sigma books are excluded from quantity discounts and receive their explicitly configured USD pair or EGP/USD four-book offer; otherwise independent prices apply. See [Sigma pair details](sigma-pair.md). A missing required title removes that pack's eligibility; the cart explains that removal can change the total.
 

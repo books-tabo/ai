@@ -1461,7 +1461,7 @@
     "name": "هرمونات أنثى",
     "enName": "Female Hormones",
     "image": "/covers/book23.webp",
-    "size": 10481983,
+    "size": 10712104,
     "fixedPrices": {
       "EGP": 500,
       "USD": 19.99
@@ -1470,8 +1470,8 @@
     "previewEnabled": false,
     "short": "ما يحدث في جسدها… وما لا يفهمه الآخرون: قراءة في الهرمونات والمشاعر والرغبة والهوية والعلاقات، دون اختزال المرأة في كيمياء جسدها.",
     "enShort": "Explore hormones, emotions, desire, identity and relationships without reducing women to their biology.",
-    "about": "«هرمونات أنثى — ما يحدث في جسدها… وما لا يفهمه الآخرون» للمؤلف TABO NOOR رحلة في التفاعل بين الجسد والعقل والتجربة الشخصية والمجتمع. يناقش كيف تُفهم التغيرات الهرمونية والنفسية عبر مراحل العمر، ولماذا لا يكفي تفسير واحد لفهم مشاعر امرأة أو اختياراتها.\n\nعبر أربعة أبواب، ينتقل من الهرمونات والبلوغ والدورة الشهرية والحمل والأمومة وما بعد الخصوبة، إلى الدماغ والغضب والذاكرة العاطفية، ثم الحب والرغبة والاحتياج العاطفي وصورة المرأة اجتماعيًا، وصولًا إلى حدود التفسير البيولوجي والمسؤولية والحوار بين الزوجين. يقدم تثقيفًا عامًا ولا يحل محل التشخيص أو العلاج أو الاستشارة المتخصصة.",
-    "enAbout": "Female Hormones by TABO NOOR explores the interaction between the body, mind, personal experience and society. It considers hormonal and emotional changes through different life stages and why no single explanation can account for a woman’s feelings or choices.\n\nFour parts move from hormones, puberty, menstruation, pregnancy, motherhood and life after fertility to the brain, anger and emotional memory, then love, desire, emotional needs and social expectations. The closing chapters examine the limits of biological explanations, responsibility and dialogue between spouses. This is general education, not a substitute for professional diagnosis, treatment or advice.",
+    "about": "«هرمونات أنثى — ما يحدث في جسدها… وما لا يفهمه الآخرون» للمؤلف TABO NOOR رحلة في التفاعل بين الجسد والعقل والتجربة الشخصية والمجتمع. يناقش كيف تُفهم التغيرات الهرمونية والنفسية عبر مراحل العمر، ولماذا لا يكفي تفسير واحد لفهم مشاعر امرأة أو اختياراتها.\n\nعبر أربعة أبواب وعشرين فصلًا، ينتقل من الهرمونات والبلوغ والدورة الشهرية والحمل والأمومة وما بعد الخصوبة، إلى الدماغ والغضب والذاكرة العاطفية، ثم الحب والرغبة والاحتياج العاطفي وصورة المرأة اجتماعيًا، وصولًا إلى حدود التفسير البيولوجي والمسؤولية والحوار بين الزوجين. يقدم تثقيفًا عامًا ولا يحل محل التشخيص أو العلاج أو الاستشارة المتخصصة.",
+    "enAbout": "Female Hormones by TABO NOOR explores the interaction between the body, mind, personal experience and society. It considers hormonal and emotional changes through different life stages and why no single explanation can account for a woman’s feelings or choices.\n\nAcross four parts and twenty chapters, the book moves from hormones, puberty, menstruation, pregnancy, motherhood and life after fertility to the brain, anger and emotional memory, then love, desire, emotional needs and social expectations. The closing chapters examine the limits of biological explanations, responsibility and dialogue between spouses. This is general education, not a substitute for professional diagnosis, treatment or advice.",
     "adds": "يساعد القارئة والقارئ على طرح أسئلة أدق عن التغيرات الجسدية والمشاعر، ومراجعة الأحكام الجاهزة، وفهم الاختلافات الفردية، وتطوير حوار أكثر احترامًا داخل العلاقة الزوجية.",
     "enAdds": "Helps readers ask better questions about physical changes and emotions, question stereotypes, recognize individual differences and develop more respectful dialogue within marriage.",
     "idea": "فهم أثر الجسد دون اختزال المرأة فيه، واحترام اختلاف تجربتها وصوتها واختياراتها.",
@@ -1540,7 +1540,7 @@
         ]
       ]
     },
-    "pageCount": 436,
+    "pageCount": 457,
     "chapters": [
       "الهرمونات: الرسائل الخفية داخل جسد الأنثى",
       "البلوغ: عندما تستيقظ الأنثى داخل جسد جديد",
@@ -1553,6 +1553,7 @@
       "الذاكرة العاطفية: ما الذي يجعل موقفًا صغيرًا مؤلمًا؟",
       "حين تتحول المعاناة إلى اضطراب: الحدود بين المزاج والمرض",
       "كيمياء الحب بين الهرمونات والاختيار",
+      "الجسد الذي لا يرغب دائمًا: سيكولوجيا الفتور الجنسي",
       "اقتربي مني… واتركيني وحدي: تناقض الاحتياج العاطفي",
       "الأمومة ليست دائمًا وردية: المرأة خلف صورة الأم المثالية",
       "إنها هرموناتها! عندما يستخدم المجتمع الجسد ضد المرأة",

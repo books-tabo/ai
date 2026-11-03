@@ -25,7 +25,7 @@ async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}]),reminder
   }
   if(url==='/api/checkout-quote'){
    const quartet=JSON.parse(options.body).items.some(x=>x.id==='book23');
-   return {ok:true,json:async()=>({ok:true,quote:{displayCurrency:'USD',displayTotal:quartet?'39.00':'20.00',chargeCurrency:'EGP',chargeTotal:quartet?'2188.52':'1122.32',expiresAt:Date.now()/1000+300,token:'synthetic-quote'}})};
+   return {ok:true,json:async()=>({ok:true,quote:{displayCurrency:'USD',displayTotal:quartet?'49.00':'20.00',chargeCurrency:'EGP',chargeTotal:quartet?'2749.68':'1122.32',expiresAt:Date.now()/1000+300,token:'synthetic-quote'}})};
   }
 
   if(url==='/api/orders'){
@@ -98,7 +98,7 @@ async function pendingCase(status,ready,activationFails=false){
  }
  {
   const {c,nodes,calls}=await boot(JSON.stringify(['book20','book21','book22','book23'].map(id=>({id}))));
-  assert.match(nodes.cartFinal.textContent,/39[.,]00/);
+  assert.match(nodes.cartFinal.textContent,/49[.,]00/);
   assert.match(nodes.cartOfferSummary.textContent,/السيجما/);
   const quoted=JSON.parse(calls.find(x=>x.url==='/api/checkout-quote').options.body);
   assert.deepEqual(quoted.items.map(x=>x.id),['book20','book21','book22','book23']);

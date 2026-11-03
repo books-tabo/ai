@@ -19,7 +19,7 @@ class CourtBookTests(HTTPCase):
             cases += [offer['books'] for offer in catalog.OFFERS.values() if 'book22' not in offer['books']]
             cases += [list(catalog.BOOKS)[:n] for n in range(1, 22)]
             for ids in cases:
-                expected = (Decimal(str(catalog.total_for_items([b for b in ids if b not in ('book20','book21','book23')], config))) + Decimal('1250' if country == 'EG' else '39')
+                expected = (Decimal(str(catalog.total_for_items([b for b in ids if b not in ('book20','book21','book23')], config))) + Decimal('1250' if country == 'EG' else '49')
                             if {'book20','book21','book23'} <= set(ids) else Decimal(str(catalog.total_for_items(ids, config))) + price)
                 self.assertEqual(Decimal(str(catalog.total_for_items(ids+['book22'], config))), expected)
             self.assertEqual(config['bookPolicies']['book22'], {
@@ -49,7 +49,7 @@ class CourtBookTests(HTTPCase):
             original.assert_not_called()
 
     def test_paid_court_and_hormones_read_only_their_private_original(self):
-        for bid,pages in [('book22',419),('book23',436)]:
+        for bid,pages in [('book22',419),('book23',457)]:
             order = test_download_http.DownloadHTTPTests.paid(self, 1)
             order['items'] = [{'id': bid, 'name': catalog.BOOKS[bid][0]}]
             self.install(order)

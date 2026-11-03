@@ -28,7 +28,7 @@ class CatalogPolicyTests(unittest.TestCase):
                 self.assertEqual(Decimal(str(catalog.total_for_items(ids, config))), subtotal)
 
     def test_known_mixed_totals_and_no_bundle_slot_for_sigma(self):
-        for country, expected in [('EG', [500, 699, 799, 3099]), ('KW', [19.99, 29.98, 37.98, 141.99])]:
+        for country, expected in [('EG', [500, 699, 799, 3099]), ('KW', [19.99, 29.98, 37.98, 151.99])]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             selections = [['book20'], ['book20', 'book1'], ['book1', 'book20', 'book2'], list(catalog.BOOKS)]
             self.assertEqual([catalog.total_for_items(ids, config) for ids in selections], expected)
