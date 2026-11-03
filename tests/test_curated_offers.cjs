@@ -67,14 +67,14 @@ c.cart=[];c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;
 c.location.search='?offer=money-and-wealth&utm_source=facebook&utm_campaign=wealth&fbclid=synthetic%2Btest&cart=1';
 c.completeOfferIntent();assert.equal(c.cart.length,4);assert.equal(vm.runInContext('calculatePricing().final',c),20);
 c.cart=[];c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;
-c.addCuratedOffer('sigma-couple');assert.equal(c.cart.length,2);assert.equal(vm.runInContext('calculatePricing().final',c),20);
-assert.equal(events.at(-1).data.value,20);
+c.addCuratedOffer('sigma-couple');assert.equal(c.cart.length,2);assert.equal(vm.runInContext('calculatePricing().final',c),34.99);
+assert.equal(events.at(-1).data.value,34.99);
 c.addCuratedOffer('sigma-couple');assert.equal(c.cart.length,2);
 c.cart=c.cart.filter(x=>x.id!=='book20');assert.equal(vm.runInContext('calculatePricing().final',c),19.99);
 c.cart=[{id:'book20'}];assert.equal(vm.runInContext('calculatePricing().final',c),19.99);
-c.addCuratedOffer('sigma-couple');assert.equal(events.at(-1).data.value,0.01);
-assert.equal(vm.runInContext('calculatePricing().final',c),20);
-c.addCuratedOffer('change-starter');assert.equal(vm.runInContext('calculatePricing().final',c),35);
+c.addCuratedOffer('sigma-couple');assert.equal(events.at(-1).data.value,15);
+assert.equal(vm.runInContext('calculatePricing().final',c),34.99);
+c.addCuratedOffer('change-starter');assert.equal(vm.runInContext('calculatePricing().final',c),49.99);
 c.storeConfig=fixture[0].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
 assert.equal(c.addCuratedOffer('sigma-couple'),false);assert.equal(c.cart.length,0);
 c.cart=[{id:'book20'},{id:'book21'}];assert.equal(vm.runInContext('calculatePricing().final',c),1000);
@@ -97,7 +97,7 @@ assert.equal(buy.hidden,true);assert.equal(elements.get('[data-offer-original]')
 assert.match(elements.get('[data-offer-availability]').textContent,/بالدولار فقط/);
 c.TaboOfferUI.render(fixture[1].config,'en');
 assert.equal(buy.hidden,false);assert.equal(buy.disabled,false);
-assert.match(elements.get('[data-offer-price]').textContent,/20\.00/);
+assert.match(elements.get('[data-offer-price]').textContent,/34\.99/);
 assert.match(elements.get('[data-offer-original]').textContent,/39\.98/);
 card.dataset.offerId='sigma-trilogy';
 for(const [config,price,original] of [[fixture[0].config,/1,250[.,]00|1250[.,]00/,/2,000[.,]00|2000[.,]00/],[fixture[1].config,/49[.,]00/,/79[.,]96/]]) {

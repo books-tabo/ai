@@ -183,7 +183,7 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(self.db.orders[data['order']['id']]['total'],total)
 
     def test_sigma_usd_orders_bind_fixed_price_to_actual_frozen_egp_charge(self):
-        cases=[(['book20'],Decimal('19.99')),(['book20','book1'],Decimal('29.98')),(['book1','book20','book2'],Decimal('37.98')),(['book21'],Decimal('19.99')),(['book22'],Decimal('19.99')),(['book22','book1','book2'],Decimal('37.98')),(['book20','book21'],Decimal('20')),(['book23'],Decimal('19.99')),(['book20','book21','book22'],Decimal('39.99')),(['book20','book21','book22','book23'],Decimal('49')),(list(app.BOOKS),Decimal('151.99'))]
+        cases=[(['book20'],Decimal('19.99')),(['book20','book1'],Decimal('29.98')),(['book1','book20','book2'],Decimal('37.98')),(['book21'],Decimal('19.99')),(['book22'],Decimal('19.99')),(['book22','book1','book2'],Decimal('37.98')),(['book20','book21'],Decimal('34.99')),(['book23'],Decimal('19.99')),(['book20','book21','book22'],Decimal('54.98')),(['book20','book21','book22','book23'],Decimal('49')),(list(app.BOOKS),Decimal('151.99'))]
         with patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')) as gateway:
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
@@ -225,7 +225,7 @@ class QuoteHTTPTests(HTTPCase):
 
     def test_old_usd_quote_cannot_authorize_new_price(self):
         old_prices = [(['book20'], 15.90), (['book21'], 15.99), (['book22'], 15.99),
-                      (['book20', 'book21', 'book22', 'book23'], 39)]
+                      (['book20', 'book21'], 20), (['book20', 'book21', 'book22', 'book23'], 39)]
         for ids, old in old_prices:
             self.items = [{'id': bid} for bid in ids]
             old_quote = fx.issue(ids, 'KW', old, app.payment_mode(), KEY)
