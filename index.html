@@ -520,6 +520,12 @@ header p{
 }
 
 /* Studio-style presentation for selected catalog covers. */
+.book-cover-link[href="/books/book20"]{
+    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e1d9e8 0%, #bfb1c9 52%, #8f809f 100%);
+    --cover-stage-top:9.5%;
+    --cover-pages-bottom:10.8%;
+}
+
 .book-cover-link[href="/books/book21"]{
     --cover-stage-background:radial-gradient(ellipse at 49% 77%, #dae4ed 0%, #aebfce 52%, #75899f 100%);
 }
@@ -528,18 +534,18 @@ header p{
     --cover-stage-background:radial-gradient(ellipse at 49% 77%, #c8d0c1 0%, #9eae9d 52%, #6e8074 100%);
 }
 
-.book-cover-link:is([href="/books/book21"], [href="/books/book22"], [href="/books/book23"]){
+.book-cover-link:is([href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]){
     aspect-ratio:1 / 1.42;
     overflow:hidden;
     isolation:isolate;
     background:var(--cover-stage-background, radial-gradient(ellipse at 49% 88%, #604045 0%, #2a1b28 49%, #151017 86%));
 }
 
-.book-cover-link:is([href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::before{
+.book-cover-link:is([href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::before{
     content:"";
     position:absolute;
-    top:7%;
-    bottom:8%;
+    top:var(--cover-stage-top, 7%);
+    bottom:var(--cover-pages-bottom, 8%);
     left:7%;
     width:10%;
     background:repeating-linear-gradient(90deg, #907761 0, #e9d3af 2px, #b49a7c 3px);
@@ -547,7 +553,7 @@ header p{
     box-shadow:inset 2px 0 2px #37251e;
 }
 
-.book-cover-link:is([href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::after{
+.book-cover-link:is([href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::after{
     content:"";
     position:absolute;
     z-index:-1;
@@ -558,10 +564,10 @@ header p{
     filter:blur(7px);
 }
 
-.book-cover-link:is([href="/books/book21"], [href="/books/book22"], [href="/books/book23"]) .book-image{
+.book-cover-link:is([href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]) .book-image{
     position:absolute;
     display:block;
-    top:7%;
+    top:var(--cover-stage-top, 7%);
     left:14%;
     width:80%;
     height:auto;
