@@ -112,16 +112,53 @@ def book_extra(book_id, language):
     return section
 
 
-def offer_card(offer_id, language='ar', home=False):
+SIGMA_OFFER_INTRO = {
+    'ar': 'أربعة كتب لفهم الرغبة والجسد والتواصل بين الزوجين',
+    'en': 'Four books for understanding desire, the body, and communication between spouses',
+}
+SIGMA_OFFER_ROLES = {
+    'book20': (
+        'فهم الرغبة وقلق الأداء والتوافق الحميم من منظور الرجل.',
+        "Understand desire, performance anxiety, and intimacy from the man's perspective.",
+    ),
+    'book21': (
+        'فهم الجسد والرغبة والتعبير عن الاحتياجات داخل الزواج.',
+        'Understand the body, desire, and how to express needs within marriage.',
+    ),
+    'book22': (
+        'فهم العلاقة بين الحب والرغبة والحوار في الحياة الزوجية.',
+        'Understand how love, desire, and conversation connect in married life.',
+    ),
+    'book23': (
+        'فهم صلة التغيرات الهرمونية بالجسد والمشاعر والرغبة عبر مراحل العمر.',
+        'Understand how hormonal changes relate to the body, emotions, and desire throughout life.',
+    ),
+}
+
+
+def offer_card(offer_id, language='ar', home=False, *, sigma_detail=False):
     offer = catalog.current_offers()[offer_id]
     ar = language == 'ar'
-    names = ''.join('<li>' + link('/books/'+bid,book_name(current_books()[bid],language)).replace('<a ', '<a data-offer-book-name="'+bid+'" ',1) + '</li>' for bid in offer['books'])
-    images = ''.join('<img src="'+current_books()[bid]['image']+'" alt="'+escape(book_name(current_books()[bid],language))+'" width="'+str(current_books()[bid]['imageWidth'])+'" height="'+str(current_books()[bid]['imageHeight'])+'" loading="lazy" decoding="async">' for bid in offer['books'])
     action = ('<button type="button" data-add-offer="'+offer_id+'"' if home else '<a data-offer-buy href="/?offer='+offer_id+'&amp;cart=1"') + ' class="offer-button" data-offer-button-label>' + ('أضف الباقة للسلة' if ar else 'Add pack to cart') + ('</button>' if home else '</a>')
-    heading = 'h3' if home else 'h2'
     prices = ' / '.join((str(value)+' جنيه' if currency=='EGP' and ar else 'EGP '+str(value) if currency=='EGP' else '$'+str(value)) for currency,value in offer['prices'].items())
     availability = ('هذا العرض متاح عند التسعير بالدولار فقط. داخل مصر يظل سعر كل كتاب 500 جنيه.' if ar else 'This offer applies only to USD pricing. In Egypt each book remains EGP 500.') if set(offer['prices'])=={'USD'} else ''
-    return '<article class="curated-offer" data-offer-id="'+offer_id+'"><div class="offer-covers">'+images+'</div><p data-offer-count>'+str(len(offer['books']))+(' كتب PDF' if ar else ' PDF books')+'</p><'+heading+' data-offer-title>'+escape(offer['title'][language])+'</'+heading+'><p data-offer-description>'+escape(offer['description'][language])+'</p><ul>'+names+'</ul><div class="offer-price" data-offer-price>'+prices+'</div><p class="offer-original" data-offer-original hidden></p><p data-offer-availability>'+availability+'</p>'+action+'<a class="offer-details" href="/offers/'+offer_id+'" data-offer-details>'+('تفاصيل الباقة والكتب' if ar else 'Pack details and books')+'</a></article>'
+    pricing = '<div class="offer-price" data-offer-price>'+prices+'</div><p class="offer-original" data-offer-original hidden></p><p data-offer-availability>'+availability+'</p>'+action
+    if sigma_detail:
+        books = []
+        for book_id in offer['books']:
+            name = link('/books/' + book_id, book_name(current_books()[book_id], language))
+            role = SIGMA_OFFER_ROLES.get(book_id)
+            explanation = '<span>' + escape(role[0 if ar else 1]) + '</span>' if role else ''
+            books.append('<li>' + name + explanation + '</li>')
+        return (
+            '<article class="curated-offer sigma-offer-detail" data-offer-id="' + offer_id + '">'
+            '<p class="sigma-offer-intro">' + escape(SIGMA_OFFER_INTRO[language]) + '</p>'
+            '<ul class="sigma-offer-books">' + ''.join(books) + '</ul>' + pricing + '</article>'
+        )
+    names = ''.join('<li>' + link('/books/'+bid,book_name(current_books()[bid],language)).replace('<a ', '<a data-offer-book-name="'+bid+'" ',1) + '</li>' for bid in offer['books'])
+    images = ''.join('<img src="'+current_books()[bid]['image']+'" alt="'+escape(book_name(current_books()[bid],language))+'" width="'+str(current_books()[bid]['imageWidth'])+'" height="'+str(current_books()[bid]['imageHeight'])+'" loading="lazy" decoding="async">' for bid in offer['books'])
+    heading = 'h3' if home else 'h2'
+    return '<article class="curated-offer" data-offer-id="'+offer_id+'"><div class="offer-covers">'+images+'</div><p data-offer-count>'+str(len(offer['books']))+(' كتب PDF' if ar else ' PDF books')+'</p><'+heading+' data-offer-title>'+escape(offer['title'][language])+'</'+heading+'><p data-offer-description>'+escape(offer['description'][language])+'</p><ul>'+names+'</ul>'+pricing+'<a class="offer-details" href="/offers/'+offer_id+'" data-offer-details>'+('تفاصيل الباقة والكتب' if ar else 'Pack details and books')+'</a></article>'
 
 
 def offers_section(language='ar', home=False):
@@ -219,7 +256,7 @@ def page_data(path, include_drafts=False):
             title,description = offer['title'][language],offer['description'][language]
             image = current_books()[offer['books'][0]]['image']
             trail += [('/offers','عروض الباقات' if ar else 'Book pack offers'),(None,title)]
-            body = offer_card(key,language) + '<h2>'+('الكتب المشمولة في الباقة' if ar else 'Books included in this pack')+'</h2>'+book_list(offer['books'],language)
+            body = offer_card(key,language,sigma_detail=key=='sigma-trilogy') + '<h2>'+('الكتب المشمولة في الباقة' if ar else 'Books included in this pack')+'</h2>'+book_list(offer['books'],language)
             body += '<section class="seo-section"><h2>'+('كيف تحصل على العرض؟' if ar else 'How does the offer work?')+'</h2>'+paragraphs('اضغط «أضف الباقة للسلة» لإضافة الكتب المحددة دون تكرار كتب موجودة بالفعل. يُحسب أقل سعر مستحق تلقائيًا. إذا حذفت كتابًا من الباقة يُعاد حساب الإجمالي والعروض المتاحة. الكتب باللغة العربية وبصيغة PDF، وتظهر روابطها في طلبك بعد إتمام الدفع وفق سياسة المتجر.' if ar else 'Add the pack to your cart to add its selected books without duplicating titles already there. The lowest eligible total is calculated automatically. Removing a book recalculates the available offers. These are Arabic PDF books; access follows the store delivery policy after successful payment.')+'</section>'
         elif path == '/categories':
             title = 'أقسام الكتب' if ar else 'Book categories'
