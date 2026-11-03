@@ -520,6 +520,10 @@ header p{
 }
 
 /* Studio-style presentation for selected catalog covers. */
+.book-cover-link[href="/books/book15"]{
+    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e5f2dd 0%, #bfd9b4 52%, #849e7e 100%);
+}
+
 .book-cover-link[href="/books/book16"]{
     --cover-stage-background:radial-gradient(ellipse at 49% 77%, #efd8e2 0%, #c995ab 52%, #915c76 100%);
 }
@@ -553,7 +557,7 @@ header p{
     --cover-stage-background:radial-gradient(ellipse at 49% 77%, #c8d0c1 0%, #9eae9d 52%, #6e8074 100%);
 }
 
-.book-cover-link:is([href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]){
+.book-cover-link:is([href="/books/book15"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]){
     aspect-ratio:1 / 1.42;
     overflow:hidden;
     isolation:isolate;
@@ -572,7 +576,7 @@ header p{
     box-shadow:inset 2px 0 2px #37251e;
 }
 
-.book-cover-link:is([href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::after{
+.book-cover-link:is([href="/books/book15"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::after{
     content:"";
     position:absolute;
     z-index:-1;
@@ -595,6 +599,16 @@ header p{
     transform:perspective(520px) rotateY(12deg);
     transform-origin:left center;
     box-shadow:-2px 0 3px #3b252b, 5px 9px 12px rgba(0,0,0,.48);
+}/* This cover already includes its spine and perspective. */
+.book-cover-link[href="/books/book15"] .book-image{
+    position:absolute;
+    display:block;
+    top:9%;
+    left:8%;
+    width:84%;
+    height:auto;
+    aspect-ratio:auto;
+    clip-path:polygon(1.3% 2%, 6% .5%, 98.5% 3.5%, 98.5% 96.4%, 6.5% 99%, 1.3% 98%);
 }
 
 .book-cover-link:focus-visible{
