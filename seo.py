@@ -136,13 +136,14 @@ SIGMA_OFFER_ROLES = {
 }
 
 
-def offer_card(offer_id, language='ar', home=False, *, sigma_detail=False):
+def offer_card(offer_id, language='ar', home=False, *, sigma_detail=False, show_availability=True):
     offer = catalog.current_offers()[offer_id]
     ar = language == 'ar'
     action = ('<button type="button" data-add-offer="'+offer_id+'"' if home else '<a data-offer-buy href="/?offer='+offer_id+'&amp;cart=1"') + ' class="offer-button" data-offer-button-label>' + ('أضف الباقة للسلة' if ar else 'Add pack to cart') + ('</button>' if home else '</a>')
     prices = ' / '.join((str(value)+' جنيه' if currency=='EGP' and ar else 'EGP '+str(value) if currency=='EGP' else '$'+str(value)) for currency,value in offer['prices'].items())
     availability = ('هذا العرض متاح عند التسعير بالدولار فقط. داخل مصر يظل سعر كل كتاب 500 جنيه.' if ar else 'This offer applies only to USD pricing. In Egypt each book remains EGP 500.') if set(offer['prices'])=={'USD'} else ''
-    pricing = '<div class="offer-price" data-offer-price>'+prices+'</div><p class="offer-original" data-offer-original hidden></p><p data-offer-availability>'+availability+'</p>'+action
+    availability_note = '<p data-offer-availability>' + availability + '</p>' if show_availability else ''
+    pricing = '<div class="offer-price" data-offer-price>'+prices+'</div><p class="offer-original" data-offer-original hidden></p>'+availability_note+action
     if sigma_detail:
         books = []
         for book_id in offer['books']:
@@ -162,7 +163,7 @@ def offer_card(offer_id, language='ar', home=False, *, sigma_detail=False):
 
 
 def offers_section(language='ar', home=False):
-    return '<section class="curated-offers" id="curatedOffers"><h2 data-offer-section-title>'+('باقات كتب مختارة' if language=='ar' else 'Curated book packs')+'</h2><div class="curated-offer-grid">'+''.join(offer_card(key,language,home) for key in catalog.current_offers())+'</div></section>'
+    return '<section class="curated-offers" id="curatedOffers"><h2 data-offer-section-title>'+('باقات كتب مختارة' if language=='ar' else 'Curated book packs')+'</h2><div class="curated-offer-grid">'+''.join(offer_card(key, language, home, show_availability=home or key != 'sigma-couple') for key in catalog.current_offers())+'</div></section>'
 
 
 def listed_articles(include_drafts=False):
