@@ -6,7 +6,7 @@ The new book costs **500 EGP / 19.99 USD**. Both Sigma books have no preview and
 
 `/categories/marriage-family` contains precisely these two books and is their primary breadcrumb category. Initial HTML includes descriptions, intended adult readers, verified chapter titles, page counts, real related-book links, canonical/OG/Book metadata, and a link to the special pack. Existing book URLs are unchanged.
 
-`/offers/sigma-couple` combines exactly `book20` and `book21` for **20 USD** when both are present. This is an explicit exception for a named fixed-price pack. Removing either restores the remaining book's individual price. The original USD total is 39.98. This pack and the three-book change pack cost 35 USD together.
+`/offers/sigma-couple` combines exactly `book20` and `book21` for **34.99 USD** when both are present. This is an explicit exception for a named fixed-price pack. Removing either restores the remaining book's individual price. The original USD total is 39.98. This pack and the three-book change pack cost 49.99 USD together.
 
 The owner has not specified an Egyptian-pound pack price. Both Sigma books therefore total 1,000 EGP in the Egyptian storefront. The offer card explains this and hides its discounted-pack cart action in EGP. Runtime configuration includes only offers available in the selected currency. The server recomputes the total from book IDs; client-supplied prices or offer IDs cannot authorize a discount. USD totals continue through the existing frozen EGP quote and Kashier payment path.
 

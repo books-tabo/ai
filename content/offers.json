@@ -23,15 +23,15 @@
       "en": "Sigma for Couples"
     },
     "description": {
-      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية — قراءتان متكاملتان للبالغين عن فهم الرجل والمرأة والتواصل والحميمية داخل الزواج. الكتابان معًا بسعر 20 دولار عند التسعير بالدولار.",
-      "en": "Sigma: The Royal Male and Sigma: Captivating Femininity — two complementary adult reads about understanding men and women, communication and intimacy within marriage. Both books cost $20 together when priced in USD."
+      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية — قراءتان متكاملتان للبالغين عن فهم الرجل والمرأة والتواصل والحميمية داخل الزواج. الكتابان معًا بسعر 34.99 دولار عند التسعير بالدولار.",
+      "en": "Sigma: The Royal Male and Sigma: Captivating Femininity — two complementary adult reads about understanding men and women, communication and intimacy within marriage. Both books cost $34.99 together when priced in USD."
     },
     "books": [
       "book20",
       "book21"
     ],
     "prices": {
-      "USD": 20
+      "USD": 34.99
     },
     "fixedPriceBundle": true
   },

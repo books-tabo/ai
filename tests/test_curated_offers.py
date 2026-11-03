@@ -14,17 +14,17 @@ from urllib.error import HTTPError
 class CuratedPricingTests(unittest.TestCase):
     def test_sigma_pair_is_an_exact_usd_exception_to_independent_prices(self):
         cases=[(['book20'],500,19.99),(['book21'],500,19.99),
-               (['book20','book21'],1000,20),
-               (['book20','book21','book1'],1199,29.99),
+               (['book20','book21'],1000,34.99),
+               (['book20','book21','book1'],1199,44.98),
                (['book21','book1','book2'],799,37.98),
-               (['book20','book21','book18','book14','book6'],1300,35)]
+               (['book20','book21','book18','book14','book6'],1300,49.99)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('SA',usd)]:
                 config=localization.pricing_for_country(catalog.PRICES,country)
                 self.assertEqual(catalog.total_for_items(ids,config),expected)
                 self.assertEqual(catalog.total_for_items(ids[::-1],config),expected)
         usd=localization.pricing_for_country(catalog.PRICES,'SA')
-        self.assertEqual(catalog.pricing_breakdown(['book20','book21'],usd)['offerSavings'],Decimal('19.98'))
+        self.assertEqual(catalog.pricing_breakdown(['book20','book21'],usd)['offerSavings'],Decimal('4.99'))
         self.assertNotIn('sigma-couple',[o['id'] for o in catalog.public_offers('EGP')])
         for bid,price in [('book20',19.99),('book21',19.99)]:
             self.assertEqual(usd['bookPolicies'][bid],{'price':price,'bundleEligible':False,'previewEnabled':False})
@@ -42,12 +42,16 @@ class CuratedPricingTests(unittest.TestCase):
             self.assertEqual(catalog.total_for_items(ids+['book1'],config),1449 if country=='EG' else 58.99)
             self.assertEqual(catalog.total_for_items(ids+catalog.OFFERS['change-starter']['books'],config),1550 if country=='EG' else 64)
 
-    def test_previous_three_book_cart_has_no_four_book_discount(self):
-        ids=['book20','book21','book22']
-        for country,total in [('EG',1500),('KW',39.99)]:
-            result=catalog.pricing_breakdown(ids,localization.pricing_for_country(catalog.PRICES,country))
-            self.assertEqual(result['total'],Decimal(str(total)))
-            self.assertNotIn('sigma-trilogy',result['offerIds'])
+    def test_three_book_cart_uses_the_pair_only_when_both_sigma_books_remain(self):
+        books = ['book20', 'book21', 'book22', 'book23']
+        for removed in books:
+            remaining = [book_id for book_id in books if book_id != removed]
+            usd = '59.97' if removed in ('book20', 'book21') else '54.98'
+            for country, total in [('EG', '1500'), ('KW', usd)]:
+                config = localization.pricing_for_country(catalog.PRICES, country)
+                result = catalog.pricing_breakdown(remaining, config)
+                self.assertEqual(result['total'], Decimal(total))
+                self.assertNotIn('sigma-trilogy', result['offerIds'])
 
     def test_advertised_packs_and_related_book_identity(self):
         expected={'change-starter':(['book18','book14','book6'],300,15),

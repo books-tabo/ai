@@ -44,7 +44,7 @@ class CatalogEditTests(unittest.TestCase):
    config=localization.pricing_for_country(catalog.PRICES,'EG')
    self.assertEqual(config['bookPolicies']['book1'],{'price':250,'bundleEligible':False,'previewEnabled':True})
    self.assertEqual(catalog.total_for_items(['book1','book2'],config),449)
-   self.assertEqual(catalog.total_for_items(['book20','book21'],localization.pricing_for_country(catalog.PRICES,'SA')),20)
+   self.assertEqual(catalog.total_for_items(['book20','book21'],localization.pricing_for_country(catalog.PRICES,'SA')),34.99)
    html=seo.render((app.ROOT/'index.html').read_text(),'/','tabobooks.com','index.html')
    self.assertIn('const BOOKS = [{"id":"book23"',html)
    self.assertNotIn('<script>synthetic</script>',html)

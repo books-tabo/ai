@@ -179,7 +179,7 @@ class PayPalHTTPTests(HTTPCase):
                   'customer':{'name':'Synthetic buyer','email':'fixture@example.invalid','phone':'01000000000'},
                   'total':1,'currency':'EGP'}
             status,result,_=self.post('/api/orders',body)
-        self.assertEqual(status,201);self.assertEqual(saved[0]['total'],20)
+        self.assertEqual(status,201);self.assertEqual(saved[0]['total'],34.99)
         self.assertEqual(saved[0]['currency'],'USD');self.assertEqual(saved[0]['paymentMethod'],'PayPal')
         self.assertEqual(saved[0]['paymentMode'],'test');self.assertIsNone(saved[0]['pricingQuote']);quote.assert_not_called()
 
