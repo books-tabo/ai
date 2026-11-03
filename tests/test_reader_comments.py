@@ -26,6 +26,12 @@ class CommentValidationTests(unittest.TestCase):
             self.assertNotEqual(first['email_hash'],reader_comments.fingerprint('order','reader@example.com'))
             self.assertNotIn('reader@example',json.dumps(first))
 
+    def test_only_explicit_opt_in_sends_email_to_private_subscription_storage(self):
+        with patch.dict(os.environ,ENV),patch.object(store,'request',return_value={'accepted':True}) as request:
+            for consent, expected in ((True,'reader@example.com'),(False,None),('true',None)):
+                store.submit_comment(reader_comments.validate(comment(updates_consent=consent),app.BOOKS))
+                self.assertEqual(request.call_args.args[2]['p_opt_in_email'],expected)
+
     def test_validation_rejects_invalid_email_book_body_and_missing_consent(self):
         with patch.dict(os.environ,ENV):
             for changes in ({'email':''},{'email':'bad'},{'email':'a\n@b.com'},{'email':'x'*255+'@e.com'},
@@ -46,7 +52,7 @@ class CommentValidationTests(unittest.TestCase):
         with patch.dict(os.environ,ENV),patch.object(store,'request',return_value={'accepted':True}) as request:
             data=reader_comments.validate(comment(),app.BOOKS)
             store.submit_comment(data)
-            self.assertEqual(request.call_args.args[0],'/rest/v1/rpc/submit_reader_comment')
+            self.assertEqual(request.call_args.args[0],'/rest/v1/rpc/publish_reader_comment')
             self.assertNotIn('Reader@EXAMPLE.COM',str(request.call_args))
             store.book_comments('book21',20)
             self.assertEqual(request.call_args.args,('/rest/v1/rpc/list_reader_comments','POST',{'p_book_id':'book21','p_offset':20}))
@@ -63,10 +69,10 @@ class CommentHTTPTests(HTTPCase):
         except HTTPError as error:response=error
         return response.status,json.loads(response.read())
 
-    def test_valid_email_submission_is_pending_and_cannot_forge_published_or_verified(self):
+    def test_valid_email_submission_is_accepted_and_cannot_forge_verified(self):
         with patch.object(app.store,'submit_rating') as rate,patch.object(app.store,'claim_download') as download:
             status,data,_=self.post('/api/book-comments',comment(status='approved',verified_purchase=True,rating=5))
-        self.assertEqual((status,data),(202,{'ok':True,'status':'pending'}))
+        self.assertEqual((status,data),(202,{'ok':True,'status':'accepted'}))
         args=self.submit.call_args.args
         self.assertEqual(args[0]['book_id'],'book20');self.assertIsNone(args[1])
         self.assertNotIn('email',args[0]);self.assertNotIn('verified_purchase',args[0])
@@ -109,6 +115,24 @@ class CommentHTTPTests(HTTPCase):
         self.assertEqual(self.submit.call_count,5)
         with patch.object(app.store,'book_comments',side_effect=app.store.StoreUnavailable()):
             self.assertEqual(self.get_comments()[0],503)
+
+    def test_admin_comment_routes_require_owner_and_allow_owner_removal(self):
+        url='/api/admin-dashboard/comments'
+        comment_id='11111111-1111-4111-8111-111111111111'
+        with patch.object(app.owner_dashboard,'enabled',return_value=True), \
+             patch.object(app.owner_dashboard,'authenticated',return_value=False) as auth, \
+             patch.object(app.store,'remove_reader_comment',return_value=True) as remove, \
+             patch.object(app.store,'reader_comment_subscribers',return_value=[]) as subscribers:
+            self.assertEqual(self.get_comments(url+'?kind=subscribers')[0],403)
+            self.assertEqual(self.post(url,{'id':comment_id})[0],403)
+            remove.assert_not_called()
+            subscribers.assert_not_called()
+            auth.return_value=True
+            self.assertEqual(self.post(url,{'id':'not-a-uuid'})[0],400)
+            self.assertEqual(self.post(url,{'id':comment_id})[0],200)
+            remove.assert_called_once_with(comment_id)
+            self.assertEqual(self.get_comments(url+'?kind=subscribers'),(200,{'rows':[],'more':False}))
+            subscribers.assert_called_once_with(0)
 
     def test_form_present_for_both_sigma_books_and_browser_asset_available(self):
         for bid in ('book20','book21'):

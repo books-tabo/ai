@@ -184,10 +184,10 @@ def submit_rating(book_id, voter_hash, rating):
 
 
 def submit_comment(comment, verified_order_hash=None):
-    result=request('/rest/v1/rpc/submit_reader_comment', 'POST', {
+    result=request('/rest/v1/rpc/publish_reader_comment', 'POST', {
         'p_book_id':comment['book_id'], 'p_email_hash':comment['email_hash'],
         'p_display_name':comment['display_name'], 'p_body':comment['body'],
-        'p_verified_order_hash':verified_order_hash})
+        'p_verified_order_hash':verified_order_hash, 'p_opt_in_email':comment.get('opt_in_email')})
     if not isinstance(result,dict) or result.get('accepted') is not True:
         raise StoreUnavailable()
     return result
@@ -196,6 +196,26 @@ def submit_comment(comment, verified_order_hash=None):
 def book_comments(book_id, offset=0):
     return request('/rest/v1/rpc/list_reader_comments', 'POST', {
         'p_book_id':book_id, 'p_offset':offset})
+
+
+def admin_reader_comments(offset):
+    return request('/rest/v1/book_comments', params={
+        'select':'id,book_id,display_name,body,status,created_at',
+        'status':'in.(approved,pending)', 'order':'created_at.desc,id.desc',
+        'limit':21, 'offset':offset})
+
+
+def reader_comment_subscribers(offset):
+    return request('/rest/v1/reader_comment_subscribers', params={
+        'select':'email,consented_at', 'order':'consented_at.desc,email_hash.desc',
+        'limit':21, 'offset':offset})
+
+
+def remove_reader_comment(comment_id):
+    rows=request('/rest/v1/book_comments', 'PATCH', {'status':'rejected'}, params={
+        'id':'eq.'+comment_id, 'status':'in.(approved,pending)', 'select':'id'},
+        headers={'Prefer':'return=representation'})
+    return bool(rows)
 
 
 def apply_paypal_event(order, event, digest):

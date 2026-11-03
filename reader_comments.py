@@ -1,4 +1,4 @@
-"""Real reader comments; private email fingerprint, server-verified purchase badge."""
+"""Real reader comments; private contact opt-in and server-verified purchase badge."""
 import hashlib
 import hmac
 import os
@@ -26,7 +26,8 @@ def validate(data, books):
             or any(ord(char) < 32 for char in email)):
         raise ValueError('Invalid comment')
     return {'book_id': book_id, 'email_hash': fingerprint('email', email),
-            'display_name': name or 'قارئ', 'body': body}
+            'display_name': name or 'قارئ', 'body': body,
+            **({'opt_in_email': email} if data.get('updates_consent') is True else {})}
 
 
 def fingerprint(purpose, value):
