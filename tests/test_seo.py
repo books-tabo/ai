@@ -170,9 +170,10 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(len(seo.BOOKS['book20']['chapters']),15)
         self.assertEqual(seo.BOOKS['book21']['pageCount'],471)
         self.assertEqual(len(seo.BOOKS['book21']['chapters']),15)
-        self.assertEqual(seo.BOOKS['book23']['pageCount'],436)
-        self.assertEqual(seo.BOOKS['book23']['size'],10481983)
-        self.assertEqual(len(seo.BOOKS['book23']['chapters']),19)
+        self.assertEqual(seo.BOOKS['book23']['pageCount'],457)
+        self.assertEqual(seo.BOOKS['book23']['size'],10712104)
+        self.assertEqual(len(seo.BOOKS['book23']['chapters']),20)
+        self.assertEqual(seo.BOOKS['book23']['chapters'][11], 'الجسد الذي لا يرغب دائمًا: سيكولوجيا الفتور الجنسي')
         self.assertEqual(seo.CATEGORIES['marriage-family']['books'],['book20','book21','book22','book23'])
         for bid in ('book20','book21','book22','book23'):
             self.assertEqual(seo.categories_for(bid)[0][0],'marriage-family')

@@ -31,7 +31,7 @@ class CuratedPricingTests(unittest.TestCase):
 
     def test_four_book_pack_is_automatic_and_named_in_either_offer_order(self):
         ids=['book20','book21','book22','book23']
-        for country,total,saving in [('EG',1250,'750'),('KW',39,'40.96')]:
+        for country,total,saving in [('EG',1250,'750'),('KW',49,'30.96')]:
             config=localization.pricing_for_country(catalog.PRICES,country)
             for offers in [catalog.OFFERS,dict(reversed(list(catalog.OFFERS.items())))]:
                 with patch.object(catalog,'current_offers',return_value=offers):
@@ -39,8 +39,8 @@ class CuratedPricingTests(unittest.TestCase):
                     self.assertEqual(result,{'total':Decimal(str(total)),'offerIds':['sigma-trilogy'],'offerSavings':Decimal(saving)})
                     for removed in ids:
                         self.assertNotIn('sigma-trilogy',catalog.pricing_breakdown([b for b in ids if b!=removed],config)['offerIds'])
-            self.assertEqual(catalog.total_for_items(ids+['book1'],config),1449 if country=='EG' else 48.99)
-            self.assertEqual(catalog.total_for_items(ids+catalog.OFFERS['change-starter']['books'],config),1550 if country=='EG' else 54)
+            self.assertEqual(catalog.total_for_items(ids+['book1'],config),1449 if country=='EG' else 58.99)
+            self.assertEqual(catalog.total_for_items(ids+catalog.OFFERS['change-starter']['books'],config),1550 if country=='EG' else 64)
 
     def test_previous_three_book_cart_has_no_four_book_discount(self):
         ids=['book20','book21','book22']
@@ -72,7 +72,7 @@ class CuratedPricingTests(unittest.TestCase):
                (['book1','book2','book3'],399,24.99),
                (starter+['book20'],800,34.99),(money+['book20'],850,39.99),
                (growth+['book20'],900,42.99),
-               (list(catalog.BOOKS),3099,141.99)]
+               (list(catalog.BOOKS),3099,151.99)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('KW',usd)]:
                 with self.subTest(country=country,ids=ids):

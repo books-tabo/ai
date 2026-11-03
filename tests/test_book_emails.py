@@ -75,7 +75,7 @@ class BookEmailTests(unittest.TestCase):
         with self.assertRaises(ValueError):emails.eligible(value,'book23')
         value['items'].append({'id':'book23','name':'هرمونات أنثى'})
         with patch.object(emails.store,'original',return_value=b'%PDF-original') as original, \
-             patch.object(media_sandbox,'run',return_value=(b'%PDF-stamped',{'pages':436})) as stamp, \
+             patch.object(media_sandbox,'run',return_value=(b'%PDF-stamped',{'pages':457})) as stamp, \
              patch.object(emails.store,'claim_download') as download:
             result=emails.attachment(value,'book23')
         self.assertEqual(result,b'%PDF-stamped')
