@@ -520,6 +520,10 @@ header p{
 }
 
 /* Studio-style presentation for selected catalog covers. */
+.book-cover-link[href="/books/book14"]{
+    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e1e6fa 0%, #b4c0e5 52%, #7789ba 100%);
+}
+
 .book-cover-link[href="/books/book15"]{
     --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e5f2dd 0%, #bfd9b4 52%, #849e7e 100%);
 }
@@ -557,14 +561,14 @@ header p{
     --cover-stage-background:radial-gradient(ellipse at 49% 77%, #c8d0c1 0%, #9eae9d 52%, #6e8074 100%);
 }
 
-.book-cover-link:is([href="/books/book15"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]){
+.book-cover-link:is([href="/books/book14"], [href="/books/book15"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]){
     aspect-ratio:1 / 1.42;
     overflow:hidden;
     isolation:isolate;
     background:var(--cover-stage-background, radial-gradient(ellipse at 49% 88%, #604045 0%, #2a1b28 49%, #151017 86%));
 }
 
-.book-cover-link:is([href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::before{
+.book-cover-link:is([href="/books/book14"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::before{
     content:"";
     position:absolute;
     top:var(--cover-stage-top, 7%);
@@ -576,7 +580,7 @@ header p{
     box-shadow:inset 2px 0 2px #37251e;
 }
 
-.book-cover-link:is([href="/books/book15"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::after{
+.book-cover-link:is([href="/books/book14"], [href="/books/book15"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::after{
     content:"";
     position:absolute;
     z-index:-1;
@@ -587,7 +591,7 @@ header p{
     filter:blur(7px);
 }
 
-.book-cover-link:is([href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]) .book-image{
+.book-cover-link:is([href="/books/book14"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]) .book-image{
     position:absolute;
     display:block;
     top:var(--cover-stage-top, 7%);
