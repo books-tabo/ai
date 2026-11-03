@@ -1314,7 +1314,7 @@ class Handler(BaseHTTPRequestHandler):
                     rows=store.reader_comment_subscribers(int(offset)) if kind=='subscribers' else store.admin_reader_comments(int(offset))
                     if kind=='comments':
                         for row in rows:
-                            row['book_name']=BOOKS.get(row['book_id'],{}).get('name',row['book_id'])
+                            row['book_name']=BOOKS.get(row['book_id'],(row['book_id'],))[0]
                     return self.respond(200,{'rows':rows[:20],'more':len(rows)>20})
                 if route in ('/api/admin-dashboard/catalog','/api/admin-dashboard/recovery'):
                     auth=owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash())
