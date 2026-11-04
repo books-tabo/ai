@@ -9,7 +9,7 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
   const html = rendered('book.html', '/books/book20');
   const script = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)].find(x => x[2].includes('const BOOKS='))[2];
   const nodes = new Map(), events = [], calls = [];
-  const values = new Map([['taboBooksCart',JSON.stringify([{type:'book',id:'book19'}])],['taboCountry','KW']]);
+  const values = new Map([['taboBooksCart',JSON.stringify([{type:'book',id:'book19'}])],['taboCountry','SA']]);
   const node = id => {
     if (!nodes.has(id)) nodes.set(id,{textContent:'',className:'',hidden:false,setAttribute(){},removeAttribute(name){delete this[name]}});
     return nodes.get(id);
