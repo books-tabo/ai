@@ -3,14 +3,14 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const {execFileSync}=require('node:child_process');
 const html=fs.readFileSync('checkout.html','utf8'),core=fs.readFileSync('checkout-core.js','utf8');
 const fixtures=JSON.parse(execFileSync('python3',['-c',`import json,catalog,localization,seo
-print(json.dumps({'books':[{'id':key,**{k:b[k] for k in ('name','enName','fixedPrices','bundleEligible','previewEnabled') if k in b}} for key,b in seo.BOOKS.items()], 'usd':localization.pricing_for_country(catalog.PRICES,'KW'),'egp':localization.pricing_for_country(catalog.PRICES,'EG')}))`],{encoding:'utf8'}));
+print(json.dumps({'books':[{'id':key,**{k:b[k] for k in ('name','enName','fixedPrices','bundleEligible','previewEnabled') if k in b}} for key,b in seo.BOOKS.items()], 'usd':localization.pricing_for_country(catalog.PRICES,'SA'),'egp':localization.pricing_for_country(catalog.PRICES,'EG')}))`],{encoding:'utf8'}));
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function node(){return {textContent:'',hidden:false,disabled:false,value:'',style:{},attributes:{},parentElement:{},classList:{toggle(){},add(){}},events:{},setAttribute(key,value){this.attributes[key]=value;},focus(){this.focused=true;},addEventListener(name,callback){this.events[name]=callback;}};}
 async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}]),reminders=false){
  const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(match=>[match[1],node()]));
  nodes['checkout-catalog'].textContent=JSON.stringify(fixtures.books);
  nodes.checkoutName.value='Synthetic Buyer';nodes.checkoutEmail.value='fixture@example.invalid';nodes.checkoutPhone.value='01000000000';
- const values=new Map([['taboBooksCart',saved],['taboLanguage','ar'],['taboCountry','KW']]);
+ const values=new Map([['taboBooksCart',saved],['taboLanguage','ar'],['taboCountry','SA']]);
  const calls=[],redirects=[],events=[],alerts=[],session=new Map(),handlers={};
  const c={document:{documentElement:{},getElementById:id=>nodes[id]},navigator:{language:'ar-KW'},
   localStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)},
