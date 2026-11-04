@@ -33,6 +33,12 @@ function formatMoney(value){
             }).format(amount);
             return currentLanguage==="ar"?`${digits} جنيه`:`EGP ${digits}`;
         }
+        if(storeConfig.currency==="KWD"){
+            const digits=new Intl.NumberFormat("en-US",{
+                minimumFractionDigits:3,maximumFractionDigits:3
+            }).format(amount);
+            return currentLanguage==="ar"?`${digits} د.ك`:`KWD ${digits}`;
+        }
         return new Intl.NumberFormat("en-US",{
             style:"currency",currency:storeConfig.currency,maximumFractionDigits:2
         }).format(amount);
@@ -58,12 +64,13 @@ function bookPrice(book){return Number(bookPolicy(book).price)}
 function calculatePricing(){
     const books=cart.map(item=>BOOKS.find(book=>book.id===item.id)).filter(Boolean);
     const ordinary=books.filter(book=>bookPolicy(book).bundleEligible);
-    const minor=value=>Math.round(Number(value||0)*100);
+    const scale=storeConfig.currency==='KWD'?1000:100;
+    const minor=value=>Math.round(Number(value||0)*scale);
     const fixedMinor=books.filter(book=>!bookPolicy(book).bundleEligible).reduce((total,book)=>total+minor(bookPrice(book)),0);
     const basicMinor=ordinary.length?minor(PRICING_LADDER[ordinary.length]??ordinary.length*Number(PRICING_LADDER[1]||0)):0;
     const special=typeof TaboOfferPricing!=="undefined"?TaboOfferPricing.best(books.map(book=>book.id),{...storeConfig,prices:PRICING_LADDER,bookPolicies:Object.fromEntries(books.map(book=>[book.id,bookPolicy(book)]))}):{totalMinor:basicMinor+fixedMinor,offerIds:[],savingsMinor:0};
     const originalMinor=ordinary.length*minor(storeConfig.compareAtPrice||PRICING_LADDER[1])+fixedMinor;
-    return {offerIds:special.offerIds,offerSavings:special.savingsMinor/100,count:books.length,standardCount:ordinary.length,fixedTotal:fixedMinor/100,original:originalMinor/100,final:special.totalMinor/100,discount:Math.max(0,originalMinor-special.totalMinor)/100};
+    return {offerIds:special.offerIds,offerSavings:special.savingsMinor/scale,count:books.length,standardCount:ordinary.length,fixedTotal:fixedMinor/scale,original:originalMinor/scale,final:special.totalMinor/scale,discount:Math.max(0,originalMinor-special.totalMinor)/scale};
 }
 /* Catalog pricing end */
 
@@ -91,10 +98,12 @@ function renderCart(){
         offerSummary.hidden=!applied.length;
         offerSummary.textContent=applied.map(offer=>offer.title[currentLanguage]+" — "+formatMoney(offer.price)).join(" | ")+(applied.length?(currentLanguage==="ar"?" — تم تطبيق سعر الباقة تلقائيًا.":" — Pack price applied automatically."):"");
     }
-    const usdSummary=needsEgpQuote();
-    document.getElementById("cartFinalRow").classList.toggle("usd-summary",usdSummary);
-    document.getElementById("finalPriceLabel").textContent=usdSummary?(currentLanguage==="ar"?"الإجمالي بالدولار":"Total in USD"):t("final");
-    document.getElementById("checkoutBtn").textContent=usdSummary?`${t("checkout")} — ${formatMoney(pricing.final)}`:t("checkout");
+    const foreignSummary=needsEgpQuote();
+    document.getElementById("cartFinalRow").classList.toggle("usd-summary",foreignSummary);
+    document.getElementById("finalPriceLabel").textContent=foreignSummary?
+        (storeConfig.currency==="KWD"?(currentLanguage==="ar"?"الإجمالي بالدينار الكويتي":"Total in KWD"):
+          (currentLanguage==="ar"?"الإجمالي بالدولار":"Total in USD")):t("final");
+    document.getElementById("checkoutBtn").textContent=foreignSummary?`${t("checkout")} — ${formatMoney(pricing.final)}`:t("checkout");
 
 
     if(
@@ -256,7 +265,7 @@ function checkoutStatus(message){
 let checkoutQuote=null, checkoutQuoteKey="", checkoutQuotePending="", checkoutQuoteRequest=0, checkoutInFlight=false;
 
 function needsEgpQuote(){
-    return storeConfig.paymentProvider==='kashier' && storeConfig.currency==='USD' && cart.length>0;
+    return storeConfig.paymentProvider==='kashier' && ['USD','KWD'].includes(storeConfig.currency) && cart.length>0;
 }
 function quoteCartKey(){
     return JSON.stringify([storeConfig.country,storeConfig.currency,calculatePricing().final,cart.map(x=>x.id).sort()]);
@@ -295,7 +304,7 @@ async function refreshCheckoutQuote(force=false){
             await loadStoreConfig();checkoutStatus(data.error);return false;
         }
         if(!response.ok || !data.ok || !quote || quote.chargeCurrency!=='EGP' ||
-                quote.displayCurrency!=='USD' || !Number.isFinite(Number(quote.chargeTotal)) ||
+                quote.displayCurrency!==storeConfig.currency || !Number.isFinite(Number(quote.chargeTotal)) ||
                 Number(quote.chargeTotal)<=0 || Number(quote.displayTotal)!==calculatePricing().final ||
                 !Number.isFinite(quote.expiresAt) || quote.expiresAt*1000<=Date.now()+5000 || !quote.token){throw new Error('quote');}
         if(request!==checkoutQuoteRequest || key!==quoteCartKey())return false;
