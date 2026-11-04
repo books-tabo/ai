@@ -7,6 +7,10 @@ var TaboOfferUI = (() => {
     return '/?' + params.toString();
   }
   function money(value, currency, ar) {
+    if(currency==='KWD'){
+      const digits=new Intl.NumberFormat('en-US',{minimumFractionDigits:3,maximumFractionDigits:3}).format(value);
+      return ar ? digits+' د.ك' : 'KWD '+digits;
+    }
     return new Intl.NumberFormat(ar ? 'ar-EG' : 'en-US', {style:'currency',currency,maximumFractionDigits:2}).format(value);
   }
   function render(config, language, cartIds = []) {
@@ -28,7 +32,7 @@ var TaboOfferUI = (() => {
       const originalPrice = offer.fixedPriceBundle ? offer.books.reduce((total,id) => total + Number(config.bookPolicies?.[id]?.price || 0),0) : config.prices?.[offer.books.length];
       if (original) { original.hidden = !active || !(originalPrice > active.price); original.textContent = active ? (ar ? 'بدلًا من ' : 'Regular total ')+money(originalPrice,config.currency,ar) : ''; }
       const availability = card.querySelector('[data-offer-availability]');
-      if (availability) availability.textContent = Object.keys(offer.prices).length === 1 && offer.prices.USD ? (ar ? 'هذا العرض متاح عند التسعير بالدولار فقط. داخل مصر يظل سعر كل كتاب 500 جنيه.' : 'This offer applies only to USD pricing. In Egypt each book remains EGP 500.') : '';
+      if (availability) availability.textContent = (!active && config.currency==='EGP' && Object.keys(offer.prices).length===1 && offer.prices.USD) ? (ar ? 'هذه الباقة متاحة خارج مصر بالدولار أو الدينار الكويتي. داخل مصر يظل سعر كل كتاب 500 جنيه.' : 'This offer is available outside Egypt in USD or KWD. In Egypt each book remains EGP 500.') : '';
       card.querySelectorAll('[data-offer-buy]').forEach(el => { el.href = cartUrl(id,location.search); });
       card.querySelectorAll('[data-offer-buy],[data-add-offer]').forEach(el => { el.hidden = Boolean(config.currency && !active); el.disabled = !active; el.setAttribute('aria-disabled',String(!active)); });
       card.querySelectorAll('[data-offer-button-label]').forEach(el => { el.textContent = offer.books.every(b => selected.has(b)) ? (ar ? 'عرض الباقة في السلة' : 'View pack in cart') : (ar ? 'أضف الباقة للسلة' : 'Add pack to cart'); });
