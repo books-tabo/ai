@@ -13,7 +13,7 @@ import test_download_http
 
 class CourtBookTests(HTTPCase):
     def test_court_keeps_full_price_except_explicit_four_book_pack(self):
-        for country, price in [('EG', Decimal('500')), ('KW', Decimal('19.99'))]:
+        for country, price in [('EG', Decimal('500')), ('SA', Decimal('19.99'))]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             cases = [[], ['book20'], ['book21'], ['book20', 'book21'], ['book23'], ['book20','book21','book23']]
             cases += [offer['books'] for offer in catalog.OFFERS.values() if 'book22' not in offer['books']]
@@ -27,8 +27,8 @@ class CourtBookTests(HTTPCase):
         self.assertEqual(seo.BOOKS['book22']['pageCount'], 419)
         self.assertEqual(seo.BOOKS['book22']['size'], 12185488)
         self.assertEqual(seo.categories_for('book22')[0][0], 'marriage-family')
-        self.assertEqual(catalog.FIXED_PRICES['book20'], {'EGP': 500, 'USD': 19.99})
-        self.assertEqual(catalog.FIXED_PRICES['book21'], {'EGP': 500, 'USD': 19.99})
+        self.assertEqual(catalog.FIXED_PRICES['book20'], {'EGP': 500, 'USD': 19.99, 'KWD': 6.2})
+        self.assertEqual(catalog.FIXED_PRICES['book21'], {'EGP': 500, 'USD': 19.99, 'KWD': 6.2})
         with self.assertRaises(ValueError):
             store_catalog.validate({'independentPrices': {'book22': {'EGP': 1, 'USD': 1}}})
 

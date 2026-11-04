@@ -181,8 +181,8 @@ def kashier_currencies():
 def payment_currency_supported(currency):
     currency=str(currency or '').upper()
     if payment_provider()=='kashier':
-        # USD display prices are converted to an actual EGP charge for new orders.
-        return ('EGP' if currency=='USD' else currency) in kashier_currencies()
+        # USD and KWD are display currencies; the verified Kashier charge is EGP.
+        return ('EGP' if currency in ('USD','KWD') else currency) in kashier_currencies()
     if payment_provider()=='paymob':
         return bool(paymob_mode() and currency in confirmed_currencies('PAYMOB') and localization.payment_method_for(currency))
     return False
@@ -310,9 +310,11 @@ def payment_price_summary(order):
         if isinstance(price,dict) and currency=='EGP':
             display=Decimal(str(price.get('displayTotal','NaN')))
             charge=Decimal(str(price.get('chargeTotal','NaN')))
-            if (price.get('displayCurrency')=='USD' and price.get('chargeCurrency')=='EGP'
+            if (price.get('displayCurrency') in ('USD','KWD') and price.get('chargeCurrency')=='EGP'
                     and display.is_finite() and display>0 and charge.is_finite() and charge==amount):
-                summary.update(displayCurrency='USD',displayTotal=f'{display:.2f}')
+                display_currency=price['displayCurrency']
+                summary.update(displayCurrency=display_currency,
+                               displayTotal=f'{display:.3f}' if display_currency=='KWD' else f'{display:.2f}')
         return summary
     except (KeyError,TypeError,ValueError,InvalidOperation):
         return None
@@ -354,10 +356,15 @@ def kashier_checkout(order, customer):
         'serverWebhook':site+'/api/kashier/webhook',
     }
     price=payment_price_summary(order)
-    if price and price['displayCurrency']=='USD' and price['chargeCurrency']=='EGP':
-        labels=('Order price (USD)','Amount charged (EGP)') if order.get('displayLanguage')=='en' else ('سعر الطلب بالدولار الأمريكي','المبلغ المحصل بالجنيه المصري')
+    if price and price['displayCurrency'] in ('USD','KWD') and price['chargeCurrency']=='EGP':
+        display_currency=price['displayCurrency']
+        labels=(('Order price ('+display_currency+')','Amount charged (EGP)')
+                if order.get('displayLanguage')=='en' else
+                ('سعر الطلب بالدينار الكويتي' if display_currency=='KWD' else 'سعر الطلب بالدولار الأمريكي',
+                 'المبلغ المحصل بالجنيه المصري'))
         payload['metaData']={'displayNotes':{
-            labels[0]:price['displayTotal']+' USD',labels[1]:price['chargeTotal']+' EGP'}}
+            labels[0]:price['displayTotal']+' '+display_currency,
+            labels[1]:price['chargeTotal']+' EGP'}}
     request=Request(KASHIER_API_BASES[mode]+'/v3/payment/sessions',
                     data=json.dumps(payload,separators=(',',':')).encode(),
                     headers={'Authorization':secret,'api-key':payment_key,
@@ -936,11 +943,11 @@ class Handler(BaseHTTPRequestHandler):
                 currency=price_config['currency']
                 if not (paypal_ready(currency) if using_paypal else payment_currency_supported(currency)):
                     return self.respond(503,{'ok':False,'error':'الدفع بهذه العملة غير متاح حاليًا.'})
-                conversion=selected=='kashier' and currency=='USD'
+                conversion=selected=='kashier' and currency in ('USD','KWD')
                 if route=='/api/checkout-quote':
                     if not conversion:
                         return self.respond(200,{'ok':True,'quote':None})
-                    quote_data=checkout_pricing.issue(ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
+                    quote_data=checkout_pricing.issue(ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''),display_currency=currency)
                     return self.respond(200,{'ok':True,'quote':quote_data})
                 paymob_method_id=(localization.payment_method_for(currency)
                                   if selected=='paymob' else None)
@@ -950,7 +957,7 @@ class Handler(BaseHTTPRequestHandler):
                                              'error':'راجع بيانات التواصل الموضحة قبل الدفع.'})
                 pricing_quote=None
                 if conversion:
-                    pricing_quote=checkout_pricing.verify(data.get('quoteToken'),ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
+                    pricing_quote=checkout_pricing.verify(data.get('quoteToken'),ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''),display_currency=currency)
                     total=float(Decimal(pricing_quote['chargeTotal']))
                     currency='EGP'
                 checkout_secret=secrets.token_urlsafe(32)

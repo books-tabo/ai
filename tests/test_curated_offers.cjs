@@ -14,7 +14,7 @@ const fixture=JSON.parse(execFileSync('python3',['-c',`
 import json,itertools,catalog,localization
 members=sorted(set(b for o in catalog.OFFERS.values() for b in o['books']))
 result=[]
-for country in ('EG','KW'):
+for country in ('EG','SA'):
  c=localization.pricing_for_country(catalog.PRICES,country);cases=[]
  for mask in range(1<<len(members)):
   selected=[b for i,b in enumerate(members) if mask&(1<<i)]
@@ -94,7 +94,7 @@ c.TABO_CURATED_OFFERS=JSON.parse(fs.readFileSync('content/offers.json'));
 c.TABO_OFFER_BOOK_NAMES={};
 c.TaboOfferUI.render(fixture[0].config,'ar');
 assert.equal(buy.hidden,true);assert.equal(elements.get('[data-offer-original]').hidden,true);
-assert.match(elements.get('[data-offer-availability]').textContent,/بالدولار فقط/);
+assert.match(elements.get('[data-offer-availability]').textContent,/بالدولار أو الدينار الكويتي/);
 c.TaboOfferUI.render(fixture[1].config,'en');
 assert.equal(buy.hidden,false);assert.equal(buy.disabled,false);
 assert.match(elements.get('[data-offer-price]').textContent,/34\.99/);
