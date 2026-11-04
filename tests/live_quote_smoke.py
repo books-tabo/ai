@@ -41,7 +41,7 @@ def main():
     page = read('/checkout')[0].decode()
     note = page.split('id="chargeCurrencyNote"', 1)[1].split('>', 1)[0]
     assert 'font-size:13px' in note
-    raw, headers = read('/api/checkout-quote', {'country': 'KW', 'items': [{'id': 'book1'}],
+    raw, headers = read('/api/checkout-quote', {'country': 'SA', 'items': [{'id': 'book1'}],
                                             'catalogRevision': pricing.get('catalogRevision')})
     result = json.loads(raw)
     assert result.get('ok') is True
