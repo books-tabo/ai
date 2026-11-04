@@ -244,6 +244,48 @@ class QuoteHTTPTests(HTTPCase):
             REAL_INSERT({**app.store.order(row),'pricingQuote':q})
             self.assertEqual(save.call_args.args[2]['pricing_quote'], q)
 
+    def test_kuwait_price_is_quoted_in_kwd_but_kashier_charges_egp(self):
+        """No real gateway requests, purchases, or customer data in this test."""
+        with patch.object(fx, 'kwd_egp_rate', return_value=(Decimal('175'), '2026-11-05')):
+            status, data, _ = self.post('/api/checkout-quote', {
+                'items': self.items, 'country': 'KW'
+            })
+        self.assertEqual(status, 200)
+        quote = data['quote']
+        self.assertEqual((quote['displayCurrency'], quote['displayTotal']),
+                         ('KWD', '3.1'))
+        self.assertEqual((quote['chargeCurrency'], quote['chargeTotal']),
+                         ('EGP', '542.50'))
+        self.assertEqual(
+            fx.verify(quote['token'], ['book1'], 'KW', 3.1,
+                      app.payment_mode(), KEY, display_currency='KWD')['rate'],
+            '175')
+        with self.assertRaises(fx.InvalidQuote):
+            fx.verify(quote['token'], ['book1'], 'KW', 3.1,
+                      app.payment_mode(), KEY, display_currency='USD')
+        with patch.object(app, 'payment_checkout', return_value=(
+                'https://payments.kashier.io/session/synthetic-session?mode=test',
+                'synthetic-session')) as gateway:
+            status, result, _ = self.post('/api/orders', {
+                'items': self.items, 'country': 'KW', 'customer': self.customer,
+                'quoteToken': quote['token']
+            })
+        self.assertEqual(status, 201)
+        self.assertEqual((result['order']['currency'], result['order']['total']),
+                         ('EGP', 542.5))
+        gateway.assert_called_once()
+        self.assertEqual(self.db.orders[result['order']['id']]['pricingQuote']['displayCurrency'], 'KWD')
+        self.assertEqual(app.payment_price_summary(
+            self.db.orders[result['order']['id']])['displayTotal'], '3.100')
+
+    def test_kuwait_quote_fail_closed_when_rate_unavailable(self):
+        with patch.object(fx, 'kwd_egp_rate', side_effect=fx.RateUnavailable()):
+            status, _, _ = self.post('/api/checkout-quote', {
+                'items': self.items, 'country': 'KW'
+            })
+        self.assertEqual(status, 503)
+        self.insert.assert_not_called()
+
     def test_existing_usd_order_still_uses_its_original_currency(self):
         from support import order
         o=order(number=999)
