@@ -95,7 +95,8 @@ def message(order, *, attachment_book=None):
     summary = ('Amount charged: ' if en else 'المبلغ المحصّل: ') + amount
     quote = order.get('pricingQuote')
     if quote:
-        summary += ('\nDisplayed price: ' if en else '\nالسعر المعروض: ') + f"{Decimal(str(quote['displayTotal'])):.3f} {quote['displayCurrency']}" if quote['displayCurrency']=='KWD' else f"{Decimal(str(quote['displayTotal'])):.2f} {quote['displayCurrency']}"
+        display = (f"{Decimal(str(quote['displayTotal'])):.3f} {quote['displayCurrency']}" if quote['displayCurrency']=='KWD' else f"{Decimal(str(quote['displayTotal'])):.2f} {quote['displayCurrency']}")
+        summary += ('\nDisplayed price: ' if en else '\nالسعر المعروض: ') + display
     instruction = ('Open the order link in the same browser and device used for your purchase. '
                    'Your existing download protection and two-download limit per book still apply.' if en else
                    'افتح رابط طلبك من نفس المتصفح والجهاز المستخدمين للشراء. تظل حماية طلبك ومحاولتا تحميل كل كتاب كما هما.')
