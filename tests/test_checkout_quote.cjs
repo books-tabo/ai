@@ -20,7 +20,7 @@ function boot(){
     const calls=[],alerts=[],events=[],redirects=[];
     const c=vm.createContext({
         document:{getElementById:id=>nodes[id]},
-        storeConfig:{paymentProvider:'kashier',currency:'USD',country:'KW',checkoutSupported:true},
+        storeConfig:{paymentProvider:'kashier',currency:'USD',country:'SA',checkoutSupported:true},
         cart:[{id:'book1'}],currentLanguage:'ar',BACKEND_URL:'https://synthetic.invalid',
         window:{TABO_CHECKOUT_READY:true,TaboTracking:{track:(...a)=>events.push(a)},
                 location:{assign:u=>redirects.push(u)}},
