@@ -98,7 +98,23 @@ function boot(){
         assert.equal(redirects.length,1);
         assert.equal(redirects[0],'https://payments.kashier.io/session/synthetic');
     }
-    console.log('4 checkout quote groups passed; all inline storefront JavaScript parsed.');
+    {
+        const {c,nodes}=boot();
+        c.storeConfig.country='KW';
+        c.storeConfig.currency='KWD';
+        c.calculatePricing=()=>({final:3.1,count:1});
+        c.fetch=async()=>({ok:true,json:async()=>({ok:true,quote:{
+          displayCurrency:'KWD',displayTotal:'3.1',
+          chargeCurrency:'EGP',chargeTotal:'527.00',
+          expiresAt:Math.floor(Date.now()/1000)+300,token:'synthetic-kwd-quote'
+        }})});
+        assert.equal(c.needsEgpQuote(),true);
+        assert.equal(await c.refreshCheckoutQuote(),true);
+        assert.match(nodes.chargeCurrencyNote.textContent,/527.00 جنيه/);
+        c.storeConfig.currency='USD';
+        assert.equal(Boolean(c.currentCheckoutQuote()),false);
+    }
+    console.log('5 checkout quote groups passed, including KWD-to-EGP binding.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
 require('./test_catalog_pricing.cjs');
