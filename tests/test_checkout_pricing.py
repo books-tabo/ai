@@ -19,9 +19,9 @@ REAL_INSERT = app.store.insert
 class QuoteTests(unittest.TestCase):
     def test_signed_quote_rounding_binding_expiry_and_tampering(self):
         with patch.object(fx, 'usd_egp_rate', return_value=(Decimal('54.16975051'), '2026-10-20')):
-            q = fx.issue(['book2', 'book1'], 'KW', 17.99, 'live', KEY)
+            q = fx.issue(['book2', 'book1'], 'SA', 17.99, 'live', KEY)
         self.assertEqual(q['chargeTotal'], '974.51')
-        args = (q['token'], ['book1', 'book2'], 'KW', 17.99, 'live', KEY)
+        args = (q['token'], ['book1', 'book2'], 'SA', 17.99, 'live', KEY)
         self.assertEqual(fx.verify(*args)['rate'], q['rate'])
         variants = [('', *args[1:]), (q['token']+'x', *args[1:]),
                     (q['token'], ['book3', 'book2'], *args[2:]),
@@ -90,7 +90,7 @@ class QuoteHTTPTests(HTTPCase):
         self.customer={'name':'Synthetic Buyer','phone':'01000000000','email':'synthetic@example.invalid'}
 
     def quote(self):
-        status, data, headers=self.post('/api/checkout-quote', {'items':self.items,'country':'KW'})
+        status, data, headers=self.post('/api/checkout-quote', {'items':self.items,'country':'SA'})
         self.assertEqual(status, 200)
         self.assertEqual(headers['Cache-Control'], 'no-store')
         return data['quote']
@@ -103,7 +103,7 @@ class QuoteHTTPTests(HTTPCase):
             captured.append(json.loads(req.data))
             return FakeResponse(reply)
         with patch.object(fx, 'usd_egp_rate', side_effect=AssertionError('reuse quote')), patch.object(app, 'urlopen', side_effect=gateway):
-            status, data, _=self.post('/api/orders', {'items':self.items,'country':'KW',
+            status, data, _=self.post('/api/orders', {'items':self.items,'country':'SA',
                 'customer':self.customer,'quoteToken':q['token'],'total':1,'currency':'USD'})
         self.assertEqual(status, 201)
         self.assertEqual((data['order']['total'],data['order']['currency']), (541.16,'EGP'))
@@ -131,7 +131,7 @@ class QuoteHTTPTests(HTTPCase):
 
     def test_missing_changed_or_expired_quote_cannot_create_order(self):
         q=self.quote()
-        body={'items':self.items,'country':'KW','customer':self.customer}
+        body={'items':self.items,'country':'SA','customer':self.customer}
         self.assertEqual(self.post('/api/orders',body)[0], 409)
         self.assertEqual(self.post('/api/orders',{**body,'quoteToken':q['token']+'x'})[0], 409)
         self.assertEqual(self.post('/api/orders',{**body,'quoteToken':q['token'],'items':[{'id':'book2'}]})[0], 409)
@@ -142,7 +142,7 @@ class QuoteHTTPTests(HTTPCase):
 
     def test_rate_failure_and_cross_site_quote_never_start_payment(self):
         with patch.object(fx, 'usd_egp_rate', side_effect=fx.RateUnavailable()):
-            self.assertEqual(self.post('/api/checkout-quote',{'items':self.items,'country':'KW'})[0], 503)
+            self.assertEqual(self.post('/api/checkout-quote',{'items':self.items,'country':'SA'})[0], 503)
         self.assertEqual(self.post('/api/checkout-quote',{'items':self.items},{'Origin':'https://untrusted.invalid'})[0], 403)
         self.insert.assert_not_called()
 
@@ -189,7 +189,7 @@ class QuoteHTTPTests(HTTPCase):
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
                 self.items=[{'id':book_id} for book_id in ids]
                 q=self.quote()
-                status,data,_=self.post('/api/orders',{'items':self.items,'country':'KW','customer':self.customer,'quoteToken':q['token'],'total':1})
+                status,data,_=self.post('/api/orders',{'items':self.items,'country':'SA','customer':self.customer,'quoteToken':q['token'],'total':1})
                 self.assertEqual(status,201)
                 stored=self.db.orders[data['order']['id']]
                 self.assertEqual(Decimal(stored['pricingQuote']['displayTotal']),total)
@@ -198,7 +198,7 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(stored['currency'],'EGP')
 
     def test_curated_offer_orders_ignore_client_prices_and_keep_every_book(self):
-        for country,currency in [('EG','EGP'),('KW','USD')]:
+        for country,currency in [('EG','EGP'),('SA','USD')]:
             for offer in app.catalog.OFFERS.values():
                 if currency not in offer['prices']: continue
                 ids=offer['books']
@@ -220,7 +220,7 @@ class QuoteHTTPTests(HTTPCase):
             self.items=[{'id':bid} for bid in app.catalog.OFFERS[offer_id]['books']]
             q=self.quote()
             with patch.object(app,'payment_checkout') as gateway:
-                status,body,_=self.post('/api/orders',{'items':self.items[:-1],'country':'KW','customer':self.customer,'quoteToken':q['token']})
+                status,body,_=self.post('/api/orders',{'items':self.items[:-1],'country':'SA','customer':self.customer,'quoteToken':q['token']})
             self.assertEqual(status,409);self.assertEqual(body['code'],'QUOTE_REFRESH_REQUIRED');gateway.assert_not_called()
 
     def test_old_usd_quote_cannot_authorize_new_price(self):
@@ -228,9 +228,9 @@ class QuoteHTTPTests(HTTPCase):
                       (['book20', 'book21'], 20), (['book20', 'book21', 'book22', 'book23'], 39)]
         for ids, old in old_prices:
             self.items = [{'id': bid} for bid in ids]
-            old_quote = fx.issue(ids, 'KW', old, app.payment_mode(), KEY)
+            old_quote = fx.issue(ids, 'SA', old, app.payment_mode(), KEY)
             with patch.object(app,'payment_checkout') as gateway:
-                status,body,_=self.post('/api/orders',{'items':self.items,'country':'KW','customer':self.customer,'quoteToken':old_quote['token']})
+                status,body,_=self.post('/api/orders',{'items':self.items,'country':'SA','customer':self.customer,'quoteToken':old_quote['token']})
             self.assertEqual(status,409);self.assertEqual(body['code'],'QUOTE_REFRESH_REQUIRED');gateway.assert_not_called()
 
     def test_adapter_preserves_quote_and_legacy_rows(self):
