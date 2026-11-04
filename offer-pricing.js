@@ -2,7 +2,8 @@
 var TaboOfferPricing = (() => {
   'use strict';
   function best(ids, config) {
-    const minor = value => Math.round(Number(value) * 100);
+    const scale = config.currency === 'KWD' ? 1000 : 100;
+    const minor = value => Math.round(Number(value) * scale);
     const selected = new Set(ids);
     if (selected.size !== ids.length) throw Error('Duplicate books');
     const regular = count => count ? minor(config.prices[count]) : 0;
