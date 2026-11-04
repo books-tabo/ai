@@ -21,7 +21,7 @@ class DownloadSharingHTTPTests(HTTPCase):
                 self.assertRegex(source, re.escape('/'+asset)+r'\?v=[a-f0-9]{12}')
 
     def test_share_links_never_include_visit_or_private_parameters(self):
-        for bid in ('book19', 'book20', 'book21', 'book22', 'book23'):
+        for bid in ('book19', 'book20', 'book21', 'book22', 'book23', 'book24'):
             source=seo.render((app.ROOT/'book.html').read_text(), '/books/'+bid, 'tabobooks.com', 'book.html')
             target=html.unescape(re.search(r'id="shareWhatsApp" href="([^"]+)"', source)[1])
             self.assertEqual(urlparse(target).netloc, 'wa.me')

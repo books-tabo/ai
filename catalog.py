@@ -26,7 +26,8 @@ BOOKS = {'book1': ('هرمون', 'book1.pdf'),
  'book20': ('السيجما: الذكر الملكي', 'book20.pdf'),
  'book21': ('السيجما: أنوثة طاغية', 'book21.pdf'),
  'book22': ('محكمة الحب والجنس', 'book22.pdf'),
- 'book23': ('هرمونات أنثى', 'book23.pdf')}
+ 'book23': ('هرمونات أنثى', 'book23.pdf'),
+ 'book24': ('تحت المجهر', 'book24.pdf')}
 
 PRICES = {1: 199,
  2: 299,
@@ -52,8 +53,9 @@ PRICES = {1: 199,
 FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 19.99},
                 'book21': {'EGP': 500, 'USD': 19.99},
                 'book22': {'EGP': 500, 'USD': 19.99},
-                'book23': {'EGP': 500, 'USD': 19.99}}
-PREVIEW_DISABLED = frozenset({'book20', 'book21', 'book22', 'book23'})
+                'book23': {'EGP': 500, 'USD': 19.99},
+                'book24': {'EGP': 500, 'USD': 19.99}}
+PREVIEW_DISABLED = frozenset({'book20', 'book21', 'book22', 'book23', 'book24'})
 OFFERS = json.loads((Path(__file__).resolve().parent / 'content/offers.json').read_text())
 for _offer in OFFERS.values():
     _fixed_bundle = _offer.get('fixedPriceBundle', False)
