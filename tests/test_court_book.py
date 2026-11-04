@@ -13,7 +13,7 @@ import test_download_http
 
 class CourtBookTests(HTTPCase):
     def test_court_keeps_full_price_except_explicit_four_book_pack(self):
-        for country, price in [('EG', Decimal('500')), ('KW', Decimal('19.99'))]:
+        for country, price in [('EG', Decimal('500')), ('SA', Decimal('19.99'))]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             cases = [[], ['book20'], ['book21'], ['book20', 'book21'], ['book23'], ['book20','book21','book23']]
             cases += [offer['books'] for offer in catalog.OFFERS.values() if 'book22' not in offer['books']]
