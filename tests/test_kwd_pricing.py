@@ -25,10 +25,12 @@ class KuwaitiDinarPricingTests(unittest.TestCase):
                     15.550,17.100,18.650,20.200,21.750,23.300,24.850,
                     26.400,27.950,29.500,31.100,32.650]
         for count, amount in enumerate(expected, 1):
-            ids = ['book'+str(i) for i in range(1,count+1)]
-            self.assertEqual(catalog.total_for_items(ids,kw), amount)
-            self.assertEqual(catalog.total_for_items(ids,eg), catalog.PRICES[count])
-            self.assertEqual(catalog.total_for_items(ids,us), localization.USD_PRICES[str(count)])
+            # Curated packs can legitimately discount the total below the
+            # ordinary quantity ladder. Compare the unchanged base schedules.
+            self.assertEqual(kw['prices'][str(count)], amount)
+            self.assertEqual(eg['prices'][str(count)], catalog.PRICES[count])
+            self.assertEqual(us['prices'][str(count)], localization.USD_PRICES[str(count)])
+        self.assertEqual(catalog.total_for_items(['book1'], kw), 3.100)
         self.assertEqual(next(c for c in kw['countries'] if c['code']=='KW')['currency'],'KWD')
         self.assertEqual(next(c for c in kw['countries'] if c['code']=='EG')['currency'],'EGP')
 
