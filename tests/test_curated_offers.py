@@ -31,7 +31,7 @@ class CuratedPricingTests(unittest.TestCase):
 
     def test_four_book_pack_is_automatic_and_named_in_either_offer_order(self):
         ids=['book20','book21','book22','book23']
-        for country,total,saving in [('EG',1250,'750'),('KW',49,'30.96')]:
+        for country,total,saving in [('EG',1250,'750'),('SA',49,'30.96')]:
             config=localization.pricing_for_country(catalog.PRICES,country)
             for offers in [catalog.OFFERS,dict(reversed(list(catalog.OFFERS.items())))]:
                 with patch.object(catalog,'current_offers',return_value=offers):
@@ -47,7 +47,7 @@ class CuratedPricingTests(unittest.TestCase):
         for removed in books:
             remaining = [book_id for book_id in books if book_id != removed]
             usd = '59.97' if removed in ('book20', 'book21') else '54.98'
-            for country, total in [('EG', '1500'), ('KW', usd)]:
+            for country, total in [('EG', '1500'), ('SA', usd)]:
                 config = localization.pricing_for_country(catalog.PRICES, country)
                 result = catalog.pricing_breakdown(remaining, config)
                 self.assertEqual(result['total'], Decimal(total))
@@ -58,7 +58,7 @@ class CuratedPricingTests(unittest.TestCase):
         ids = ['book24', 'book23', 'book22']
         self.assertEqual(catalog.OFFERS['marriage-awareness']['books'], ids)
         for country, unit, pack in [('EG', Decimal('500'), Decimal('1000')),
-                                    ('KW', Decimal('19.99'), Decimal('39'))]:
+                                    ('SA', Decimal('19.99'), Decimal('39'))]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             self.assertEqual(config['bookPolicies']['book24'],
                              {'price': float(unit), 'bundleEligible': False, 'previewEnabled': False})
@@ -82,7 +82,7 @@ class CuratedPricingTests(unittest.TestCase):
         for key,(ids,egp,usd) in expected.items():
             self.assertEqual(catalog.OFFERS[key]['books'],ids)
             self.assertNotIn('book20',ids)
-            for country,total in [('EG',egp),('KW',usd)]:
+            for country,total in [('EG',egp),('SA',usd)]:
                 config=localization.pricing_for_country(catalog.PRICES,country)
                 self.assertEqual(catalog.total_for_items(ids,config),total)
                 self.assertEqual(catalog.total_for_items(list(reversed(ids)),config),total)
@@ -99,7 +99,7 @@ class CuratedPricingTests(unittest.TestCase):
                (growth+['book20'],900,42.99),
                (list(catalog.BOOKS),3599,171.98)]
         for ids,egp,usd in cases:
-            for country,expected in [('EG',egp),('KW',usd)]:
+            for country,expected in [('EG',egp),('SA',usd)]:
                 with self.subTest(country=country,ids=ids):
                     actual=catalog.total_for_items(ids,localization.pricing_for_country(catalog.PRICES,country))
                     self.assertEqual(Decimal(str(actual)),Decimal(str(expected)))
