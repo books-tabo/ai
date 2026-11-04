@@ -1,4 +1,4 @@
-"""Signed, short-lived USD display quotes for an actual EGP charge.
+"""Signed, short-lived USD or KWD display quotes for an actual EGP charge.
 
 Quotes contain no buyer data or payment credentials. Existing orders retain
 their persisted charge amount and currency, including historical USD orders.
@@ -17,7 +17,7 @@ QUOTE_SECONDS = 300
 RATE_CACHE_SECONDS = 60
 RATE_MAX_AGE_SECONDS = 24 * 60 * 60
 _rate_lock = threading.Lock()
-_rate_cache = None
+_rate_cache = {}
 
 
 class RateUnavailable(RuntimeError):
@@ -28,17 +28,21 @@ class InvalidQuote(ValueError):
     pass
 
 
-def usd_egp_rate():
-    """Bounded single-flight lookup; no invented rate or unbounded lock queue."""
+def _source_egp_rate(source):
+    """Bounded per-currency FX lookup; fail closed when the live rate is absent."""
     global _rate_cache
+    if source not in ('USD', 'KWD'):
+        raise RateUnavailable('Unsupported display currency')
     if not _rate_lock.acquire(timeout=0.1):
         raise RateUnavailable('Exchange rate temporarily unavailable')
     try:
         current = time.time()
-        if _rate_cache and 0 <= current - _rate_cache[0] < RATE_CACHE_SECONDS:
-            return _rate_cache[1], _rate_cache[2]
+        cache = _rate_cache if isinstance(_rate_cache, dict) else {}
+        cached = cache.get(source)
+        if cached and 0 <= current - cached[0] < RATE_CACHE_SECONDS:
+            return cached[1], cached[2]
         try:
-            req = Request('https://api.kashier.io/v3/payment/exchange-rate?from=USD&to=EGP',
+            req = Request('https://api.kashier.io/v3/payment/exchange-rate?from='+source+'&to=EGP',
                           headers={'Accept': 'application/json'})
             with urlopen(req, timeout=8) as response:
                 raw = response.read(8193)
@@ -48,17 +52,25 @@ def usd_egp_rate():
             rate = Decimal(str(data['rates']['EGP']))
             generated = float(data['timestamp']) / 1000
             rate_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-            if (data.get('success') is not True or data.get('base') != 'USD' or
+            if (data.get('success') is not True or data.get('base') != source or
                     not rate.is_finite() or not 0 < rate < 1_000_000 or
                     not 0 <= current - generated <= RATE_MAX_AGE_SECONDS or
                     abs((datetime.now(timezone.utc).date() - rate_date).days) > 1):
                 raise ValueError()
         except Exception:
             raise RateUnavailable('Exchange rate temporarily unavailable') from None
-        _rate_cache = (current, rate, data['date'])
+        _rate_cache = {**cache, source: (current, rate, data['date'])}
         return rate, data['date']
     finally:
         _rate_lock.release()
+
+
+def usd_egp_rate():
+    return _source_egp_rate('USD')
+
+
+def kwd_egp_rate():
+    return _source_egp_rate('KWD')
 
 
 def _sign(encoded, key):
@@ -67,12 +79,14 @@ def _sign(encoded, key):
     return hmac.new(key.encode(), b'tabo-egp-quote-v1:' + encoded.encode(), hashlib.sha256).hexdigest()
 
 
-def issue(ids, country, display_total, mode, key):
-    rate, rate_date = usd_egp_rate()
+def issue(ids, country, display_total, mode, key, display_currency='USD'):
+    if display_currency not in ('USD', 'KWD'):
+        raise ValueError('Unsupported display currency')
+    rate, rate_date = (kwd_egp_rate() if display_currency == 'KWD' else usd_egp_rate())
     charged = (Decimal(str(display_total)) * rate).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     current = int(time.time())
     quote = {'version': 1, 'items': sorted(ids), 'country': country, 'mode': mode,
-             'displayCurrency': 'USD', 'displayTotal': str(display_total),
+             'displayCurrency': display_currency, 'displayTotal': str(display_total),
              'chargeCurrency': 'EGP', 'chargeTotal': str(charged),
              'rate': str(rate), 'rateDate': rate_date, 'quotedAt': current,
              'expiresAt': current + QUOTE_SECONDS}
@@ -80,7 +94,7 @@ def issue(ids, country, display_total, mode, key):
     return {**quote, 'token': encoded + '.' + _sign(encoded, key)}
 
 
-def verify(token, ids, country, display_total, mode, key):
+def verify(token, ids, country, display_total, mode, key, display_currency='USD'):
     try:
         if not isinstance(token, str) or len(token) > 4096:
             raise ValueError()
@@ -90,7 +104,7 @@ def verify(token, ids, country, display_total, mode, key):
         quote = json.loads(base64.urlsafe_b64decode(encoded + '=' * (-len(encoded) % 4)))
         current = int(time.time())
         if (quote['version'] != 1 or quote['items'] != sorted(ids) or quote['country'] != country or
-                quote['mode'] != mode or quote['displayCurrency'] != 'USD' or
+                quote['mode'] != mode or quote['displayCurrency'] != display_currency or
                 Decimal(quote['displayTotal']) != Decimal(str(display_total)) or
                 quote['chargeCurrency'] != 'EGP' or not quote['quotedAt'] <= current < quote['expiresAt'] or
                 quote['expiresAt'] - quote['quotedAt'] != QUOTE_SECONDS):
