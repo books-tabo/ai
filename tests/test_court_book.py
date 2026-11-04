@@ -37,7 +37,7 @@ class CourtBookTests(HTTPCase):
         order = test_download_http.DownloadHTTPTests.paid(self, 1)
         headers = {'Cookie': app.download_cookie_name(order['id'])+'=synthetic-session'}
         with patch.object(app.store, 'original') as original:
-            for bid in ('book22','book23'):
+            for bid in ('book22','book23','book24'):
                 for status in ('PENDING', 'REFUNDED', 'FAILED'):
                     order['status'] = status
                     self.install(order)
@@ -49,7 +49,7 @@ class CourtBookTests(HTTPCase):
             original.assert_not_called()
 
     def test_paid_court_and_hormones_read_only_their_private_original(self):
-        for bid,pages in [('book22',419),('book23',457)]:
+        for bid,pages in [('book22',419),('book23',457),('book24',370)]:
             order = test_download_http.DownloadHTTPTests.paid(self, 1)
             order['items'] = [{'id': bid, 'name': catalog.BOOKS[bid][0]}]
             self.install(order)

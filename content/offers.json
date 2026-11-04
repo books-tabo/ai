@@ -55,5 +55,25 @@
       "USD": 49
     },
     "fixedPriceBundle": true
+  },
+  "marriage-awareness": {
+    "title": {
+      "ar": "باقة فهم الحياة الزوجية",
+      "en": "Understanding Married Life"
+    },
+    "description": {
+      "ar": "تحت المجهر، وهرمونات أنثى، ومحكمة الحب والجنس. ثلاث قراءات للبالغين تجمع أثر المجتمع والثقافة، وفهم الجسد والهرمونات، والحب والرغبة والحوار بين الزوجين.",
+      "en": "Under the Microscope, Female Hormones, and The Court of Love & Sex. Three adult reads connecting society and culture, the body and hormones, and love, desire and dialogue within marriage."
+    },
+    "books": [
+      "book24",
+      "book23",
+      "book22"
+    ],
+    "prices": {
+      "EGP": 1000,
+      "USD": 39
+    },
+    "fixedPriceBundle": true
   }
 }

@@ -1565,5 +1565,109 @@
     ],
     "imageWidth": 720,
     "imageHeight": 1080
+  },
+  "book24": {
+    "name": "تحت المجهر",
+    "enName": "Under the Microscope",
+    "image": "/covers/book24.webp",
+    "size": 10722930,
+    "fixedPrices": {
+      "EGP": 500,
+      "USD": 19.99
+    },
+    "bundleEligible": false,
+    "previewEnabled": false,
+    "short": "المسكوت عنه في المجتمع العربي: قراءة نفسية واجتماعية في الصمت حول الجسد والجنس، والتواصل والرغبة والحياة الزوجية.",
+    "enShort": "A psychological and social exploration of silence around the body, sexuality, communication, desire and married life in Arab society.",
+    "about": "«تحت المجهر — المسكوت عنه في المجتمع العربي» للمؤلف TABO NOOR يتناول أثر التربية والعادات والتوقعات الاجتماعية في فهم الجسد والجنس والعلاقة الزوجية. يسأل كيف يتعلم الإنسان الصمت، وكيف تنتقل تصورات الرجولة والأنوثة إلى الحياة بين الزوجين.\n\nعبر ثلاثة أبواب وخمسة عشر فصلًا، ينتقل من الصمت الاجتماعي والدين والعرف والتعلم عبر الشاشات، إلى ليلة الزفاف والتواصل واختلاف الرغبة والألم والخوف والسلطة داخل العلاقة. ثم يناقش تدخل الآخرين والضغوط الاقتصادية والفتور وطلب العلاج، وصولًا إلى بناء ثقافة تسمح بالسؤال والفهم والحوار.",
+    "enAbout": "Under the Microscope by TABO NOOR examines how upbringing, customs and social expectations shape ideas about the body, sexuality and marriage in Arab society. It asks how people learn to stay silent and how expectations about masculinity and femininity enter married life.\n\nAcross three parts and fifteen chapters, it explores social silence, religion and custom, learning from screens, the wedding night, communication, differences in desire, pain, fear and power. It then considers outside interference, financial pressures, distance between spouses and seeking professional help, before discussing a culture of questions, understanding and dialogue.",
+    "adds": "يساعد الزوجين والقراء البالغين على مراجعة التصورات الموروثة، وفهم أثر الخوف والضغط الاجتماعي، وفتح حوار يحترم الحدود والرضا والاختلافات الفردية.",
+    "enAdds": "Helps adult readers and couples examine inherited assumptions, recognize fear and social pressure, and develop dialogue that respects boundaries, consent and individual differences.",
+    "idea": "فهم ما نسكت عنه يفتح مساحة أوسع للحوار داخل العلاقة الزوجية.",
+    "enIdea": "Understanding what goes unspoken can create room for dialogue within marriage.",
+    "audience": {
+      "ar": "للزوجين والبالغين المقبلين على الزواج، وللقارئ المهتم بالصلة بين الثقافة والمجتمع والتجربة الحميمة.",
+      "en": "For married couples, adults preparing for marriage and readers interested in the relationship between culture, society and intimate experience."
+    },
+    "primaryCategory": "marriage-family",
+    "topics": {
+      "ar": [
+        "الصمت الاجتماعي وصورة الجسد",
+        "الدين والعرف وتوقعات الرجولة والأنوثة",
+        "التواصل واختلاف الرغبة بين الزوجين",
+        "الألم والخوف وحدود السلطة داخل العلاقة",
+        "الضغوط الاقتصادية والفتور وطلب المساعدة"
+      ],
+      "en": [
+        "Social silence and ideas about the body",
+        "Religion, custom and gender expectations",
+        "Communication and differences in desire",
+        "Pain, fear and power within relationships",
+        "Financial pressures, distance and seeking help"
+      ]
+    },
+    "related": [
+      "book23",
+      "book22",
+      "book21"
+    ],
+    "faq": {
+      "ar": [
+        [
+          "ما موضوع كتاب تحت المجهر؟",
+          "يتناول المسكوت عنه في المجتمع العربي حول الجسد والجنس والحياة الزوجية من منظور نفسي واجتماعي، ويناقش الصمت والتواصل والرغبة والضغوط المحيطة بالعلاقة."
+        ],
+        [
+          "كم عدد صفحات الكتاب وفصوله؟",
+          "النسخة الرقمية تضم 370 صفحة، موزعة على ثلاثة أبواب وخمسة عشر فصلًا مع المقدمة والخاتمة."
+        ],
+        [
+          "هل تتوفر معاينة للكتاب؟",
+          "لا تتوفر معاينة لهذا الكتاب."
+        ],
+        [
+          "كيف أحصل على الكتاب بعد الشراء؟",
+          "بعد تأكيد الدفع تتاح نسخة PDF المختومة عبر مسار التحميل المحمي، وتُرسل بالبريد وفق إعدادات المتجر وحدود التحميل المعتمدة."
+        ]
+      ],
+      "en": [
+        [
+          "What is Under the Microscope about?",
+          "It explores social silence around the body, sexuality and married life in Arab society, including communication, desire and pressures on relationships."
+        ],
+        [
+          "How long is the book?",
+          "The digital edition contains 370 pages, with three parts and fifteen chapters plus the introduction and conclusion."
+        ],
+        [
+          "Is a preview available?",
+          "No preview is available for this book."
+        ],
+        [
+          "How do I receive the book?",
+          "After payment confirmation, the stamped PDF is available through the protected download process and emailed according to the store’s delivery settings and download policy."
+        ]
+      ]
+    },
+    "pageCount": 370,
+    "chapters": [
+      "عقد الصمت",
+      "الجسد المتهم",
+      "رجولة تحت الاختبار وأنوثة تحت الوصاية",
+      "الدين والعرف والحياء",
+      "المدرسة السرية للجنس",
+      "ليلة الزفاف",
+      "أجساد تتقارب ولغات تتباعد",
+      "حين تختلف الرغبة",
+      "الألم والخوف والأداء",
+      "الحميمية بين الحب والسلطة",
+      "المجتمع الذي لا يغادر غرفة النوم",
+      "اقتصاد الرغبة",
+      "حين يبرد القرب",
+      "من الخرافة إلى العيادة",
+      "جيل لا يرث الصمت"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1080
   }
 }

@@ -136,9 +136,9 @@ class PublicHTMLTests(HTTPCase):
 
     def test_private_and_preview_policy_is_not_exposed_as_public_content(self):
         with patch.object(app.store,'original') as original:
-            for path in ['/book20.pdf','/originals/book20.pdf','/book21.pdf','/originals/book21.pdf','/book22.pdf','/originals/book22.pdf','/book23.pdf','/originals/book23.pdf','/content/books.json','/covers/../app.py']:
+            for path in ['/book20.pdf','/originals/book20.pdf','/book21.pdf','/originals/book21.pdf','/book22.pdf','/originals/book22.pdf','/book23.pdf','/originals/book23.pdf','/book24.pdf','/originals/book24.pdf','/content/books.json','/covers/../app.py']:
                 self.assertEqual(self.get(path)[0],404,path)
-            for book_id in ('book20','book21','book22','book23'):
+            for book_id in ('book20','book21','book22','book23','book24'):
                 self.assertNotIn('href="/previews/'+book_id+'"',self.get('/books/'+book_id)[2])
             self.assertIn('href="/previews/book19"',self.get('/books/book19')[2])
             original.assert_not_called()
@@ -174,6 +174,6 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(seo.BOOKS['book23']['size'],10712104)
         self.assertEqual(len(seo.BOOKS['book23']['chapters']),20)
         self.assertEqual(seo.BOOKS['book23']['chapters'][11], 'الجسد الذي لا يرغب دائمًا: سيكولوجيا الفتور الجنسي')
-        self.assertEqual(seo.CATEGORIES['marriage-family']['books'],['book20','book21','book22','book23'])
-        for bid in ('book20','book21','book22','book23'):
+        self.assertEqual(seo.CATEGORIES['marriage-family']['books'],['book20','book21','book22','book23','book24'])
+        for bid in ('book20','book21','book22','book23','book24'):
             self.assertEqual(seo.categories_for(bid)[0][0],'marriage-family')

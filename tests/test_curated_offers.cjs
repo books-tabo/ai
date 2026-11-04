@@ -110,4 +110,21 @@ for(const route of ['/offers',...Object.keys(JSON.parse(fs.readFileSync('content
  for(const script of source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/application\/(ld\+)?json/.test(script[1]))new vm.Script(script[2]);
  assert(source.includes('data-offer-buy'));
 }
+
+// New pack uses all three actual IDs and adds no duplicate cart entries.
+for (const group of fixture) {
+ c.storeConfig=group.config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
+ const egp=group.config.currency==='EGP';
+ const price=egp?1000:39;
+ c.addCuratedOffer('marriage-awareness');c.addCuratedOffer('marriage-awareness');
+ assert.equal(c.cart.length,3);
+ assert.deepEqual(Array.from(c.cart,x=>x.id),['book24','book23','book22']);
+ assert.equal(vm.runInContext('calculatePricing().final',c),price);
+ for(const removed of ['book24','book23','book22']){
+  const ids=['book24','book23','book22'].filter(id=>id!==removed);
+  const result=c.TaboOfferPricing.best(ids,c.storeConfig);
+  assert(!result.offerIds.includes('marriage-awareness'));
+  assert.equal(result.totalMinor,egp?100000:3998);
+ }
+}
 console.log(`Curated offers: ${count} Python/browser pricing comparisons, exact pack totals, Sigma, overlap, removal, upgrade, duplicate prevention, ad parameters and single AddToCart passed.`);
