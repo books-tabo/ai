@@ -25,7 +25,7 @@ class QuoteTests(unittest.TestCase):
         self.assertEqual(fx.verify(*args)['rate'], q['rate'])
         variants = [('', *args[1:]), (q['token']+'x', *args[1:]),
                     (q['token'], ['book3', 'book2'], *args[2:]),
-                    (*args[:2], 'SA', *args[3:]), (*args[:3], 9.99, *args[4:]),
+                    (*args[:2], 'AE', *args[3:]), (*args[:3], 9.99, *args[4:]),
                     (*args[:4], 'test', KEY), (*args[:-1], KEY+'different')]
         for changed in variants:
             with self.assertRaises(fx.InvalidQuote):
