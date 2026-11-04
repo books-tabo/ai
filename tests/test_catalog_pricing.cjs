@@ -8,9 +8,10 @@ const booksSource = html.match(/const BOOKS = (\[[^\n]*\]);/)[1];
 const source = fs.readFileSync('checkout-core.js','utf8').split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
 const egp = Object.fromEntries(Array.from({length: 19}, (_, i) => [String(i + 1), 199 + i * 100]));
 const usd = {1: 9.99, 2: 17.99, 3: 24.99, ...Object.fromEntries(Array.from({length: 16}, (_, i) => [String(i + 4), Number((29.99 + i * 5).toFixed(2))]))};
+const kwd = {1:3.100,2:5.600,3:7.750,4:9.300,5:10.900,6:12.450,7:14.000,8:15.550,9:17.100,10:18.650,11:20.200,12:21.750,13:23.300,14:24.850,15:26.400,16:27.950,17:29.500,18:31.100,19:32.650};
 const context = vm.createContext({storeConfig: {}, PRICING_LADDER: {}, currentLanguage: 'ar', cart: []});
 vm.runInContext('const BOOKS=' + booksSource + '; BOOKS.forEach((book,i)=>book.id="book"+(i+1));\n' + source, context);
-for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD', usd, 19.99, 14.99]]) {
+for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD', usd, 19.99, 14.99], ['KWD', kwd, 6.2, 4.65]]) {
     context.storeConfig = {currency, prices: ladder, compareAtPrice: compare};
     context.PRICING_LADDER = ladder;
     for (let count = 0; count <= 19; count++) {
@@ -90,4 +91,4 @@ for (const currency of ['EGP', 'USD']) {
     assert.equal(ordinary.get('previewLink').href, '/previews/book19');
     assert.equal(ordinary.get('previousPrice').hidden, false);
 }
-console.log('Catalog pricing: all 19 bundle sizes, fixed Sigma totals, order/removal, both currencies, product/mobile prices and preview visibility passed.');
+console.log('Catalog pricing: 19 bundle sizes for EGP/USD/KWD, fixed-price books, product/mobile prices and preview visibility passed.');
