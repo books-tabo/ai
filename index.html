@@ -520,86 +520,9 @@ header p{
 }
 
 /* Studio-style presentation for selected catalog covers. */
-.book-cover-link[href="/books/book1"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e7edda 0%, #becbaa 52%, #83916e 100%);
-}
-
 .book-cover-link[href="/books/book2"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #f0e3e1 0%, #cdb2b2 52%, #927579 100%);
     --cover-stage-top:6%;
     --cover-stage-outline:polygon(1.2% 2.4%, 9% 0, 99.2% .7%, 99.2% 96.8%, 10% 98.1%, 1.2% 97.3%);
-}
-
-.book-cover-link[href="/books/book3"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #6c8c88 0%, #426965 52%, #243f41 100%);
-}
-
-.book-cover-link[href="/books/book4"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #655875 0%, #473d5a 52%, #292239 100%);
-}
-
-.book-cover-link[href="/books/book5"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e2edf7 0%, #adc3d7 52%, #6f889f 100%);
-}
-
-.book-cover-link[href="/books/book6"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e0eee9 0%, #a3c9bc 52%, #628d80 100%);
-}
-
-.book-cover-link[href="/books/book7"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #f3e4eb 0%, #d9b7c8 52%, #a47a91 100%);
-}
-
-.book-cover-link[href="/books/book8"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #eee5f5 0%, #c7b5d9 52%, #88759d 100%);
-}
-
-.book-cover-link[href="/books/book9"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e5f2fb 0%, #b9d3e9 52%, #7696b8 100%);
-}
-
-.book-cover-link[href="/books/book10"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #dce8df 0%, #a7c2b1 52%, #688875 100%);
-}
-
-.book-cover-link[href="/books/book11"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #3b6470 0%, #254753 52%, #142e3a 100%);
-}
-
-.book-cover-link[href="/books/book12"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #eee2ed 0%, #cdb5ca 52%, #9c819c 100%);
-}
-
-.book-cover-link[href="/books/book13"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e3f0f4 0%, #aed1db 52%, #739eac 100%);
-}
-
-.book-cover-link[href="/books/book14"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e1e6fa 0%, #b4c0e5 52%, #7789ba 100%);
-}
-
-.book-cover-link[href="/books/book15"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e5f2dd 0%, #bfd9b4 52%, #849e7e 100%);
-}
-
-.book-cover-link[href="/books/book16"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #efd8e2 0%, #c995ab 52%, #915c76 100%);
-}
-
-.book-cover-link[href="/books/book17"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #eef0f3 0%, #cbd0d7 52%, #949ba7 100%);
-}
-
-.book-cover-link[href="/books/book18"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #d1e8e6 0%, #92c2c2 52%, #558485 100%);
-}
-
-.book-cover-link[href="/books/book19"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #eedcd8 0%, #d4b1ab 52%, #aa807a 100%);
-}
-
-.book-cover-link[href="/books/book20"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #e1d9e8 0%, #bfb1c9 52%, #8f809f 100%);
 }
 
 .book-cover-link:is([href="/books/book7"], [href="/books/book11"], [href="/books/book12"], [href="/books/book13"], [href="/books/book16"], [href="/books/book19"], [href="/books/book20"]){
@@ -607,19 +530,11 @@ header p{
     --cover-pages-bottom:10.8%;
 }
 
-.book-cover-link[href="/books/book21"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #dae4ed 0%, #aebfce 52%, #75899f 100%);
-}
-
-.book-cover-link[href="/books/book22"]{
-    --cover-stage-background:radial-gradient(ellipse at 49% 77%, #c8d0c1 0%, #9eae9d 52%, #6e8074 100%);
-}
-
 .book-cover-link:is([href="/books/book1"], [href="/books/book2"], [href="/books/book3"], [href="/books/book4"], [href="/books/book5"], [href="/books/book6"], [href="/books/book7"], [href="/books/book8"], [href="/books/book9"], [href="/books/book10"], [href="/books/book11"], [href="/books/book12"], [href="/books/book13"], [href="/books/book14"], [href="/books/book15"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"]){
     aspect-ratio:1 / 1.42;
     overflow:hidden;
     isolation:isolate;
-    background:var(--cover-stage-background, radial-gradient(ellipse at 49% 88%, #604045 0%, #2a1b28 49%, #151017 86%));
+    background:radial-gradient(ellipse at 49% 77%, #e1e6fa 0%, #b4c0e5 52%, #7789ba 100%);
 }
 
 .book-cover-link:is([href="/books/book1"], [href="/books/book3"], [href="/books/book4"], [href="/books/book5"], [href="/books/book6"], [href="/books/book7"], [href="/books/book8"], [href="/books/book9"], [href="/books/book10"], [href="/books/book11"], [href="/books/book12"], [href="/books/book13"], [href="/books/book14"], [href="/books/book16"], [href="/books/book17"], [href="/books/book18"], [href="/books/book19"], [href="/books/book20"], [href="/books/book21"], [href="/books/book22"], [href="/books/book23"])::before{
