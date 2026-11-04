@@ -10,7 +10,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function boot(){
  const nodes={checkoutBtn:{disabled:false},paypalCheckoutBtn:{disabled:false},paypalCheckoutNote:{},chargeCurrencyNote:{style:{}},checkoutName:{value:'Synthetic buyer'},checkoutEmail:{value:'test@example.invalid'},checkoutPhone:{value:'01000000000'}};
  const calls=[],events=[],alerts=[],redirects=[];
- const context={document:{getElementById:id=>nodes[id]},storeConfig:{paypalAvailable:true,paymentProvider:'kashier',currency:'USD',country:'KW',checkoutSupported:true},
+ const context={document:{getElementById:id=>nodes[id]},storeConfig:{paypalAvailable:true,paymentProvider:'kashier',currency:'USD',country:'SA',checkoutSupported:true},
  cart:[{id:'book20'},{id:'book21'}],currentLanguage:'ar',calculatePricing:()=>({final:20,count:2}),BACKEND_URL:'https://synthetic.invalid',
  location:{origin:'https://synthetic.invalid',search:'?utm_source=facebook&fbclid=synthetic'},
  window:{TABO_CHECKOUT_READY:true,TaboTracking:{track:(...args)=>events.push(args)},location:{assign:value=>redirects.push(value)}},
