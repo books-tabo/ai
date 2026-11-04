@@ -19,7 +19,7 @@ PID='PAYPALORDER1234567';CID='PAYPALCAPTURE12345';OID='TABO-0000000000000002'
 
 def order(**changes):
     return {'id':OID,'status':'PENDING','items':[{'id':'book20'},{'id':'book21'}],
-            'total':20,'currency':'USD','country':'KW','paymentMethod':'PayPal','paymentMode':'test',
+            'total':20,'currency':'USD','country':'SA','paymentMethod':'PayPal','paymentMode':'test',
             'statusKey':'2'*64,'paymobOrderId':PID,'transactionId':None,
             'buyer':{'name':'Synthetic buyer','phone':'01000000000'},
             'checkoutSessionHash':app.hash_secret('synthetic-browser-secret'),**changes}
@@ -170,12 +170,12 @@ class PayPalHTTPTests(HTTPCase):
 
     def test_server_prices_paypal_sigma_pair_in_usd_without_kashier_conversion(self):
         saved=[]
-        with patch.object(app,'paypal_ready',side_effect=lambda c:c=='USD'),patch.object(app.Handler,'pricing_country',return_value='KW'),\
+        with patch.object(app,'paypal_ready',side_effect=lambda c:c=='USD'),patch.object(app.Handler,'pricing_country',return_value='SA'),\
              patch.object(app.store,'insert',side_effect=lambda value:saved.append(value.copy())),\
              patch.object(app.store,'patch',return_value=order()),\
              patch.object(paypal,'create',return_value=('https://www.sandbox.paypal.com/checkoutnow?token='+PID,PID)),\
              patch.object(app.checkout_pricing,'issue') as quote:
-            body={'paymentProvider':'paypal','country':'KW','items':[{'id':'book20'},{'id':'book21'}],
+            body={'paymentProvider':'paypal','country':'SA','items':[{'id':'book20'},{'id':'book21'}],
                   'customer':{'name':'Synthetic buyer','email':'fixture@example.invalid','phone':'01000000000'},
                   'total':1,'currency':'EGP'}
             status,result,_=self.post('/api/orders',body)
