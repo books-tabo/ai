@@ -11,15 +11,17 @@ const payment=key&&sessionStorage.getItem('taboPayment:'+key);if(payment){const 
 /* Payment price display start */
 function renderPricing(price){
     const box=document.getElementById('paymentSummary');box.hidden=true;
-    if(!price || !['USD','EGP'].includes(price.displayCurrency) || !['USD','EGP'].includes(price.chargeCurrency))return;
+    if(!price || !['USD','EGP','KWD'].includes(price.displayCurrency) || !['USD','EGP'].includes(price.chargeCurrency))return;
     const display=Number(price.displayTotal),charge=Number(price.chargeTotal);
     if(!Number.isFinite(display)||display<=0||!Number.isFinite(charge)||charge<=0)return;
-    const converted=price.displayCurrency==='USD'&&price.chargeCurrency==='EGP';
+    const converted=['USD','KWD'].includes(price.displayCurrency)&&price.chargeCurrency==='EGP';
     if(price.displayCurrency!==price.chargeCurrency&&!converted)return;
     if(!converted&&display!==charge)return;
     const amount=new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    document.getElementById('priceLabel').textContent=price.displayCurrency==='USD'?(en?'Order total in USD':'إجمالي الطلب بالدولار'):(en?'Order total':'إجمالي الطلب');
-    document.getElementById('displayTotal').textContent=price.displayCurrency==='USD'?amount.format(display)+' USD':(en?'EGP '+amount.format(display):amount.format(display)+' جنيه');
+    const kwd=price.displayCurrency==='KWD';
+    const fils=new Intl.NumberFormat('en-US',{minimumFractionDigits:3,maximumFractionDigits:3});
+    document.getElementById('priceLabel').textContent=kwd?(en?'Order total in KWD':'إجمالي الطلب بالدينار الكويتي'):price.displayCurrency==='USD'?(en?'Order total in USD':'إجمالي الطلب بالدولار'):(en?'Order total':'إجمالي الطلب');
+    document.getElementById('displayTotal').textContent=kwd?(en?'KWD '+fils.format(display):fils.format(display)+' د.ك'):price.displayCurrency==='USD'?amount.format(display)+' USD':(en?'EGP '+amount.format(display):amount.format(display)+' جنيه');
     const chargeNote=document.getElementById('chargeTotal');chargeNote.hidden=!converted;
     chargeNote.textContent=en?'Kashier will charge EGP '+amount.format(charge)+'.':'سيتم تحصيل '+amount.format(charge)+' جنيه مصري عبر كاشير.';
     const bankNote=document.getElementById('bankNote');bankNote.hidden=!converted;
