@@ -198,8 +198,11 @@ class PayPalHTTPTests(HTTPCase):
             self.assertEqual(config['paypalPricing']['currency'],'USD')
             self.assertEqual(config['paypalPricing']['bookPolicies']['book20']['price'],19.99)
             self.assertIn('sigma-couple',[offer['id'] for offer in config['paypalPricing']['offers']])
-            with self.opener.open(self.base+'/api/store-config?country=EG') as response:
-                egypt=json.load(response)
+            # HTTPCase uses a synthetic non-Egyptian client IP; pin the
+            # trusted server geolocation for the Egyptian pricing assertion.
+            with patch.object(app.Handler,'pricing_country',return_value='EG'):
+                with self.opener.open(self.base+'/api/store-config?country=EG') as response:
+                    egypt=json.load(response)
             self.assertFalse(egypt['paypalAvailable'])
 
             request={'paymentProvider':'paypal','country':'KW',
