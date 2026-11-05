@@ -183,6 +183,43 @@ class PayPalHTTPTests(HTTPCase):
         self.assertEqual(saved[0]['currency'],'USD');self.assertEqual(saved[0]['paymentMethod'],'PayPal')
         self.assertEqual(saved[0]['paymentMode'],'test');self.assertIsNone(saved[0]['pricingQuote']);quote.assert_not_called()
 
+    def test_kuwait_paypal_remains_available_with_kwd_display_and_usd_charge(self):
+        saved=[]
+        with patch.object(app, 'paypal_ready', side_effect=lambda currency: currency=='USD'), \
+             patch.object(app.store, 'insert', side_effect=lambda value:saved.append(value.copy())), \
+             patch.object(app.store, 'patch', return_value=order()), \
+             patch.object(paypal, 'create', return_value=(
+                 'https://www.sandbox.paypal.com/checkoutnow?token='+PID,PID)), \
+             patch.object(app.checkout_pricing, 'issue') as signed_quote:
+            with self.opener.open(self.base+'/api/store-config?country=KW') as response:
+                config=json.load(response)
+            self.assertEqual(config['currency'],'KWD')
+            self.assertTrue(config['paypalAvailable'])
+            self.assertEqual(config['paypalPricing']['currency'],'USD')
+            self.assertEqual(config['paypalPricing']['bookPolicies']['book20']['price'],19.99)
+            self.assertIn('sigma-couple',[offer['id'] for offer in config['paypalPricing']['offers']])
+            with self.opener.open(self.base+'/api/store-config?country=EG') as response:
+                egypt=json.load(response)
+            self.assertFalse(egypt['paypalAvailable'])
+
+            request={'paymentProvider':'paypal','country':'KW',
+                'items':[{'id':'book20','price':0.01},{'id':'book21','price':0.01}],
+                'customer':{'name':'Synthetic buyer','email':'fixture@example.invalid',
+                            'phone':'+96598726788'},
+                'total':0.01,'currency':'KWD'}
+            status,result,_=self.post('/api/orders',request)
+        self.assertEqual(status,201)
+        self.assertEqual((result['order']['currency'],result['order']['total']),('USD',34.99))
+        self.assertEqual(saved[0]['country'],'KW')
+        self.assertEqual(saved[0]['paymentMethod'],'PayPal')
+        self.assertEqual(saved[0]['pricingQuote'],{
+            'displayCurrency':'KWD','displayTotal':'10.900',
+            'chargeCurrency':'USD','chargeTotal':'34.99'})
+        self.assertEqual(app.payment_price_summary(saved[0]),{
+            'displayCurrency':'KWD','displayTotal':'10.900',
+            'chargeCurrency':'USD','chargeTotal':'34.99'})
+        signed_quote.assert_not_called()
+
     def test_capture_requires_original_cookie_exact_provider_order_and_verified_api(self):
         value=order();self.install(value)
         body={'key':'2'*64,'token':PID};cookie={'Cookie':app.checkout_cookie_name(OID)+'=synthetic-browser-secret'}
