@@ -7,19 +7,21 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'meta-tracking.js'), '
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const payload = {eventID: 'a'.repeat(64), value: 299, currency: 'EGP', content_ids: ['book1', 'book18']};
 
-function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new Map(), fail=false, additionalPixelId}={}) {
-    const appended = [], calls = [];
+function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new Map(), fail=false, additionalPixelId, capiPixelId}={}) {
+    const appended = [], calls = [], serverEvents = [];
     const document = {
-        currentScript: {dataset: {pixelId: '1371060818078535', additionalPixelId}, nonce: 'synthetic-nonce'},
+        currentScript: {dataset: {pixelId: '1371060818078535', additionalPixelId, capiPixelId}, nonce: 'synthetic-nonce'},
         createElement: () => ({}),
         head: {appendChild: script => {appended.push(script); queueMicrotask(() => fail ? script.onerror() : script.onload());}}
     };
     const context = {document, location: {hostname, pathname, search, hash: ''},
         localStorage: {getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value)},
+        crypto: require('node:crypto').webcrypto,
+        fetch: async (url, options) => {serverEvents.push({url, ...options, payload:JSON.parse(options.body)}); return {ok:true};},
         fbq: (...args) => calls.push(args)};
     context.window = context;
     vm.createContext(context); vm.runInContext(source, context);
-    return {context, calls, appended, storage};
+    return {context, calls, appended, storage, serverEvents};
 }
 
 (async () => {
@@ -107,5 +109,25 @@ function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new
     const authorized = await receiptDocument(true);
     assert.equal(authorized.observed.eventID, payload.eventID);
     assert.equal((await receiptDocument(true, authorized.state)).observed.eventID, payload.eventID);
-    console.log('Meta tracking: isolated scenarios passed (events, KWD, dual pixels, deduplication, blocked delivery, authenticated receipt).');
+    const capi = runtime({additionalPixelId:extraId,capiPixelId:extraId,storage:new Map([['taboCountry','KW']])});
+    await flush();
+    assert.equal(capi.serverEvents.length,1);
+    const pageId = capi.serverEvents[0].payload.event_id;
+    assert.match(pageId,/^[a-f0-9]{64}$/);
+    assert(capi.calls.filter(x=>x[2]==='PageView').every(x=>x[4].eventID===pageId));
+    await capi.context.TaboTracking.track('AddToCart',{...kwdProduct,email:'never-copy@synthetic.invalid'});
+    const cartEvent = capi.serverEvents.at(-1);
+    assert.equal(cartEvent.url,'/api/meta/events');
+    assert.equal(cartEvent.payload.event_name,'AddToCart');
+    assert.equal(cartEvent.payload.country,'KW');
+    assert(!JSON.stringify(cartEvent).includes('never-copy'));
+    assert(capi.calls.filter(x=>x[2]==='AddToCart').every(x=>x[4].eventID===cartEvent.payload.event_id));
+    const checkoutId='c'.repeat(64), serverCount=capi.serverEvents.length;
+    await capi.context.TaboTracking.track('InitiateCheckout',{...payload,eventID:checkoutId});
+    assert(capi.calls.filter(x=>x[2]==='InitiateCheckout').every(x=>x[4].eventID===checkoutId));
+    assert.equal(capi.serverEvents.length,serverCount); // Enrolled by the order server, never by an untrusted relay.
+    const capiBlocked = runtime({additionalPixelId:extraId,capiPixelId:extraId,fail:true});await flush();
+    assert.equal(capiBlocked.serverEvents.length,1); // Server copy survives a blocked vendor script.
+    assert(!capiBlocked.calls.some(x=>x[0]==='trackSingle'));
+    console.log('Meta tracking: isolated scenarios passed (events, KWD, dual pixels, CAPI IDs, blocked vendor, authenticated receipt).');
 })().catch(error => {console.error(error); process.exitCode = 1;});

@@ -26,6 +26,7 @@ import proxy_identity
 import book_previews
 import pdf_limits
 import meta_tracking
+import meta_capi
 import google_ads_tracking
 import journey_tracking
 import snap_tracking
@@ -77,6 +78,7 @@ class SlidingWindowLimiter:
 
 RATE_LIMITER = SlidingWindowLimiter()
 POST_LIMITS = {
+    '/api/meta/events': (120, 600),
     '/api/admin-dashboard/catalog/draft': (20, 600),
     '/api/admin-dashboard/catalog/publish': (10, 600),
     '/api/admin-dashboard/catalog/cover': (5, 600),
@@ -711,6 +713,8 @@ class Handler(BaseHTTPRequestHandler):
             attributes=' data-pixel-id="'+pixel_id+'"'
             if additional:
                 attributes+=' data-additional-pixel-id="'+additional+'"'
+            if meta_capi.enabled():
+                attributes+=' data-capi-pixel-id="'+meta_capi.dataset_id()+'"'
             source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'"'+attributes+'></script></head>',1)
         google_id=google_ads_tracking.tag_id()
         self._google_enabled=bool(google_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','info.html','offers.html','success.html'))
@@ -761,7 +765,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         route=urlparse(self.path).path
         try:
-            if route in ('/api/orders','/api/checkout-quote'):
+            if route in ('/api/orders','/api/checkout-quote','/api/meta/events'):
                 with store_catalog.context():return self._do_POST()
             return self._do_POST()
         except Exception:
@@ -775,13 +779,20 @@ class Handler(BaseHTTPRequestHandler):
             if not self.enforce_rate_limit(route,'POST'): return
             if route == autoseo.ENDPOINT:
                 return self.autoseo_webhook()
-            if (route in ('/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or route.startswith(('/api/order-help/','/api/admin-dashboard/','/api/store-insights/','/api/checkout-reminders/')) or
+            if (route in ('/api/meta/events','/api/paypal/capture','/api/book-comments','/api/ratings','/api/orders','/api/checkout-quote','/api/download-session') or route.startswith(('/api/order-help/','/api/admin-dashboard/','/api/store-insights/','/api/checkout-reminders/')) or
                     re.fullmatch(r'/api/download/book[1-9][0-9]*',route)) and not self.same_origin_browser_request():
                 return self.respond(403,{'ok':False,'error':'Cross-site request blocked'})
             if route=='/api/admin-dashboard/catalog/cover':
                 if not owner_dashboard.enabled() or not store_catalog.enabled() or not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):
                     return self.respond(403,{'error':'سجّل الدخول أولًا.'})
             data=self.read_json(2_200_000 if route=='/api/admin-dashboard/catalog/cover' else 131_072)
+            if route=='/api/meta/events':
+                if not meta_capi.enabled():return self.respond(202,{'ok':True})
+                try:
+                    matching=meta_capi.user_data(self.client_id(),self.headers.get('User-Agent',''),self.cookie('_fbp'),self.cookie('_fbc'))
+                    meta_capi.browser_event(data,matching,self.pricing_country(data.get('country')))
+                except ValueError:return self.respond(400,{'ok':False,'error':'Invalid event'})
+                return self.respond(202,{'ok':True})
             if route=='/api/checkout-reminders/unsubscribe':
                 checkout_recovery.unsubscribe(data.get('token'))
                 return self.respond(200,{'ok':True})
@@ -1001,8 +1012,15 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(503,{'ok':False,'error':'تعذر إنشاء صفحة الدفع الآن. حاول مرة أخرى بعد قليل.'})
                 stored=store.patch(order['id'],{'paymob_order_id':provider_order_id},{'status':'eq.PENDING'})
                 if not stored: raise store.StoreUnavailable()
+                meta_checkout_id=meta_capi.checkout_event_id(order)
+                try:
+                    matching=meta_capi.user_data(self.client_id(),self.headers.get('User-Agent',''),self.cookie('_fbp'),self.cookie('_fbc'))
+                    meta_checkout_id=meta_capi.checkout(order,matching)
+                except Exception:
+                    pass  # Analytics must never block payment or expose provider responses.
                 cookie=secure_cookie(checkout_cookie_name(order['id']),checkout_secret,3600)
                 return self.respond(201,{'ok':True,'order':public(order),'payment_url':link,
+                                         'metaCheckoutEventID':meta_checkout_id,
                                          'tracking_url':'/pending.html?key='+order['statusKey']},
                                     {'Set-Cookie':cookie})
             if route=='/api/kashier/webhook':
@@ -1563,6 +1581,7 @@ if __name__=='__main__':
     order_help.start_worker()
     owner_dashboard.start_pruner()
     checkout_recovery.start_worker()
+    meta_capi.start_worker()
     ThreadingHTTPServer((host,port),Handler).serve_forever()
 
 

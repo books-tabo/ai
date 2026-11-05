@@ -78,6 +78,38 @@ References checked 2026-10-18: [Kashier webhooks](https://developers.kashier.io/
 
 ## Meta domain and browser events (2026-10-19)
 
+### Optional server delivery for the SIGMA dataset (2026-11-05)
+
+`meta_capi.py` supports one existing dataset selected by `TABO_META_CAPI_PIXEL_ID`.
+Activation requires the backend-only `TABO_META_CAPI_ACCESS_TOKEN`,
+`TABO_META_CAPI_ENABLED=1`, the production public URL, and the
+`meta_capi_sigma_outbox` migration. No token is exposed to HTML or browser code.
+Store credentials in Render environment variables, never in this repository.
+The original pixel remains unchanged; server delivery targets only the selected dataset.
+
+PageView, ViewContent and AddToCart use the same random event ID in browser and
+server. InitiateCheckout is enrolled after a server-validated order and payment
+redirect are created. Purchase enrollment waits for a durable live PAID order;
+the worker rechecks payment, the installation cutoff, actual EGP/USD charge and
+the same opaque event ID used by the authenticated browser receipt. Revisiting
+old receipts does not enroll historical orders. Payments and downloads never
+wait for Meta. A backend-only queue leases work, retries transient responses
+within 20 hours, and clears connection metadata on completion or expiry.
+
+Matching is limited to the trusted connection IP, browser user agent and valid
+Meta fbp/fbc cookies. Names, phones, emails, card data, order links and download
+tokens are never sent. Public event requests cannot create Purchase or checkout
+events and cannot choose a pixel, API token, destination URL or purchase value.
+The transport uses the official Graph API v26.0 endpoint and refuses redirects.
+Synthetic API tests must explicitly pass `test_event_code`; it is never enabled
+globally in production, and synthetic purchases must not enter live reporting.
+
+Validation: `python -m unittest discover -s tests -p test_meta_capi.py -v`,
+`node tests/test_meta_tracking.cjs`, and the isolated PostgreSQL CI job verify
+payment gating, leases, private permissions, expiry, shared IDs and transport
+failures. Local assertions do not establish Meta receipt; check Test Events
+and live browser/server events after installing the private token.
+
 The owner supplied public Pixel/Dataset ID `1371060818078535` and the domain-verification tag now in the homepage head. Publishing the tag does **not** prove Meta has verified ownership; confirm the domain's status in Business Settings after publication. Supplying an ID also does not prove the ad account has permission to use it.
 
 The production-host-only browser adapter reports PageView, ViewContent, AddToCart and InitiateCheckout. Purchase comes only from `/api/downloads` **after the existing paid-order + device-bound session authentication**. Its value, currency and book IDs are derived from durable order data, not callback/query parameters. It excludes test/legacy transactions, payments before installation, and payments older than 24 hours. No synthetic purchase is sent to the live Pixel. The receipt strips its query/fragment before loading the external Pixel, retaining the order reference in the browser history entry so refresh still works. Tracking failures must not block purchased-book access.
