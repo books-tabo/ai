@@ -24,7 +24,7 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.order_book_emails,public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.meta_conversion_outbox,public.order_book_emails,public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("UPDATE public.store_catalog_state SET published='{}'::jsonb,draft='{}'::jsonb,revision=0,draft_revision=0,reminders_enabled=true,published_at=NULL WHERE id")
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
@@ -121,6 +121,43 @@ class PostgresTests(unittest.TestCase):
             for oid,definer in funcs:
                 self.assertFalse(definer)
                 for role in ('anon','authenticated'):self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,oid)).fetchone()[0])
+
+    def test_meta_outbox_waits_for_live_payment_claims_once_and_clears_matching(self):
+        oid=self.receipt_order()
+        with self.connect() as c:
+            c.execute("INSERT INTO public.meta_conversion_outbox(event_key,pixel_id,event_name,order_id,payload,user_data) VALUES(%s,'1390132816288252','Purchase',%s,'{}',%s)",
+                      ('a'*64,oid,json.dumps({'fbp':'fb.1.1793910000000.1234567890'})))
+        self.assertIsNone(self.owner_rpc('claim_meta_conversion','1390132816288252','b'*64))
+        self.assertIsNone(self.owner_rpc('claim_meta_conversion','1371060818078535','b'*64))
+        self.receipt_payment(oid)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            claims=list(pool.map(lambda i:self.owner_rpc('claim_meta_conversion','1390132816288252',f'{i:064x}'),range(1,9)))
+        self.assertEqual(sum(v is not None for v in claims),1)
+        claim=next(v for v in claims if v)
+        self.assertEqual(claim['order_id'],oid)
+        with self.connect() as c:lease=c.execute('SELECT lease FROM public.meta_conversion_outbox').fetchone()[0]
+        self.assertFalse(self.owner_rpc('finish_meta_conversion','a'*64,'f'*64,'sent','synthetic',30,None))
+        self.assertTrue(self.owner_rpc('finish_meta_conversion','a'*64,lease,'retry',None,30,'transient'))
+        with self.connect() as c:
+            self.assertTrue(c.execute('SELECT user_data FROM public.meta_conversion_outbox').fetchone()[0])
+            c.execute("UPDATE public.meta_conversion_outbox SET next_attempt_at=now()-interval '1 second'")
+        self.assertIsNotNone(self.owner_rpc('claim_meta_conversion','1390132816288252','c'*64))
+        self.assertTrue(self.owner_rpc('finish_meta_conversion','a'*64,'c'*64,'sent','synthetic',30,None))
+        with self.connect() as c:self.assertEqual(c.execute('SELECT state,user_data,payload FROM public.meta_conversion_outbox').fetchone(),('sent',{},{}))
+        self.assertIsNone(self.owner_rpc('claim_meta_conversion','1390132816288252','d'*64))
+
+    def test_meta_outbox_backend_only_and_expiry(self):
+        with self.connect() as c:
+            self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid='public.meta_conversion_outbox'::regclass").fetchone()[0])
+            for role in ('anon','authenticated'):
+                for permission in ('SELECT','INSERT','UPDATE','DELETE'):
+                    self.assertFalse(c.execute('SELECT has_table_privilege(%s,%s,%s)',(role,'public.meta_conversion_outbox',permission)).fetchone()[0])
+                for signature in ('claim_meta_conversion(text,text)','finish_meta_conversion(text,text,text,text,integer,text)'):
+                    self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,'public.'+signature)).fetchone()[0])
+            c.execute("INSERT INTO public.meta_conversion_outbox(event_key,pixel_id,event_name,payload,user_data,created_at) VALUES(%s,'1390132816288252','PageView','{}',%s,now()-interval '21 hours')",
+                      ('e'*64,json.dumps({'fbp':'fb.1.1793910000000.1234567890'})))
+        self.assertIsNone(self.owner_rpc('claim_meta_conversion','1390132816288252','d'*64))
+        with self.connect() as c:self.assertEqual(c.execute('SELECT state,reason,user_data FROM public.meta_conversion_outbox').fetchone(),('failed','expired',{}))
 
     def owner_rpc(self,name,*args):
         with self.connect() as c:

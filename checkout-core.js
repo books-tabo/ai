@@ -404,7 +404,7 @@ async function checkoutWithPaymentLink(){
                 'The PayPal USD total has changed. Please review the updated price before paying.':
                 'تغير إجمالي PayPal بالدولار. راجع السعر المحدّث قبل الدفع.');
         }
-        window.TaboTracking?.track('InitiateCheckout',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency});
+        window.TaboTracking?.track('InitiateCheckout',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency,eventID:data.metaCheckoutEventID});
         const orderId=data.order.id;
         localStorage.setItem('taboLastOrderId',orderId);
         const key=new URL(data.tracking_url,location.origin).searchParams.get('key');
