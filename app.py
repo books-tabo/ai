@@ -307,12 +307,14 @@ def payment_price_summary(order):
         summary={'displayCurrency':currency,'displayTotal':f'{amount:.2f}',
                  'chargeCurrency':currency,'chargeTotal':f'{amount:.2f}'}
         price=order.get('pricingQuote')
-        if isinstance(price,dict) and currency=='EGP':
+        if isinstance(price,dict):
             display=Decimal(str(price.get('displayTotal','NaN')))
             charge=Decimal(str(price.get('chargeTotal','NaN')))
-            if (price.get('displayCurrency') in ('USD','KWD') and price.get('chargeCurrency')=='EGP'
-                    and display.is_finite() and display>0 and charge.is_finite() and charge==amount):
-                display_currency=price['displayCurrency']
+            display_currency=price.get('displayCurrency')
+            supported=(currency=='EGP' and display_currency in ('USD','KWD') or
+                       currency=='USD' and display_currency=='KWD')
+            if (supported and price.get('chargeCurrency')==currency and
+                    display.is_finite() and display>0 and charge.is_finite() and charge==amount):
                 summary.update(displayCurrency=display_currency,
                                displayTotal=f'{display:.3f}' if display_currency=='KWD' else f'{display:.2f}')
         return summary
@@ -941,6 +943,14 @@ class Handler(BaseHTTPRequestHandler):
                 price_config=localization.pricing_for_country(PRICES,country)
                 total=catalog.total_for_items(ids,price_config)
                 currency=price_config['currency']
+                paypal_kwd=using_paypal and currency=='KWD'
+                if paypal_kwd:
+                    # KWD is a display currency only: PayPal charges the same
+                    # server-authoritative USD prices offered outside Egypt.
+                    kwd_display_total=total
+                    usd_config=localization.pricing_for_country(PRICES,'SA')
+                    total=catalog.total_for_items(ids,usd_config)
+                    currency='USD'
                 if not (paypal_ready(currency) if using_paypal else payment_currency_supported(currency)):
                     return self.respond(503,{'ok':False,'error':'الدفع بهذه العملة غير متاح حاليًا.'})
                 conversion=selected=='kashier' and currency in ('USD','KWD')
@@ -955,7 +965,11 @@ class Handler(BaseHTTPRequestHandler):
                 if field_errors:
                     return self.respond(400,{'ok':False,'code':'INVALID_CUSTOMER','fields':field_errors,
                                              'error':'راجع بيانات التواصل الموضحة قبل الدفع.'})
-                pricing_quote=None
+                pricing_quote=({'displayCurrency':'KWD',
+                                'displayTotal':f'{Decimal(str(kwd_display_total)):.3f}',
+                                'chargeCurrency':'USD',
+                                'chargeTotal':f'{Decimal(str(total)):.2f}'}
+                               if paypal_kwd and route=='/api/orders' else None)
                 if conversion:
                     pricing_quote=checkout_pricing.verify(data.get('quoteToken'),ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''),display_currency=currency)
                     total=float(Decimal(pricing_quote['chargeTotal']))
@@ -1474,7 +1488,12 @@ class Handler(BaseHTTPRequestHandler):
             config=localization.pricing_for_country(PRICES,country)
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=payment_currency_supported(config['currency'])
-            config['paypalAvailable']=paypal_ready(config['currency'])
+            config['paypalAvailable']=config['currency'] in ('USD','KWD') and paypal_ready('USD')
+            if config['paypalAvailable'] and config['currency']=='KWD':
+                # The client displays the exact USD amount PayPal will collect;
+                # the order endpoint recalculates it independently.
+                usd=localization.pricing_for_country(PRICES,'SA')
+                config['paypalPricing']={key:usd[key] for key in ('currency','prices','bookPolicies','offers')}
             config['receiptEmailEnabled']=order_receipts.enabled()
             config['bookEmailEnabled']=book_emails.enabled()
             config['catalogRevision']=store_catalog.revision()

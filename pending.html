@@ -14,7 +14,9 @@ function renderPricing(price){
     if(!price || !['USD','EGP','KWD'].includes(price.displayCurrency) || !['USD','EGP'].includes(price.chargeCurrency))return;
     const display=Number(price.displayTotal),charge=Number(price.chargeTotal);
     if(!Number.isFinite(display)||display<=0||!Number.isFinite(charge)||charge<=0)return;
-    const converted=['USD','KWD'].includes(price.displayCurrency)&&price.chargeCurrency==='EGP';
+    const viaKashier=['USD','KWD'].includes(price.displayCurrency)&&price.chargeCurrency==='EGP';
+    const viaPaypal=price.displayCurrency==='KWD'&&price.chargeCurrency==='USD';
+    const converted=viaKashier||viaPaypal;
     if(price.displayCurrency!==price.chargeCurrency&&!converted)return;
     if(!converted&&display!==charge)return;
     const amount=new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -23,9 +25,13 @@ function renderPricing(price){
     document.getElementById('priceLabel').textContent=kwd?(en?'Order total in KWD':'إجمالي الطلب بالدينار الكويتي'):price.displayCurrency==='USD'?(en?'Order total in USD':'إجمالي الطلب بالدولار'):(en?'Order total':'إجمالي الطلب');
     document.getElementById('displayTotal').textContent=kwd?(en?'KWD '+fils.format(display):fils.format(display)+' د.ك'):price.displayCurrency==='USD'?amount.format(display)+' USD':(en?'EGP '+amount.format(display):amount.format(display)+' جنيه');
     const chargeNote=document.getElementById('chargeTotal');chargeNote.hidden=!converted;
-    chargeNote.textContent=en?'Kashier will charge EGP '+amount.format(charge)+'.':'سيتم تحصيل '+amount.format(charge)+' جنيه مصري عبر كاشير.';
+    chargeNote.textContent=viaPaypal?
+        (en?'PayPal will charge USD '+amount.format(charge)+'.':'سيتم تحصيل '+amount.format(charge)+' دولار أمريكي عبر PayPal.'):
+        (en?'Kashier will charge EGP '+amount.format(charge)+'.':'سيتم تحصيل '+amount.format(charge)+' جنيه مصري عبر كاشير.');
     const bankNote=document.getElementById('bankNote');bankNote.hidden=!converted;
-    bankNote.textContent=en?'If your card uses another currency, your bank determines its conversion rate and any fees.':'عند اختلاف عملة بطاقتك، يحدد بنكك سعر التحويل وأي رسوم.';
+    bankNote.textContent=viaPaypal?
+        (en?'This USD amount follows the store\'s international prices; it is not a live conversion from KWD. Your bank or PayPal may charge exchange fees.':'يُحسب المبلغ وفق أسعار المتجر الدولية بالدولار، وليس تحويلًا لحظيًا من الدينار. قد تُطبق رسوم صرف من البنك أو PayPal.'):
+        (en?'If your card uses another currency, your bank determines its conversion rate and any fees.':'عند اختلاف عملة بطاقتك، يحدد بنكك سعر التحويل وأي رسوم.');
     box.hidden=false;
 }
 /* Payment price display end */

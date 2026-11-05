@@ -4,7 +4,7 @@ const html=fs.readFileSync('index.html','utf8');
 const core=fs.readFileSync('checkout-core.js','utf8');
 const fields=core.split('/* Customer fields start */')[1].split('/* Customer fields end */')[0];
 const quote=core.split('/* EGP quote start */')[1].split('/* EGP quote end */')[0];
-const choice='function renderPayPalChoice(){'+core.split('function renderPayPalChoice(){')[1].split('async function checkoutWithPaymentLink(){')[0];
+const choice='function paypalUsdTotal(){'+core.split('function paypalUsdTotal(){')[1].split('async function checkoutWithPaymentLink(){')[0];
 const checkout='async function checkoutWithPaymentLink(){'+core.split('async function checkoutWithPaymentLink(){')[1].split('window.TABO_CHECKOUT_READY=false;')[0];
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function boot(){
@@ -17,7 +17,7 @@ function boot(){
  localStorage:{setItem(){}},sessionStorage:{setItem(){}},alert:value=>alerts.push(value),t:value=>value,
  URL,JSON,Date,Number,Intl,AbortController,setTimeout:()=>1,clearTimeout(){}};
  context.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({ok:true,order:{id:'TABO-0000000000000002',total:20,currency:'USD',items:[{id:'book20'},{id:'book21'}]},payment_url:'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567',tracking_url:'/pending.html?key='+'2'.repeat(64)})}};
- vm.createContext(context);vm.runInContext(fields+quote+choice+checkout,context);return {context,nodes,calls,events,alerts,redirects};
+ vm.createContext(context);vm.runInContext(fs.readFileSync('offer-pricing.js','utf8'),context);vm.runInContext(fields+quote+choice+checkout,context);return {context,nodes,calls,events,alerts,redirects};
 }
 (async()=>{
  {
@@ -45,6 +45,57 @@ function boot(){
   resolve({ok:false,json:async()=>({error:'Synthetic outage'})});await pending;
   assert.equal(nodes.checkoutBtn.disabled,false);assert.equal(nodes.paypalCheckoutBtn.disabled,false);
  }
+ {
+  const {context:c,nodes,calls,events,redirects}=boot();
+  c.storeConfig.currency='KWD';c.storeConfig.country='KW';
+  c.storeConfig.paypalPricing={
+    currency:'USD',prices:{1:9.99,2:17.99},
+    bookPolicies:{book20:{price:19.99,bundleEligible:false},
+                  book21:{price:19.99,bundleEligible:false}},
+    offers:[{id:'sigma-couple',books:['book20','book21'],price:34.99}]
+  };
+  c.calculatePricing=()=>({final:10.9,count:2});
+  c.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({
+    ok:true,order:{id:'TABO-0000000000000003',total:34.99,currency:'USD',
+                   items:[{id:'book20'},{id:'book21'}]},
+    payment_url:'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567',
+    tracking_url:'/pending.html?key='+'2'.repeat(64)
+  })}};
+  c.renderPayPalChoice();
+  assert.equal(nodes.paypalCheckoutBtn.hidden,false);
+  assert.match(nodes.paypalCheckoutBtn.textContent,/34\.99/);
+  assert.match(nodes.paypalCheckoutNote.textContent,/الدينار/);
+  assert.match(nodes.paypalCheckoutNote.textContent,/34\.99/);
+  assert.equal(c.paypalUsdTotal(),34.99);
+  c.storeConfig.currency='EGP';c.renderPayPalChoice();
+  assert.equal(nodes.paypalCheckoutBtn.hidden,true);
+  c.storeConfig.currency='KWD';c.renderPayPalChoice();
+  await c.checkoutWithPaymentLink('paypal');
+  assert.equal(calls.length,1);
+  assert.equal(JSON.parse(calls[0].options.body).paymentProvider,'paypal');
+  assert(!JSON.parse(calls[0].options.body).quoteToken);
+  assert.equal(events[0][1].currency,'USD');
+  assert.equal(events[0][1].value,34.99);
+  assert.equal(redirects.length,1);
+ }
+ {
+  const {context:c,nodes,calls,redirects}=boot();
+  c.storeConfig.currency='KWD';c.storeConfig.country='KW';
+  c.storeConfig.paypalPricing={currency:'USD',prices:{1:9.99,2:17.99},
+    bookPolicies:{book20:{price:19.99,bundleEligible:false},book21:{price:19.99,bundleEligible:false}},
+    offers:[{id:'sigma-couple',books:['book20','book21'],price:34.99}]};
+  c.renderPayPalChoice();
+  c.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({
+    ok:true,order:{id:'TABO-0000000000000004',total:39.99,currency:'USD',items:[{id:'book20'},{id:'book21'}]},
+    payment_url:'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567',
+    tracking_url:'/pending.html?key='+'2'.repeat(64)
+  })}};
+  await c.checkoutWithPaymentLink('paypal');
+  assert.equal(calls.length,1);
+  assert.equal(redirects.length,0);
+  assert.equal(nodes.checkoutBtn.disabled,false);
+  assert.equal(nodes.paypalCheckoutBtn.disabled,false);
+ }
  const returnHtml=fs.readFileSync('paypal-return.html','utf8');
  assert.match(returnHtml,/noindex,nofollow,noarchive/);assert(!/meta-tracking|google-ads-tracking|snap-tracking/.test(returnHtml));
  const script=returnHtml.match(/<script>([\s\S]*?)<\/script>/)[1];
@@ -62,5 +113,5 @@ function boot(){
   if(valid&&paid)assert.equal(redirects[0],activationWorks?'/success.html?order=TABO-0000000000000002':'/pending.html?key='+'2'.repeat(64));
  }
  await returnPage(true);await returnPage(true,true,false);await returnPage(false);await returnPage(false,false);
- console.log('PayPal UI: disabled-by-default/EGP hidden, direct USD, unchanged Kashier quote, duplicate prevention, no premature Purchase, return URL cleanup and paid-only continuation passed.');
+ console.log('PayPal UI: KWD display with exact USD PayPal amount, amount mismatch protection, EGP hidden, original USD path and secure return passed.');
 })().catch(error=>{console.error(error);process.exitCode=1});
