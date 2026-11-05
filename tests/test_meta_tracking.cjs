@@ -70,9 +70,12 @@ function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new
     assert.equal(dualHome.calls.filter(args => args[2] === 'AddToCart').length, 2);
     const kwdReceipt = runtime({pathname:'/success.html', additionalPixelId:extraId});
     const kwdPurchase = {...kwdProduct, eventID:'b'.repeat(64), additional_pixel_ids:[extraId]};
-    await Promise.all([kwdReceipt.context.TaboTracking.purchase(kwdPurchase), kwdReceipt.context.TaboTracking.purchase(kwdPurchase)]);
+    await kwdReceipt.context.TaboTracking.purchase(kwdPurchase);
+    assert.equal(kwdReceipt.appended.length, 0); // KWD is displayed, never charged by the configured gateways.
+    const chargedPurchase = {...kwdPurchase, currency:'USD', value:19.99};
+    await Promise.all([kwdReceipt.context.TaboTracking.purchase(chargedPurchase), kwdReceipt.context.TaboTracking.purchase(chargedPurchase)]);
     assert.equal(kwdReceipt.calls.filter(args => args[2] === 'Purchase').length, 2);
-    assert(kwdReceipt.calls.filter(args => args[2] === 'Purchase').every(args => args[3].currency === 'KWD' && args[3].value === 6.2));
+    assert(kwdReceipt.calls.filter(args => args[2] === 'Purchase').every(args => args[3].currency === 'USD' && args[3].value === 19.99));
     const dualReceipt = runtime({pathname: '/success.html', additionalPixelId: extraId});
     await dualReceipt.context.TaboTracking.purchase(payload);
     assert.equal(dualReceipt.calls.filter(args => args[2] === 'Purchase' && args[1] === extraId).length, 0);

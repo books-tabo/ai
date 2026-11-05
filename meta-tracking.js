@@ -56,7 +56,7 @@
     async function purchase(data) {
         if (!receipt || location.search || location.hash || !data || !/^[a-f0-9]{64}$/.test(data.eventID || '')) return;
         const safe = properties(data);
-        if (!safe) return;
+        if (!safe || !['EGP', 'USD'].includes(data.currency)) return;
         const additional = Array.isArray(data.additional_pixel_ids) ? data.additional_pixel_ids : [];
         for (const id of pixelIds.filter(id => id === pixelId || additional.includes(id))) {
             const key = 'taboMetaPurchase:' + id + ':' + data.eventID;

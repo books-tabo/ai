@@ -46,7 +46,7 @@ def purchase(order, current=None):
         total = Decimal(str(order.get('total')))
         if (paid.tzinfo is None or paid < PURCHASE_SINCE or paid > current or
                 current - paid > timedelta(hours=24) or not total.is_finite() or total <= 0 or
-                order.get('currency') not in ('EGP', 'USD', 'KWD')):
+                order.get('currency') not in ('EGP', 'USD')):
             return None
         ids = [item['id'] for item in order['items']]
         if not ids or any(item not in BOOKS for item in ids):
