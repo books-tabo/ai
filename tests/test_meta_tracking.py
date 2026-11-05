@@ -102,23 +102,30 @@ class MetaHTTPTests(HTTPCase):
 
 
 class MetaPayloadTests(unittest.TestCase):
-    def test_kwd_purchase_preserves_fils_and_original_conversion_guards(self):
+    def test_kuwait_purchase_uses_actual_charge_currency_and_keeps_conversion_guards(self):
         current = datetime.now(timezone.utc)
         value = order()
         value.update(status='PAID', paymentMode='live', transactionId='synthetic-kwd',
-                     paidAt=current.isoformat(), currency='KWD', total=6.299,
-                     items=[{'id': 'book21'}])
+                     paidAt=current.isoformat(), currency='EGP', total=1088.63,
+                     country='KW', items=[{'id': 'book21'}],
+                     pricingQuote={'displayCurrency':'KWD', 'displayTotal':'6.200',
+                                   'chargeCurrency':'EGP', 'chargeTotal':'1088.63'})
         config = {'TABO_META_ADDITIONAL_PIXEL_ID': '1390132816288252',
                   'TABO_META_ADDITIONAL_PURCHASE_SINCE': (current-timedelta(minutes=1)).isoformat()}
         with patch.dict(os.environ, config):
             result = meta_tracking.purchase(value, current)
             self.assertIsNotNone(result)
-            self.assertEqual(result['currency'], 'KWD')
-            self.assertEqual(result['value'], 6.299)
+            self.assertEqual(result['currency'], 'EGP')
+            self.assertEqual(result['value'], 1088.63)
             self.assertEqual(result['content_ids'], ['book21'])
             self.assertEqual(result['additional_pixel_ids'], ['1390132816288252'])
             self.assertEqual(meta_tracking.purchase(value, current), result)
-            for changes in ({'paymentMode': 'test'}, {'status': 'PENDING'}, {'status': 'REFUNDED'}, {'currency': 'XXX'}):
+            paypal = {**value, 'currency':'USD', 'total':19.99,
+                      'pricingQuote':{**value['pricingQuote'], 'chargeCurrency':'USD', 'chargeTotal':'19.99'}}
+            self.assertEqual(meta_tracking.purchase(paypal, current)['currency'], 'USD')
+            self.assertEqual(meta_tracking.purchase(paypal, current)['value'], 19.99)
+            for changes in ({'paymentMode': 'test'}, {'status': 'PENDING'}, {'status': 'REFUNDED'},
+                            {'currency': 'KWD'}, {'currency': 'XXX'}):
                 self.assertIsNone(meta_tracking.purchase({**value, **changes}, current))
 
     def test_additional_pixel_receives_only_new_purchases_without_changing_original_event(self):
