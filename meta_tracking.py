@@ -16,6 +16,21 @@ def pixel_id():
     return value if re.fullmatch(r'[0-9]{5,25}', value) else ''
 
 
+def additional_pixel_id():
+    value = os.environ.get('TABO_META_ADDITIONAL_PIXEL_ID', '').strip()
+    return value if re.fullmatch(r'[0-9]{5,25}', value) and value != pixel_id() else ''
+
+
+def additional_purchase_since():
+    """New pixels receive future purchases only, never an older receipt revisit."""
+    value = os.environ.get('TABO_META_ADDITIONAL_PURCHASE_SINCE', '').strip()
+    try:
+        since = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        return since.astimezone(timezone.utc) if since.tzinfo is not None else None
+    except ValueError:
+        return None
+
+
 def purchase(order, current=None):
     """Caller must first authenticate the buyer's active download session.
 
@@ -38,7 +53,12 @@ def purchase(order, current=None):
             return None
         digest = hashlib.sha256(('tabo-meta-purchase-v1|' + pixel_id() + '|' +
                                  order['id'] + '|' + str(order['transactionId'])).encode()).hexdigest()
-        return {'eventID': digest, 'value': float(total), 'currency': order['currency'],
-                'content_ids': ids, 'content_type': 'product', 'num_items': len(ids)}
+        result = {'eventID': digest, 'value': float(total), 'currency': order['currency'],
+                  'content_ids': ids, 'content_type': 'product', 'num_items': len(ids)}
+        additional = additional_pixel_id()
+        since = additional_purchase_since()
+        if additional and since is not None and paid >= since:
+            result['additional_pixel_ids'] = [additional]
+        return result
     except (ValueError, TypeError, KeyError, InvalidOperation):
         return None
