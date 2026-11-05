@@ -21,6 +21,13 @@ for(const en of [false,true]){
     assert.equal(nodes.paymentSummary.hidden,false);
     assert.equal(nodes.chargeTotal.hidden,true);
     assert.equal(nodes.bankNote.hidden,true);
+    context.price={displayCurrency:'KWD',displayTotal:'10.900',chargeCurrency:'USD',chargeTotal:'34.99'};
+    vm.runInContext('renderPricing(price)',context);
+    assert.equal(nodes.paymentSummary.hidden,false);
+    assert.match(nodes.displayTotal.textContent,/10\\.900/);
+    assert.match(nodes.chargeTotal.textContent,/34\\.99/);
+    assert.match(nodes.chargeTotal.textContent,/(PayPal|دولار أمريكي)/);
+    assert.equal(nodes.bankNote.hidden,false);
     for(const price of [null,{displayCurrency:'USD',displayTotal:'NaN',chargeCurrency:'EGP',chargeTotal:'100'},
                         {displayCurrency:'USD',displayTotal:'10',chargeCurrency:'USD',chargeTotal:'500'}]){
         context.price=price;vm.runInContext('renderPricing(price)',context);
