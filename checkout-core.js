@@ -321,20 +321,43 @@ async function refreshCheckoutQuote(force=false){
 }
 /* EGP quote end */
 
+/* PayPal always charges USD, including when Kuwait storefront prices are KWD. */
+function paypalUsdTotal(){
+    if(storeConfig.currency==='USD')return calculatePricing().final;
+    if(storeConfig.currency!=='KWD'||!storeConfig.paypalPricing||typeof TaboOfferPricing==='undefined')return null;
+    const config=storeConfig.paypalPricing;
+    if(config.currency!=='USD'||!config.prices||!config.bookPolicies||!Array.isArray(config.offers))return null;
+    try{
+        const amount=TaboOfferPricing.best(cart.map(item=>item.id),config).totalMinor/100;
+        return Number.isFinite(amount)&&amount>0?amount:null;
+    }catch(_){return null;}
+}
+
 function renderPayPalChoice(){
     const button=document.getElementById('paypalCheckoutBtn'),note=document.getElementById('paypalCheckoutNote');
     if(!button||!note)return;
-    const available=storeConfig.paypalAvailable===true&&storeConfig.currency==='USD'&&cart.length>0;
+    const kwd=storeConfig.currency==='KWD';
+    const usdAmount=paypalUsdTotal();
+    const available=storeConfig.paypalAvailable===true&&['USD','KWD'].includes(storeConfig.currency)&&cart.length>0&&usdAmount!==null;
     button.hidden=note.hidden=!available;button.disabled=checkoutInFlight||!available;
-    button.textContent=currentLanguage==='en'?'Pay with PayPal in USD':'الدفع عبر PayPal بالدولار';
-    note.textContent=currentLanguage==='en'?'PayPal: the displayed total is charged in US dollars.':'PayPal: سيتم تحصيل الإجمالي المعروض بالدولار الأمريكي.';
+    if(kwd&&available){
+        const usd=usdAmount.toFixed(2);
+        button.textContent=currentLanguage==='en'?`Pay with PayPal — USD ${usd}`:`الدفع عبر PayPal — ${usd} دولار`;
+        note.textContent=currentLanguage==='en'?
+            `KWD is the displayed store price. PayPal will charge USD ${usd} using the store's international USD prices, not a live KWD conversion. Your bank or PayPal may apply exchange rates or fees.`:
+            `السعر المعروض بالدينار الكويتي. سيحصّل PayPal مبلغ ${usd} دولار أمريكي وفق أسعار المتجر الدولية بالدولار، وليس تحويلًا لحظيًا من الدينار. قد يطبق البنك أو PayPal رسومًا أو سعر صرف.`;
+    }else{
+        button.textContent=currentLanguage==='en'?'Pay with PayPal in USD':'الدفع عبر PayPal بالدولار';
+        note.textContent=currentLanguage==='en'?'PayPal: the displayed total is charged in US dollars.':'PayPal: سيتم تحصيل الإجمالي المعروض بالدولار الأمريكي.';
+    }
 }
 
 async function checkoutWithPaymentLink(){
     const selected=arguments[0]==='paypal'?'paypal':storeConfig.paymentProvider;
     if(checkoutInFlight)return;
     const useQuote=selected!=='paypal'&&needsEgpQuote();
-    if(selected==='paypal'?storeConfig.paypalAvailable!==true||storeConfig.currency!=='USD':!window.TABO_CHECKOUT_READY){
+    const paypalAmount=selected==='paypal'?paypalUsdTotal():null;
+    if(selected==='paypal'?storeConfig.paypalAvailable!==true||!['USD','KWD'].includes(storeConfig.currency)||paypalAmount===null:!window.TABO_CHECKOUT_READY){
         alert(storeConfig.checkoutSupported?t('preview'):t('currencyPending'));
         return;
     }
@@ -373,6 +396,13 @@ async function checkoutWithPaymentLink(){
             const error=new Error(data.error||t('checkoutError'));
             if(data.code==='INVALID_CUSTOMER'&&data.fields)error.fieldErrors=data.fields;
             throw error;
+        }
+        if(selected==='paypal'&&storeConfig.currency==='KWD'&&
+                (data.order.currency!=='USD'||Math.round(Number(data.order.total)*100)!==Math.round(paypalAmount*100))){
+            if(typeof loadStoreConfig==='function')await loadStoreConfig();
+            throw new Error(currentLanguage==='en'?
+                'The PayPal USD total has changed. Please review the updated price before paying.':
+                'تغير إجمالي PayPal بالدولار. راجع السعر المحدّث قبل الدفع.');
         }
         window.TaboTracking?.track('InitiateCheckout',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency});
         const orderId=data.order.id;
