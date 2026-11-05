@@ -58,6 +58,21 @@ function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new
     assert.equal(dualHome.appended.length, 1);
     assert.deepEqual(dualHome.calls.filter(args => args[2] === 'PageView').map(args => args[1]).sort(),
         ['1371060818078535', extraId].sort());
+    // Kuwait's storefront uses KWD; preserve the displayed value and currency on both pixels.
+    const kwdProduct = {content_ids:['book21'], value:6.2, currency:'KWD'};
+    for (const event of ['ViewContent', 'AddToCart', 'InitiateCheckout']) {
+        await dualHome.context.TaboTracking.track(event, kwdProduct);
+        const calls = dualHome.calls.filter(args => args[2] === event);
+        assert.equal(calls.length, 2, `${event} must reach both configured pixels for Kuwait`);
+        assert(calls.every(args => args[3].currency === 'KWD' && args[3].value === 6.2));
+    }
+    await dualHome.context.TaboTracking.track('AddToCart', {...kwdProduct, currency:'XXX'});
+    assert.equal(dualHome.calls.filter(args => args[2] === 'AddToCart').length, 2);
+    const kwdReceipt = runtime({pathname:'/success.html', additionalPixelId:extraId});
+    const kwdPurchase = {...kwdProduct, eventID:'b'.repeat(64), additional_pixel_ids:[extraId]};
+    await Promise.all([kwdReceipt.context.TaboTracking.purchase(kwdPurchase), kwdReceipt.context.TaboTracking.purchase(kwdPurchase)]);
+    assert.equal(kwdReceipt.calls.filter(args => args[2] === 'Purchase').length, 2);
+    assert(kwdReceipt.calls.filter(args => args[2] === 'Purchase').every(args => args[3].currency === 'KWD' && args[3].value === 6.2));
     const dualReceipt = runtime({pathname: '/success.html', additionalPixelId: extraId});
     await dualReceipt.context.TaboTracking.purchase(payload);
     assert.equal(dualReceipt.calls.filter(args => args[2] === 'Purchase' && args[1] === extraId).length, 0);
@@ -89,5 +104,5 @@ function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new
     const authorized = await receiptDocument(true);
     assert.equal(authorized.observed.eventID, payload.eventID);
     assert.equal((await receiptDocument(true, authorized.state)).observed.eventID, payload.eventID);
-    console.log('Meta tracking: 4 isolated scenarios passed (events, deduplication, blocked delivery, authenticated receipt).');
+    console.log('Meta tracking: isolated scenarios passed (events, KWD, dual pixels, deduplication, blocked delivery, authenticated receipt).');
 })().catch(error => {console.error(error); process.exitCode = 1;});

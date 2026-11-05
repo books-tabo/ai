@@ -40,7 +40,7 @@
     function properties(data) {
         const ids = Array.isArray(data.content_ids) ? data.content_ids : [];
         if (!ids.length || !ids.every(id => /^book[1-9][0-9]*$/.test(id)) ||
-            !['EGP', 'USD'].includes(data.currency) || !Number.isFinite(data.value) || data.value <= 0) return null;
+            !['EGP', 'USD', 'KWD'].includes(data.currency) || !Number.isFinite(data.value) || data.value <= 0) return null;
         return {content_ids: ids, content_type: 'product', num_items: ids.length,
                 value: data.value, currency: data.currency};
     }

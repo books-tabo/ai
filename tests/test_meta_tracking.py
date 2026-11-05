@@ -102,6 +102,25 @@ class MetaHTTPTests(HTTPCase):
 
 
 class MetaPayloadTests(unittest.TestCase):
+    def test_kwd_purchase_preserves_fils_and_original_conversion_guards(self):
+        current = datetime.now(timezone.utc)
+        value = order()
+        value.update(status='PAID', paymentMode='live', transactionId='synthetic-kwd',
+                     paidAt=current.isoformat(), currency='KWD', total=6.299,
+                     items=[{'id': 'book21'}])
+        config = {'TABO_META_ADDITIONAL_PIXEL_ID': '1390132816288252',
+                  'TABO_META_ADDITIONAL_PURCHASE_SINCE': (current-timedelta(minutes=1)).isoformat()}
+        with patch.dict(os.environ, config):
+            result = meta_tracking.purchase(value, current)
+            self.assertIsNotNone(result)
+            self.assertEqual(result['currency'], 'KWD')
+            self.assertEqual(result['value'], 6.299)
+            self.assertEqual(result['content_ids'], ['book21'])
+            self.assertEqual(result['additional_pixel_ids'], ['1390132816288252'])
+            self.assertEqual(meta_tracking.purchase(value, current), result)
+            for changes in ({'paymentMode': 'test'}, {'status': 'PENDING'}, {'status': 'REFUNDED'}, {'currency': 'XXX'}):
+                self.assertIsNone(meta_tracking.purchase({**value, **changes}, current))
+
     def test_additional_pixel_receives_only_new_purchases_without_changing_original_event(self):
         since = datetime(2026, 11, 5, 21, 0, tzinfo=timezone.utc)
         current = since + timedelta(minutes=10)
