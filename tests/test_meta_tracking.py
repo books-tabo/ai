@@ -57,6 +57,14 @@ class MetaHTTPTests(HTTPCase):
             _, body, headers = self.get('/')
             self.assertNotIn(b'/meta-tracking.js', body)
             self.assertNotIn('facebook', headers['Content-Security-Policy'])
+        with patch.dict(os.environ, {'TABO_META_ADDITIONAL_PIXEL_ID': '1390132816288252'}):
+            _, body, headers = self.get('/books/book21')
+            self.assertIn(b'data-pixel-id="1371060818078535"', body)
+            self.assertIn(b'data-additional-pixel-id="1390132816288252"', body)
+            self.assertEqual(body.count(b'src="/meta-tracking.js?'), 1)
+        with patch.dict(os.environ, {'TABO_META_ADDITIONAL_PIXEL_ID': '<invalid>'}):
+            _, body, _ = self.get('/')
+            self.assertNotIn(b'data-additional-pixel-id=', body)
 
     def test_paid_authenticated_conversion_is_stable_and_contains_no_buyer_fields(self):
         value = self.paid(); self.install(value)
@@ -94,6 +102,26 @@ class MetaHTTPTests(HTTPCase):
 
 
 class MetaPayloadTests(unittest.TestCase):
+    def test_additional_pixel_receives_only_new_purchases_without_changing_original_event(self):
+        since = datetime(2026, 11, 5, 21, 0, tzinfo=timezone.utc)
+        current = since + timedelta(minutes=10)
+        value = order(); value.update(status='PAID', paymentMode='live', transactionId='synthetic-extra-pixel',
+                                      paidAt=(since-timedelta(minutes=1)).isoformat())
+        original = meta_tracking.purchase(value, current)
+        config = {'TABO_META_ADDITIONAL_PIXEL_ID': '1390132816288252',
+                  'TABO_META_ADDITIONAL_PURCHASE_SINCE': since.isoformat()}
+        with patch.dict(os.environ, config):
+            self.assertEqual(meta_tracking.purchase(value, current), original)
+            new = meta_tracking.purchase({**value, 'paidAt': since.isoformat()}, current)
+            self.assertEqual(new['additional_pixel_ids'], ['1390132816288252'])
+            self.assertEqual(new['eventID'], original['eventID'])
+            for invalid in ('', 'not-a-date', '2026-11-05T21:00:00'):
+                with patch.dict(os.environ, {'TABO_META_ADDITIONAL_PURCHASE_SINCE': invalid}):
+                    self.assertNotIn('additional_pixel_ids', meta_tracking.purchase({**value, 'paidAt': since.isoformat()}, current))
+            for invalid_id in ('invalid', meta_tracking.pixel_id()):
+                with patch.dict(os.environ, {'TABO_META_ADDITIONAL_PIXEL_ID': invalid_id}):
+                    self.assertNotIn('additional_pixel_ids', meta_tracking.purchase({**value, 'paidAt': since.isoformat()}, current))
+
     def test_currency_actual_bundle_and_stability_without_service_keys(self):
         current = meta_tracking.PURCHASE_SINCE + timedelta(minutes=10)
         value = order(); value.update(status='PAID', paymentMode='live', transactionId='synthetic-tx',

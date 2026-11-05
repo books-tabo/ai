@@ -707,7 +707,11 @@ class Handler(BaseHTTPRequestHandler):
         self._meta_enabled=bool(pixel_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','success.html','offers.html'))
         if self._meta_enabled:
             version=hashlib.sha256((ROOT/'meta-tracking.js').read_bytes()).hexdigest()[:12]
-            source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'" data-pixel-id="'+pixel_id+'"></script></head>',1)
+            additional=meta_tracking.additional_pixel_id()
+            attributes=' data-pixel-id="'+pixel_id+'"'
+            if additional:
+                attributes+=' data-additional-pixel-id="'+additional+'"'
+            source=source.replace('</head>', '<script src="/meta-tracking.js?v='+version+'"'+attributes+'></script></head>',1)
         google_id=google_ads_tracking.tag_id()
         self._google_enabled=bool(google_id and not seo.review_mode() and filename in ('index.html','book.html','checkout.html','info.html','offers.html','success.html'))
         if self._google_enabled:

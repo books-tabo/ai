@@ -7,10 +7,10 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'meta-tracking.js'), '
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const payload = {eventID: 'a'.repeat(64), value: 299, currency: 'EGP', content_ids: ['book1', 'book18']};
 
-function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new Map(), fail=false}={}) {
+function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new Map(), fail=false, additionalPixelId}={}) {
     const appended = [], calls = [];
     const document = {
-        currentScript: {dataset: {pixelId: '1371060818078535'}, nonce: 'synthetic-nonce'},
+        currentScript: {dataset: {pixelId: '1371060818078535', additionalPixelId}, nonce: 'synthetic-nonce'},
         createElement: () => ({}),
         head: {appendChild: script => {appended.push(script); queueMicrotask(() => fail ? script.onerror() : script.onload());}}
     };
@@ -52,6 +52,23 @@ function runtime({hostname='tabobooks.com', pathname='/', search='', storage=new
     const blocked = runtime({pathname: '/success.html', fail: true});
     await blocked.context.TaboTracking.purchase(payload);
     assert.equal(blocked.storage.size, 0);
+
+    const extraId = '1390132816288252';
+    const dualHome = runtime({additionalPixelId: extraId}); await flush();
+    assert.equal(dualHome.appended.length, 1);
+    assert.deepEqual(dualHome.calls.filter(args => args[2] === 'PageView').map(args => args[1]).sort(),
+        ['1371060818078535', extraId].sort());
+    const dualReceipt = runtime({pathname: '/success.html', additionalPixelId: extraId});
+    await dualReceipt.context.TaboTracking.purchase(payload);
+    assert.equal(dualReceipt.calls.filter(args => args[2] === 'Purchase' && args[1] === extraId).length, 0);
+    const eligible = {...payload, additional_pixel_ids: [extraId, '999999999']};
+    await Promise.all([dualReceipt.context.TaboTracking.purchase(eligible), dualReceipt.context.TaboTracking.purchase(eligible)]);
+    assert.equal(dualReceipt.calls.filter(args => args[2] === 'Purchase').length, 2);
+    assert.equal(dualReceipt.calls.filter(args => args[2] === 'Purchase' && args[1] === extraId).length, 1);
+    assert(!dualReceipt.calls.some(args => args[1] === '999999999'));
+    const dualRefreshed = runtime({pathname: '/success.html', additionalPixelId: extraId, storage: dualReceipt.storage});
+    await dualRefreshed.context.TaboTracking.purchase(eligible);
+    assert.equal(dualRefreshed.appended.length, 0);
 
     // Execute the actual receipt document, including authorization and clean-URL ordering.
     const html = fs.readFileSync(path.join(__dirname, '..', 'success.html'), 'utf8');
