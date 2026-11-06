@@ -13,10 +13,13 @@ def validate(data, books):
     email = data.get('email')
     name = data.get('display_name', '')
     body = data.get('body')
+    rating = data.get('rating')
     if not isinstance(book_id,str) or book_id not in books or data.get('consent') is not True:
         raise ValueError('Invalid comment')
     if not all(isinstance(value, str) for value in (email, name, body)):
         raise ValueError('Invalid comment')
+    if rating is not None and (type(rating) is not int or not 1 <= rating <= 5):
+        raise ValueError('Invalid comment rating')
     email = unicodedata.normalize('NFKC', email.strip()).casefold()
     name = unicodedata.normalize('NFKC', name.strip())
     body = unicodedata.normalize('NFKC', body.strip())
@@ -26,7 +29,7 @@ def validate(data, books):
             or any(ord(char) < 32 for char in email)):
         raise ValueError('Invalid comment')
     return {'book_id': book_id, 'email_hash': fingerprint('email', email),
-            'display_name': name or 'قارئ', 'body': body,
+            'display_name': name or 'قارئ', 'body': body, 'rating': rating,
             **({'opt_in_email': email} if data.get('updates_consent') is True else {})}
 
 
@@ -43,5 +46,8 @@ def public_result(result):
         raise ValueError('Invalid comment response')
     comments = []
     for row in result['comments'][:20]:
-        comments.append({key: row[key] for key in ('id', 'display_name', 'body', 'verified_purchase', 'created_at')})
+        public = {key: row[key] for key in ('id', 'display_name', 'body', 'verified_purchase', 'created_at')}
+        rating = row.get('rating')
+        public['rating'] = rating if type(rating) is int and 1 <= rating <= 5 else None
+        comments.append(public)
     return {'comments': comments, 'total': max(0, int(result.get('total', 0)))}
