@@ -24,7 +24,7 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.meta_conversion_outbox,public.order_book_emails,public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.meta_conversion_outbox,public.order_book_emails,public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.reader_comment_subscribers,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
             c.execute("UPDATE public.store_catalog_state SET published='{}'::jsonb,draft='{}'::jsonb,revision=0,draft_revision=0,reminders_enabled=true,published_at=NULL WHERE id")
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
@@ -633,8 +633,59 @@ class PostgresTests(unittest.TestCase):
             c.execute("UPDATE public.book_comments SET status='approved',moderated_at=now()")
             result=c.execute("SELECT public.list_reader_comments('book20',0)").fetchone()[0]
             self.assertEqual(result['total'],1)
-            self.assertEqual(set(result['comments'][0]),{'id','display_name','body','verified_purchase','created_at'})
+            self.assertEqual(set(result['comments'][0]),{'id','display_name','body','verified_purchase','created_at','rating'})
             self.assertEqual(c.execute('SELECT row_to_json(s) FROM public.book_stats s ORDER BY book_id').fetchall(),before)
+
+    def publish_review(self, rating=None, email='c'*64, body='Synthetic honest review', opt_in=None, barrier=None):
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            if barrier:barrier.wait(timeout=15)
+            return c.execute('SELECT public.publish_reader_comment(%s,%s,%s,%s,%s,%s,%s)',
+                             ('book20',email,'Synthetic reader',body,None,opt_in,rating)).fetchone()[0]
+
+    def test_comment_rating_publication_retries_and_owner_removal_are_atomic(self):
+        self.assertEqual(self.publish_review(3,opt_in='reader@example.invalid'),{'accepted':True})
+        self.publish_review(5,body='Duplicate review',opt_in='other@example.invalid')
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT body,rating,status FROM public.book_comments').fetchone(),
+                             ('Synthetic honest review',3,'approved'))
+            self.assertEqual(c.execute('SELECT email FROM public.reader_comment_subscribers').fetchall(),
+                             [('reader@example.invalid',)])
+            c.execute('SET ROLE service_role')
+            result=c.execute("SELECT public.list_reader_comments('book20')").fetchone()[0]
+            self.assertEqual(result['total'],1)
+            self.assertEqual(result['comments'][0]['rating'],3)
+            self.assertNotIn('email_hash',result['comments'][0])
+            c.execute("UPDATE public.book_comments SET status='rejected'")
+        self.publish_review(1)
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT rating,status FROM public.book_comments').fetchone(),(3,'rejected'))
+            self.assertEqual(c.execute("SELECT public.list_reader_comments('book20')").fetchone()[0],
+                             {'total':0,'comments':[]})
+            self.assertEqual(c.execute("SELECT rating_sum,review_count FROM public.book_stats WHERE book_id='book20'").fetchone(),(0,0))
+
+    def test_comment_ratings_accept_legacy_calls_and_reject_invalid_values(self):
+        import psycopg
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            self.assertEqual(c.execute("SELECT public.publish_reader_comment('book20',%s,'Reader','Legacy comment',NULL,NULL)",('d'*64,)).fetchone()[0],
+                             {'accepted':True})
+            self.assertIsNone(c.execute('SELECT rating FROM public.book_comments').fetchone()[0])
+            self.assertIsNone(c.execute("SELECT public.list_reader_comments('book20')").fetchone()[0]['comments'][0]['rating'])
+            for role in ('anon','authenticated'):
+                self.assertFalse(c.execute("SELECT has_function_privilege(%s,'public.publish_reader_comment(text,text,text,text,text,text,integer)','EXECUTE')",(role,)).fetchone()[0])
+        for rating in (0,6):
+            with self.assertRaises(psycopg.errors.CheckViolation):
+                self.publish_review(rating,email='e'*64)
+
+    def test_comment_rating_concurrent_retries_keep_one_submission(self):
+        barrier=threading.Barrier(8)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            results=list(pool.map(lambda _:self.publish_review(4,opt_in='reader@example.invalid',barrier=barrier),range(8)))
+        self.assertTrue(all(result=={'accepted':True} for result in results))
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT rating,count(*) FROM public.book_comments GROUP BY rating').fetchall(),[(4,1)])
+            self.assertEqual(c.execute('SELECT count(*) FROM public.reader_comment_subscribers').fetchone()[0],1)
 
     def test_reader_comment_unique_email_and_verified_order_survive_races(self):
         barrier=threading.Barrier(12)

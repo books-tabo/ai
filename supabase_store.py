@@ -187,7 +187,8 @@ def submit_comment(comment, verified_order_hash=None):
     result=request('/rest/v1/rpc/publish_reader_comment', 'POST', {
         'p_book_id':comment['book_id'], 'p_email_hash':comment['email_hash'],
         'p_display_name':comment['display_name'], 'p_body':comment['body'],
-        'p_verified_order_hash':verified_order_hash, 'p_opt_in_email':comment.get('opt_in_email')})
+        'p_verified_order_hash':verified_order_hash, 'p_opt_in_email':comment.get('opt_in_email'),
+        'p_rating':comment.get('rating')})
     if not isinstance(result,dict) or result.get('accepted') is not True:
         raise StoreUnavailable()
     return result

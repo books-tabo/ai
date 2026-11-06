@@ -45,8 +45,30 @@ class CommentValidationTests(unittest.TestCase):
         row={'id':'abc','display_name':'Reader','body':'Honest opinion','verified_purchase':False,
              'created_at':'2026-10-28T00:00:00Z','email_hash':'private','email':'PRIVATE','verified_order_hash':'private','status':'approved'}
         result=reader_comments.public_result({'total':1,'comments':[row]})
-        self.assertEqual(set(result['comments'][0]),{'id','display_name','body','verified_purchase','created_at'})
+        self.assertEqual(set(result['comments'][0]),{'id','display_name','body','verified_purchase','created_at','rating'})
         self.assertNotIn('private',json.dumps(result));self.assertNotIn('PRIVATE',json.dumps(result))
+
+    def test_comment_rating_validation_and_legacy_requests(self):
+        with patch.dict(os.environ,ENV):
+            for rating in (1,2,3,4,5,None):
+                value=reader_comments.validate(comment(rating=rating),app.BOOKS)
+                self.assertEqual(value['rating'],rating)
+            self.assertIsNone(reader_comments.validate(comment(),app.BOOKS)['rating'])
+            for rating in (True,False,0,6,-1,5.0,'5',[],{}):
+                with self.subTest(rating=rating),self.assertRaises(ValueError):
+                    reader_comments.validate(comment(rating=rating),app.BOOKS)
+
+    def test_rating_is_stored_with_comment_and_public_values_are_allowlisted(self):
+        with patch.dict(os.environ,ENV),patch.object(store,'request',return_value={'accepted':True}) as request:
+            store.submit_comment(reader_comments.validate(comment(rating=3),app.BOOKS))
+            self.assertEqual(request.call_args.args[2]['p_rating'],3)
+        row={'id':'abc','display_name':'Reader','body':'Opinion','verified_purchase':False,
+             'created_at':'2026-11-06T00:00:00Z','email':'PRIVATE'}
+        for rating in (1,3,5,None,True,6,'5'):
+            result=reader_comments.public_result({'total':1,'comments':[{**row,'rating':rating}]})
+            expected=rating if type(rating) is int and 1<=rating<=5 else None
+            self.assertEqual(result['comments'][0]['rating'],expected)
+            self.assertNotIn('PRIVATE',json.dumps(result))
 
     def test_adapter_does_not_write_existing_stats_or_ratings(self):
         with patch.dict(os.environ,ENV),patch.object(store,'request',return_value={'accepted':True}) as request:
@@ -74,7 +96,7 @@ class CommentHTTPTests(HTTPCase):
             status,data,_=self.post('/api/book-comments',comment(status='approved',verified_purchase=True,rating=5))
         self.assertEqual((status,data),(202,{'ok':True,'status':'accepted'}))
         args=self.submit.call_args.args
-        self.assertEqual(args[0]['book_id'],'book20');self.assertIsNone(args[1])
+        self.assertEqual(args[0]['book_id'],'book20');self.assertEqual(args[0]['rating'],5);self.assertIsNone(args[1])
         self.assertNotIn('email',args[0]);self.assertNotIn('verified_purchase',args[0])
         rate.assert_not_called();download.assert_not_called()
 
@@ -82,6 +104,7 @@ class CommentHTTPTests(HTTPCase):
         self.assertEqual(self.post('/api/book-comments',comment(),{'Origin':'https://other.invalid','Sec-Fetch-Site':'cross-site'})[0],403)
         self.assertEqual(self.post('/api/book-comments',comment(consent=False))[0],400)
         self.assertEqual(self.post('/api/book-comments',comment(email='bad'))[0],400)
+        self.assertEqual(self.post('/api/book-comments',comment(rating=6))[0],400)
         self.assertEqual(self.post('/api/book-comments',comment(website='spam.invalid'))[0],202)
         self.submit.assert_not_called()
 
@@ -154,6 +177,8 @@ class CommentHTTPTests(HTTPCase):
                 html=response.read().decode()
             self.assertIn('id="commentForm"',html)
             self.assertIn('id="commentEmail"',html)
+            self.assertIn('id="commentRating"',html)
+            self.assertEqual(html.count('name="commentRating"'),5)
             self.assertIn('type="email"',html)
             self.assertIn('/book-comments.js',html)
         with self.opener.open(self.base+'/book-comments.js',timeout=3) as response:

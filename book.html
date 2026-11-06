@@ -14,9 +14,32 @@
 .reader-comments #commentsTitle{margin-bottom:16px}
 .reader-comments #commentsList{display:grid;gap:12px}
 .reader-comments #commentsMore{margin-top:12px}
-.reader-comments #commentForm{margin-top:20px;padding-top:16px;border-top:1px solid #e6e1d3}.reader-comments label{display:block;margin:14px 0 6px;font-weight:700}.reader-comments input:not([type=checkbox]),.reader-comments textarea{width:100%;max-width:100%;padding:12px;border:1px solid #cfc8b6;border-radius:8px;font:inherit;background:#fff;color:#161616}.reader-comments textarea{resize:vertical;min-height:120px}.reader-comments .comment-consent{font-weight:400;line-height:1.8}.reader-comments .comment-note{font-size:13px;color:#666;line-height:1.8}.reader-comments button:disabled{opacity:.6;cursor:wait}.reader-comment{background:#fbf7e9;border:1px solid #e8dcb7;border-inline-start:4px solid #ad8528;border-radius:12px;padding:14px 16px;min-width:0}
-.reader-comment header strong{color:#2c2414;overflow-wrap:anywhere}
-.reader-comments .reader-comment p{margin:8px 0 0;color:#29251e;font-size:1.0625rem;line-height:1.85}.reader-comment p{white-space:pre-wrap;overflow-wrap:anywhere}.reader-comment header{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.reader-comment time{color:#6f6553;font-size:12px}.comment-verified{font-size:12px;background:#f7f3e7;padding:4px 8px;border-radius:6px;color:#625015}#commentStatus{line-height:1.8}#commentEmail{direction:ltr;text-align:start}
+.reader-comments #commentForm{margin-top:20px;padding-top:16px;border-top:1px solid #e6e1d3}.reader-comments label{display:block;margin:14px 0 6px;font-weight:700}.reader-comments input:not([type=checkbox]),.reader-comments textarea{width:100%;max-width:100%;padding:12px;border:1px solid #cfc8b6;border-radius:8px;font:inherit;background:#fff;color:#161616}.reader-comments textarea{resize:vertical;min-height:120px}.reader-comments .comment-consent{font-weight:400;line-height:1.8}.reader-comments .comment-note{font-size:13px;color:#666;line-height:1.8}.reader-comments button:disabled{opacity:.6;cursor:wait}
+.reader-comment{background:#fffdf8;border:1px solid #e8dcb7;border-radius:14px;padding:20px;min-width:0;box-shadow:0 3px 12px rgba(34,27,15,.035)}
+.reader-comment header{display:flex;gap:12px;align-items:center}
+.comment-avatar{position:relative;display:block;flex:0 0 44px;width:44px;height:44px;border-radius:50%;background:#182341}
+.comment-avatar::before{content:"";position:absolute;top:9px;left:17px;width:10px;height:10px;border-radius:50%;background:#fff}
+.comment-avatar::after{content:"";position:absolute;top:23px;left:11px;width:22px;height:12px;border:3px solid #fff;border-bottom:0;border-radius:15px 15px 0 0}
+.comment-author{min-width:0;flex:1}
+.reader-comment header strong{display:block;color:#2c2414;overflow-wrap:anywhere}
+.reader-comment time{color:#766e61;font-size:12px;flex-shrink:0}
+.comment-rating{display:flex;align-items:center;gap:12px;margin-top:10px;direction:ltr;justify-content:flex-end}
+.comment-stars{display:inline-flex;gap:5px;font-size:24px;line-height:1.2}
+.comment-stars .is-filled{color:#d53262}
+.comment-stars .is-empty{color:#d9d4ce}
+.comment-rating-value{font-size:16px;font-weight:700;color:#342b22}
+.reader-comments .reader-comment p{margin:14px 0 0;color:#29251e;font-size:1.0625rem;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}
+.comment-rating-field{border:0;padding:0;margin:18px 0}
+.comment-rating-field legend{font-weight:700;margin-bottom:6px}
+.comment-rating-options{display:flex;direction:ltr;justify-content:flex-end;gap:4px}
+.reader-comments label.comment-rating-option{display:block;position:relative;flex:0 1 44px;min-width:36px;width:44px;height:44px;margin:0;cursor:pointer;border-radius:6px}
+.reader-comments .comment-rating-option input{position:absolute;inset:0;width:100%;height:100%;padding:0;margin:0;opacity:0;cursor:pointer}
+.comment-rating-option span{display:block;text-align:center;font-size:34px;line-height:44px;color:#d9d4ce;pointer-events:none}
+.comment-rating-option.is-selected span{color:#d53262}
+.comment-rating-option:has(input:focus-visible){outline:2px solid #182341;outline-offset:2px}
+html[dir="ltr"] .comment-rating,html[dir="ltr"] .comment-rating-options{justify-content:flex-start}
+@media(max-width:420px){.reader-comment{padding:16px}.reader-comment header{gap:9px}.reader-comment time{font-size:11px}}
+.comment-verified{font-size:12px;background:#f7f3e7;padding:4px 8px;border-radius:6px;color:#625015}#commentStatus{line-height:1.8}#commentEmail{direction:ltr;text-align:start}
 .book-sharing{margin-top:22px;padding-top:16px;border-top:1px solid #e6e1d3}.book-sharing p{margin:0 0 10px;color:#666;font-size:14px}.share-actions{display:flex;gap:8px;flex-wrap:wrap}.share-actions .button{font-size:14px;padding:11px 14px;min-height:44px}.share-whatsapp{background:#168647;color:#fff}.share-copy{background:#f7f3e7;color:#765b13}.book-share-url{width:100%;padding:10px;margin-top:10px;direction:ltr;border:1px solid #c9c1ab;border-radius:7px}#bookShareStatus{margin-top:10px;min-height:1.3em}
 </style>
 </head>
@@ -38,9 +61,19 @@
 <label for="commentName" id="commentNameLabel">الاسم المعروض (اختياري)</label><input id="commentName" name="display_name" maxlength="80" autocomplete="nickname">
 <label for="commentEmail" id="commentEmailLabel">البريد الإلكتروني</label><input id="commentEmail" name="email" type="email" maxlength="254" autocomplete="email" required aria-describedby="commentPrivacy">
 <p class="comment-note" id="commentPrivacy">بريدك لن يظهر للزوار. لا تضع بياناتك الشخصية داخل التعليق.</p>
+<fieldset class="comment-rating-field" id="commentRating">
+<legend id="commentRatingLabel">تقييمك للكتاب</legend>
+<div class="comment-rating-options">
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="1" aria-label="1 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="2" aria-label="2 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="3" aria-label="3 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="4" aria-label="4 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="5" aria-label="5 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+</div>
+</fieldset>
 <label for="commentBody" id="commentBodyLabel">تعليقك عن الكتاب</label><textarea id="commentBody" name="body" minlength="5" maxlength="2000" required></textarea>
 <div hidden aria-hidden="true"><label for="commentWebsite">Website</label><input id="commentWebsite" name="website" tabindex="-1" autocomplete="off"></div>
-<label class="comment-consent"><input id="commentConsent" type="checkbox" required> <span id="commentConsentText">أوافق على نشر اسمي المعروض وتعليقي فورًا وفق سياسة الخصوصية.</span> <a href="/privacy" id="commentPrivacyLink">سياسة الخصوصية</a></label>
+<label class="comment-consent"><input id="commentConsent" type="checkbox" required> <span id="commentConsentText">أوافق على نشر اسمي المعروض وتقييمي وتعليقي فورًا وفق سياسة الخصوصية.</span> <a href="/privacy" id="commentPrivacyLink">سياسة الخصوصية</a></label>
 <label class="comment-consent"><input id="commentUpdates" type="checkbox"> <span id="commentUpdatesText">أرغب في تلقي عروض تابو بوكس وأخبار إصدارات الكتب عبر البريد الإلكتروني (اختياري).</span></label>
 <button type="submit" class="button primary" id="commentSubmit" disabled>نشر التعليق</button>
 <p id="commentStatus" role="status" aria-live="polite"></p>
@@ -73,6 +106,6 @@ async function load(country=browserCountry()){
 async function loadStats(){try{const r=await fetch("/api/book-stats",{cache:"no-store"});if(r.ok){const all=await r.json();stats=all[id]||stats;render();}}catch(e){}}
 document.getElementById("stars").onclick=e=>{const button=e.target.closest("button[data-rating]");if(button)submitRating(Number(button.dataset.rating))};document.getElementById("addBtn").onclick=()=>{if(!pricingLoaded)return;const items=cart();if(!items.some(x=>x.id===id)){items.push({type:"book",id});localStorage.setItem("taboBooksCart",JSON.stringify(items));window.TaboTracking?.track("AddToCart",{content_ids:[id],value:bookPrice(),currency:config.currency});window.TaboAnalytics?.track('AddToCart',{content_ids:[id],value:bookPrice(),currency:config.currency})}render()};document.getElementById("cartLink").href="/checkout"+location.search;document.getElementById("mobileBuyBtn").onclick=()=>{document.getElementById("addBtn").click();location.href="/checkout"+location.search};document.getElementById("country").onchange=e=>load(e.target.value);document.getElementById("languageToggle").onclick=()=>{lang=lang==="ar"?"en":"ar";localStorage.setItem("taboLanguage",lang);render()};render();load();loadStats();
 </script>
-<script src="/book-comments.js?v=2" defer></script>
+<script src="/book-comments.js?v=3" defer></script>
 </body></html>
 
