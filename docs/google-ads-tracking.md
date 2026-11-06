@@ -1,0 +1,17 @@
+# Google Ads paid-purchase tracking
+
+Destination: `AW-18456253761/Z30jCMCguqYdEMGq0OBE`. This is Google Ads conversion tracking, not a new GA4 property or Tag Manager container.
+
+The nonce-aware Google tag loads once on public store, book, offer and information pages so it can retain Google click attribution. Existing URLs, UTM/fbclid and Google click parameters are not rewritten. Protected pending/preview pages do not load it. Review mode disables it, and browser execution is restricted to tabobooks.com/www.tabobooks.com. `TABO_GOOGLE_ADS_ID=''` disables Google independently of Meta.
+
+On success.html, the local wrapper waits without requesting Google. Only `/api/downloads` after authentication of an active PAID order's browser-bound session returns `googleAdsPurchase`. The order must be live, have a confirmed provider transaction and a recent paidAt at or after the installation cutoff in google_ads_tracking.py. Pending, failed, test, refunded, preinstallation and stale purchases do not create live conversions.
+
+The receipt removes its protected query/hash before calling either tracker. Each tracker runs independently and cannot block rendering or downloading purchased books. The Google event uses the stored charge amount/currency, including the frozen EGP charge for a USD-displayed Kashier order. It never uses the example USD1 value or client cart totals. The stable opaque transaction_id is derived from the order and destination, without buyer information or private gateway/link values. Repeat calls are suppressed in memory and, after event processing, localStorage. The same ID allows Google's own deduplication after reloads, storage restrictions or parallel tabs. Browser delivery remains best effort, including when blockers prevent Google requests.
+
+Google receives no explicitly supplied customer name, phone, email, card data or download token. page_location/page_referrer retain only advertising parameters; the real browser URL and other tracking stay unchanged on public pages. Existing Meta tracking is not replaced. CSP retains per-response nonces and adds Google's documented Ads endpoints, regional EG/SA/KW endpoints and the Google tag frame. No unsafe-inline/unsafe-eval script execution is added. The bilingual privacy page describes both measurement tools.
+
+Validation uses synthetic order/session HTTP fixtures and a stubbed JavaScript runtime, without contacting Google with a synthetic purchase or creating a real order. CI runs both tracking suites alongside pricing, offer, checkout, download and PostgreSQL safety regressions. Post-deploy verification inspects public bootstrap/CSP, unchanged checkout configuration and absence of conversion data for unauthorized requests. No production Purchase/conversion is sent for testing.
+
+References checked: Google transaction IDs https://support.google.com/google-ads/answer/6386790 ; dynamic conversion values https://support.google.com/google-ads/answer/6095947 ; nonce/CSP Ads endpoints https://developers.google.com/tag-platform/security/guides/csp . Google Ads diagnostics and attribution populate after Google processes actual eligible traffic/conversions; a deployed tag is not proof of an attributed sale.
+
+Rollback: revert this release and redeploy the existing service. No database migration, payment flag, gateway mode, campaign or budget changes. Prior production commit: 8696aa24c04fbf81f59a56978f2c4fdb85565688.

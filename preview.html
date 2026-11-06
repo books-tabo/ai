@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>معاينة الكتاب | TABO BOOKS</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edece8;color:#171717;font-family:Tahoma,Arial,sans-serif}a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}button:disabled{cursor:default;opacity:.4}.top{background:#101010;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px max(18px,calc((100vw - 1050px)/2));}.brand{font:700 16px Arial,sans-serif;letter-spacing:2px;white-space:nowrap}.back{color:#d7bd68;font-size:13px}.intro{text-align:center;padding:22px 16px 12px}.intro h1{font-size:21px;margin:0 0 10px;line-height:1.7}.intro p{font-size:13px;color:#666;line-height:1.8;margin:0}.controls{position:sticky;top:0;z-index:2;background:#fff;border-block:1px solid #dedbd0;padding:10px 14px;display:flex;justify-content:center;align-items:center;gap:14px}.controls button,.retry{border:1px solid #c9b575;background:#fff;color:#3c321a;padding:10px 16px;border-radius:7px;min-height:42px}.counter{font-size:14px;min-width:110px;text-align:center;font-variant-numeric:tabular-nums}.reader{overflow:auto;padding:18px 10px 30px;min-height:60vh}.paper{width:100%;max-width:900px;margin:auto;position:relative;background:#fff;box-shadow:0 4px 25px #00000013;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}canvas{display:block;width:100%;height:auto}canvas[hidden]{display:none}.status{text-align:center;color:#666;padding:35px 16px;line-height:1.9}.error{color:#8c2929}.retry{display:block;margin:0 auto 20px}.retry[hidden]{display:none}.zoom{display:flex;justify-content:center;align-items:center;gap:14px;padding:0 14px 22px}.zoom button{font:20px Arial,sans-serif;background:white;border:1px solid #d1c5a3;border-radius:6px;width:40px;height:36px}.zoom span{font:13px Arial,sans-serif;color:#666}.print-note{display:none}@media(max-width:520px){.top{padding:16px}.intro h1{font-size:18px}.intro{padding-top:18px}.controls{gap:8px;padding:8px}.controls button{padding:9px 12px;font-size:13px}.counter{min-width:90px;font-size:13px}.reader{padding:12px 6px 20px}.paper{border-radius:0}}@media print{body>*{display:none!important}.print-note{display:block!important;text-align:center;padding:60px;font-size:18px}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="/">TABO BOOKS</a><a class="back" id="back" href="/">العودة للكتاب</a></header>
+<section class="intro"><h1 id="heading">عينة مجانية للقراءة</h1><p id="hint">معاينة للقراءة داخل الموقع</p></section>
+<nav class="controls" aria-label="صفحات العينة" id="navigation"><button type="button" id="previous" disabled>السابقة</button><span class="counter" id="counter" role="status" aria-live="polite">—</span><button type="button" id="next" disabled>التالية</button></nav>
+<p class="status" id="status" role="status">جارٍ تجهيز المعاينة…</p><button type="button" class="retry" id="retry" hidden>حاول مرة أخرى</button>
+<main class="reader" id="reader"><div class="paper" id="paper"><canvas id="page" role="img" aria-label="صفحة المعاينة" hidden></canvas></div></main>
+<div class="zoom"><button type="button" id="zoomOut" aria-label="تصغير">−</button><span id="zoomValue">100%</span><button type="button" id="zoomIn" aria-label="تكبير">+</button></div>
+<p class="print-note" id="printNote">هذه العينة مخصصة للقراءة داخل الموقع.</p>
+<script>
+const id=location.pathname.match(/^\/previews\/(book[1-9][0-9]*)$/)?.[1];
+const lang=localStorage.getItem('taboLanguage')==='en'?'en':'ar';
+const copy={ar:{title:'عينة مجانية للقراءة',hint:'معاينة للقراءة داخل الموقع',back:'العودة للكتاب',previous:'السابقة',next:'التالية',loading:'جارٍ تجهيز المعاينة…',failed:'تعذر عرض الصفحة. حاول مرة أخرى.',expired:'انتهت جلسة المعاينة. حدّث الصفحة لمتابعة القراءة.',retry:'حاول مرة أخرى',page:(n,total)=>`صفحة ${n} من ${total}`,label:n=>`صفحة المعاينة ${n}`,navigation:'صفحات العينة',zoomIn:'تكبير',zoomOut:'تصغير',print:'هذه العينة مخصصة للقراءة داخل الموقع.'},en:{title:'Read a free sample',hint:'Read the sample on this website',back:'Back to the book',previous:'Previous',next:'Next',loading:'Preparing your sample…',failed:'This page could not be loaded. Please try again.',expired:'Your preview session expired. Refresh this page to continue reading.',retry:'Try again',page:(n,total)=>`Page ${n} of ${total}`,label:n=>`Sample page ${n}`,navigation:'Sample pages',zoomIn:'Zoom in',zoomOut:'Zoom out',print:'This sample is available for reading on the website.'}}[lang];
+const $=id=>document.getElementById(id),canvas=$('page');
+let count=0,current=0,busy=false,zoom=100,requested=1;
+document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+for(const [id,text] of [['heading',copy.title],['hint',copy.hint],['back',copy.back],['previous',copy.previous],['next',copy.next],['status',copy.loading],['retry',copy.retry],['printNote',copy.print]])$(id).textContent=text;
+$('back').href=id?`/books/${id}`:'/';$('navigation').setAttribute('aria-label',copy.navigation);$('zoomIn').setAttribute('aria-label',copy.zoomIn);$('zoomOut').setAttribute('aria-label',copy.zoomOut);
+function buttons(){$('previous').disabled=busy||current<=1;$('next').disabled=busy||!count||current>=count;}
+async function resource(path){const response=await fetch(`/previews/${id}/${path}`,{credentials:'same-origin',cache:'no-store',headers:{'X-Tabo-Preview':'1'}});if(!response.ok)throw new Error(response.status===403?copy.expired:copy.failed);return response;}
+async function show(page){if(busy)return;requested=page;busy=true;buttons();$('retry').hidden=true;$('status').textContent=copy.loading;$('status').className='status';$('status').hidden=false;canvas.hidden=true;
+try{if(!id)throw new Error(copy.failed);if(!count){const info=await(await resource('info')).json();if(!Number.isInteger(info.pages)||info.pages<1||info.pages>16)throw new Error(copy.failed);count=info.pages;$('heading').textContent=`${info.title} — ${copy.title}`;document.title=`${info.title} | TABO BOOKS`;}
+const response=await resource(`page/${page}`);if(!(response.headers.get('Content-Type')||'').startsWith('image/jpeg'))throw new Error(copy.failed);const bitmap=await createImageBitmap(await response.blob());try{canvas.width=bitmap.width;canvas.height=bitmap.height;canvas.getContext('2d').drawImage(bitmap,0,0);}finally{bitmap.close();}
+current=page;canvas.setAttribute('aria-label',copy.label(page));canvas.hidden=false;$('status').hidden=true;$('counter').textContent=copy.page(page,count);$('reader').scrollTop=0;
+}catch(error){$('status').textContent=error.message||copy.failed;$('status').className='status error';$('retry').hidden=false;}finally{busy=false;buttons();}}
+$('previous').addEventListener('click',()=>show(current-1));$('next').addEventListener('click',()=>show(current+1));$('retry').addEventListener('click',()=>show(requested));
+function resize(delta){zoom=Math.max(100,Math.min(200,zoom+delta));$('paper').style.width=zoom+'%';$('paper').style.maxWidth=(900*zoom/100)+'px';$('zoomValue').textContent=zoom+'%';$('zoomOut').disabled=zoom===100;$('zoomIn').disabled=zoom===200;}
+$('zoomIn').addEventListener('click',()=>resize(25));$('zoomOut').addEventListener('click',()=>resize(-25));resize(0);
+$('paper').addEventListener('contextmenu',event=>event.preventDefault());$('paper').addEventListener('dragstart',event=>event.preventDefault());
+document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&['s','p'].includes(event.key.toLowerCase()))event.preventDefault();if(!busy&&event.target.tagName!=='BUTTON'){if(event.key==='PageDown'&&current<count){event.preventDefault();show(current+1);}if(event.key==='PageUp'&&current>1){event.preventDefault();show(current-1);}}});
+show(1);
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!doctype html><html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<title>مساعدة بخصوص طلبي | TABO BOOKS</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f4f0;color:#171717;font:16px/1.8 Tahoma,Arial,sans-serif}.brand{text-align:center;letter-spacing:4px;padding:18px;font-weight:800}.brand span{color:#aa8321}main{max-width:620px;background:white;border:1px solid #e6e0d2;border-radius:14px;padding:24px;margin:0 auto 24px}h1{font-size:25px;margin:10px 0}h2{font-size:20px}.language{float:left;border:1px solid #d4cfbf;background:white;padding:5px 12px;border-radius:6px}label{display:block;margin:14px 0}input{display:block;width:100%;border:1px solid #aaa;border-radius:7px;padding:11px;font:inherit;direction:ltr;margin-top:5px}button,.action{cursor:pointer;border:0;border-radius:8px;padding:12px 16px;font:700 15px Tahoma,Arial,sans-serif;background:#15803d;color:white;text-decoration:none;display:inline-block}.primary{width:100%}.language{font-weight:400;color:#222}button:disabled{opacity:.55;cursor:wait}.help,.notice{font-size:13px;color:#626262}.notice{padding:12px;background:#faf6e9;border-radius:8px}.error{color:#a51d24}.support{border-top:1px solid #eee;margin-top:22px;padding-top:16px}a{color:#775c17}.status{font-weight:bold}.actions{display:grid;gap:10px;margin-top:16px}[hidden]{display:none!important}@media(max-width:650px){main{margin:0 8px 18px;padding:18px}h1{font-size:22px}}
+</style></head><body><header class="brand">TABO <span>BOOKS</span></header><main>
+<button type="button" id="languageToggle" class="language">English</button><h1 id="title">مساعدة بخصوص طلبي</h1>
+<p id="intro">تابع طلبك أو اطلب إعادة إرسال رسالة الشراء، بعد التحقق من بريدك.</p>
+<form id="requestForm"><label><span id="orderLabel">رقم الطلب</span><input id="orderId" placeholder="TABO-0123456789ABCDEF" maxlength="21" required autocomplete="off" spellcheck="false"></label>
+<label><span id="emailLabel">بريد الشراء</span><input id="email" type="email" maxlength="254" autocomplete="email" required></label>
+<button id="requestButton" class="primary">إرسال رمز التحقق</button><p id="requestHelp" class="help">استخدم البريد الذي كتبته أثناء الشراء. رقم الطلب موجود في رسالة الشراء أو إيصال الدفع.</p></form>
+<form id="verifyForm" hidden><p id="sentNotice" class="notice">إذا تطابقت البيانات مع طلب مسجل، سيصلك رمز صالح لمدة 10 دقائق. راجع مجلد الرسائل غير المرغوب فيها أيضًا.</p>
+<label><span id="codeLabel">رمز التحقق</span><input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></label>
+<button id="verifyButton" class="primary">عرض طلبي</button><p><button id="startAgain" type="button" class="language">تعديل البيانات</button></p></form>
+<section id="orderSection" hidden><h2 id="orderHeading">تفاصيل الطلب</h2><p id="orderNumber"></p><p id="orderStatus" class="status"></p><ul id="books"></ul><p id="amount"></p><div class="actions"><a id="returnLink" class="action" hidden>الرجوع لطلب التحميل</a><button id="resendButton" type="button" hidden>إعادة إرسال رسالة الشراء</button></div><p id="deviceNotice" class="notice">افتح رابط التحميل من نفس المتصفح والجهاز المستخدمين للشراء. تظل محاولتا تحميل كل كتاب كما هما.</p></section>
+<p id="message" role="status" aria-live="polite"></p>
+<div class="support"><p id="contactHelp">لا تتذكر رقم الطلب أو تواجه مشكلة أخرى؟</p><a id="contactLink" href="/contact">تواصل معنا</a></div>
+<noscript>يرجى تفعيل JavaScript للتحقق من بريدك ومتابعة طلبك.</noscript></main><script src="/order-help.js"></script></body></html>
