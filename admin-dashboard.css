@@ -4,5 +4,6 @@
 
 .promoter-summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
 .promoter-url{display:block;width:100%;font-size:13px}
+.promoter-delete{background:#fff0ee;color:#a23d32;border-color:#f1cfc9}
 #promoterRows .ranking-row{overflow-wrap:anywhere}
 #promoterCreated{margin-top:16px}

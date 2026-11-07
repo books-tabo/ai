@@ -128,6 +128,26 @@ class DashboardHTTPTests(HTTPCase):
    self.assertEqual(result['rows'][0]['url'], reply['url'])
    self.assertIn('/books/book22', result['destinations'])
 
+ def test_promoter_delete_is_owner_only_and_safe_to_retry(self):
+  route = '/api/admin-dashboard/promoters'
+  code = '1234567890abcdef'
+  delete = {'action': 'delete', 'code': code}
+  self.assertEqual(self.post(route, delete)[0], 403)
+  with patch.object(dashboard, 'authenticated', return_value=True), patch.object(app.store, 'request', return_value=[{'code': code}]) as request:
+   self.assertEqual(self.post(route, {**delete, 'code': 'invalid'})[0], 400)
+   self.assertEqual(self.post(route, delete, {'Origin': 'https://example.invalid'})[0], 403)
+   request.assert_not_called()
+   self.assertEqual(self.post(route, delete)[:2], (200, {'ok': True}))
+   path, method, changes = request.call_args.args
+   self.assertEqual((path, method), ('/rest/v1/owner_promoter_links', 'PATCH'))
+   self.assertFalse(changes['active'])
+   self.assertTrue(changes['deleted_at'].endswith('+00:00'))
+   self.assertEqual(request.call_args.kwargs['params'], {'code': 'eq.' + code, 'deleted_at': 'is.null', 'select': 'code'})
+   request.return_value = []
+   self.assertEqual(self.post(route, delete)[:2], (200, {'ok': True}))
+   self.assertEqual(self.post(route, {'action': 'setActive', 'code': code, 'active': True})[0], 404)
+   self.assertEqual(request.call_args.kwargs['params']['deleted_at'], 'is.null')
+
  def test_promoter_redirect_cookie_cannot_be_forged_and_expires(self):
   class NoRedirect(HTTPRedirectHandler):
    def redirect_request(self, *args):

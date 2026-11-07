@@ -36,7 +36,7 @@ function syncPromoterControls() {
   $('promoterCreate').disabled = promoterBusy || !$('promoterDestination').value;
   $('promoterPrevious').disabled = promoterBusy || promoterOffset === 0;
   $('promoterNext').disabled = promoterBusy || !promoterMore;
-  document.querySelectorAll('[data-promoter-toggle]').forEach(button => button.disabled = promoterBusy);
+  document.querySelectorAll('[data-promoter-toggle], [data-promoter-delete]').forEach(button => button.disabled = promoterBusy);
 }
 
 async function copyPromoterUrl(input) {
@@ -66,6 +66,7 @@ function renderPromoters(result) {
   if (!result.rows.length) empty(list, 'لا توجد روابط في هذه الصفحة.');
   for (const row of result.rows) {
     const card = el('article', undefined, 'ranking-row');
+    card.id = 'promoter-' + row.code;
     const header = el('div', undefined, 'promoter-summary');
     const state = el('span', row.active ? 'فعّال' : 'متوقف', 'status-tag ' + (row.active ? 'paid' : 'pending'));
     header.append(el('strong', row.name), state);
@@ -99,7 +100,15 @@ function renderPromoters(result) {
     toggle.addEventListener('click', () => loadPromoters(promoterOffset, {
       action: 'setActive', code: row.code, active: !row.active,
     }));
-    actions.append(copy, toggle);
+    const remove = el('button', 'حذف', 'secondary promoter-delete');
+    remove.type = 'button';
+    remove.dataset.promoterDelete = '';
+    remove.setAttribute('aria-label', 'حذف رابط ' + row.name);
+    remove.addEventListener('click', () => {
+      if (!window.confirm('حذف رابط «' + row.name + '»؟ سيوجّه الرابط المحذوف إلى الصفحة الرئيسية.')) return;
+      loadPromoters(promoterOffset, {action: 'delete', code: row.code});
+    });
+    actions.append(copy, toggle, remove);
     card.append(url, actions);
     list.append(card);
   }
@@ -119,11 +128,22 @@ async function loadPromoters(start = promoterOffset, change) {
         $('promoterCreated').hidden = false;
         $('promoterName').value = '';
         notice = 'الرابط جاهز للنسخ والمشاركة.';
+      } else if (change.action === 'delete') {
+        $('promoter-' + change.code)?.remove();
+        if ($('promoterCreatedUrl').value.endsWith('/r/' + change.code)) {
+          $('promoterCreatedUrl').value = '';
+          $('promoterCreated').hidden = true;
+        }
+        notice = 'تم حذف الرابط.';
       } else {
         notice = change.active ? 'تم تفعيل الرابط.' : 'تم إيقاف تسجيل مرات الفتح الجديدة.';
       }
     }
-    const result = await api('promoters?offset=' + start);
+    let result = await api('promoters?offset=' + start);
+    if (change?.action === 'delete' && start > 0 && !result.rows.length) {
+      start = Math.max(0, start - 20);
+      result = await api('promoters?offset=' + start);
+    }
     renderPromoters(result);
     promoterOffset = start;
     promoterMore = result.more;

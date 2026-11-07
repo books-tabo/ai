@@ -229,6 +229,27 @@ class PostgresTests(unittest.TestCase):
         self.assertNotIn('reader@example.invalid', json.dumps(rows))
         self.assertNotIn(usd, json.dumps(rows))
 
+    def test_deleted_promoter_link_keeps_order_history_and_allows_a_new_link(self):
+        code, new_code = '1' * 16, '2' * 16
+        name, destination = 'Synthetic promoter', '/books/book21'
+        self.assertEqual(self.owner_rpc('owner_promoter_create', code, name, destination), code)
+        self.assertEqual(self.owner_rpc('owner_promoter_open', code), {'destination': destination, 'active': True})
+        order_id = self.receipt_order(2)
+        self.receipt_payment(order_id, number=2)
+        with self.connect() as c:
+            c.execute('SET ROLE service_role')
+            c.execute('UPDATE public.orders SET promoter_code=%s WHERE id=%s', (code, order_id))
+            c.execute('UPDATE public.owner_promoter_links SET active=false,deleted_at=now() WHERE code=%s', (code,))
+        self.assertIsNone(self.owner_rpc('owner_promoter_open', code))
+        self.assertEqual(self.owner_rpc('owner_promoter_report', 0), [])
+        self.assertEqual(self.owner_rpc('owner_promoter_create', new_code, name, destination), new_code)
+        self.assertEqual(self.owner_rpc('owner_promoter_create', '3' * 16, name, destination), new_code)
+        rows = self.owner_rpc('owner_promoter_report', 0)
+        self.assertEqual([(r['code'], r['paidOrders']) for r in rows], [(new_code, 0)])
+        with self.connect() as c:
+            self.assertEqual(c.execute('SELECT promoter_code,status FROM public.orders WHERE id=%s', (order_id,)).fetchone(), (code, 'PAID'))
+            self.assertEqual(c.execute('SELECT active,opens FROM public.owner_promoter_links WHERE code=%s', (code,)).fetchone(), (False, 1))
+
     def test_owner_reports_paid_live_separate_currencies_private_allowlist_and_filters(self):
         auth=self.owner_auth();usd=self.receipt_order(2);self.receipt_payment(usd,number=2)
         egp=self.receipt_order(3);self.receipt_payment(egp,number=3)
