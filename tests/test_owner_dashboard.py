@@ -104,24 +104,29 @@ class DashboardHTTPTests(HTTPCase):
  def test_promoter_management_is_owner_only_and_restricts_destinations(self):
   route = '/api/admin-dashboard/promoters'
   code = '1234567890abcdef'
-  create = {'action': 'create', 'name': '  مروّج   تجريبي  ', 'destination': '/books/book21'}
+  name = 'تيك توك - محكمة الحب و الجنس'
+  create = {'action': 'create', 'name': '  ' + name + '  ', 'destination': '/books/book22'}
   self.assertEqual(self.get(route)[0], 403)
   self.assertEqual(self.post(route, create)[0], 403)
-  with patch.object(dashboard, 'authenticated', return_value=True), patch.object(dashboard, 'rpc', return_value=code) as rpc:
+  with patch.object(dashboard, 'authenticated', return_value=True), patch.object(app.store, 'request', return_value=code) as request:
    self.assertEqual(self.post(route, {**create, 'destination': '//example.invalid'})[0], 400)
    self.assertEqual(self.post(route, {**create, 'destination': '/books/book9999'})[0], 400)
    self.assertEqual(self.post(route, create, {'Origin': 'https://example.invalid'})[0], 403)
-   rpc.assert_not_called()
+   request.assert_not_called()
    status, reply, _ = self.post(route, create)
    self.assertEqual(status, 200)
    self.assertEqual(reply['url'], 'https://tabobooks.com/r/' + code)
-   self.assertEqual(rpc.call_args.kwargs['name'], 'مروّج تجريبي')
-   rpc.return_value = [{'code': code, 'name': 'مروّج تجريبي', 'opens': 5, 'sales': []}]
+   request.assert_called_once()
+   path, method, params = request.call_args.args
+   self.assertEqual((path, method), ('/rest/v1/rpc/owner_promoter_create', 'POST'))
+   self.assertEqual(params['p_name'], name)
+   self.assertEqual(params['p_destination'], '/books/book22')
+   request.return_value = [{'code': code, 'name': name, 'opens': 5, 'sales': []}]
    status, body, _ = self.get(route)
    self.assertEqual(status, 200)
    result = json.loads(body)
    self.assertEqual(result['rows'][0]['url'], reply['url'])
-   self.assertIn('/books/book21', result['destinations'])
+   self.assertIn('/books/book22', result['destinations'])
 
  def test_promoter_redirect_cookie_cannot_be_forged_and_expires(self):
   class NoRedirect(HTTPRedirectHandler):
