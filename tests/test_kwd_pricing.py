@@ -105,8 +105,11 @@ class KuwaitiDinarHTTPTests(HTTPCase):
             return FakeResponse(gateway_response)
         with patch.object(fx,'kwd_egp_rate',side_effect=AssertionError('quote must be reused')), \
              patch.object(app,'urlopen',side_effect=gateway):
+            promoter_code = '1234567890abcdef'
+            referral = app.owner_dashboard.promoter_cookie(promoter_code)
             status,data,_=self.post('/api/orders',{'country':'KW','items':items,
-                'customer':self.customer,'quoteToken':q['token']})
+                'customer':self.customer,'quoteToken':q['token'],'promoterCode':'f'*16},
+                {'Cookie': app.owner_dashboard.PROMOTER_COOKIE + '=' + referral})
         self.assertEqual(status,201)
         self.assertEqual((data['order']['currency'],data['order']['total']),('EGP',1054))
         self.assertEqual((captured[0]['currency'],captured[0]['amount']),('EGP','1054.00'))
@@ -114,6 +117,8 @@ class KuwaitiDinarHTTPTests(HTTPCase):
             'سعر الطلب بالدينار الكويتي':'6.200 KWD',
             'المبلغ المحصل بالجنيه المصري':'1054.00 EGP'})
         stored=self.db.orders[data['order']['id']]
+        self.assertEqual(stored['promoterCode'], promoter_code)
+        self.assertNotIn('promoterCode', data['order'])
         self.assertEqual(stored['pricingQuote']['displayCurrency'],'KWD')
         self.assertNotIn('token',stored['pricingQuote'])
         with self.opener.open(self.base+'/api/order-status?key='+stored['statusKey']) as response:

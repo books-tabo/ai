@@ -2,6 +2,7 @@
 (()=>{'use strict';const $=id=>document.getElementById(id);let challenge='',data=null,offset=0,busy=false,view='overview';
 const states={PAID:'مدفوع',PENDING:'بانتظار التأكيد',REFUNDED:'مسترد',VOIDED:'ملغى',REVERSED:'عملية معكوسة',REVIEW:'يحتاج مراجعة'};
 const names={comments:['التعليقات والمشتركون','تعليقات القرّاء.','أدر التعليقات وراجع عناوين البريد المشتركة.'],tools:['السرعة والأخطاء','متجر أسرع وأخطاء أوضح.','افحص الصفحات العامة وتابع حالة رصد الأخطاء.'],catalog:['الكتب والعروض','أدر كتبك من مكان واحد.','حفظ مسودة ومعاينة ونشر بيانات الكتب والأغلفة والأسعار والعروض.'],recovery:['استكمال الطلبات','ساعد القارئ على إكمال اختياره.','تابع التذكيرات التي وافق عليها العملاء للطلبات غير المكتملة.'],overview:['نظرة عامة','أداء متجرك، بوضوح.','تابع مبيعات كتبك وطلباتك من بيانات المتجر الفعلية.'],orders:['الطلبات','كل طلب، بتفاصيله.','ابحث برقم الطلب وتابع الدفع والرسالة واستخدام التحميل.'],audience:['الزيارات ورحلة الشراء','افهم الطريق إلى الشراء.','جلسات ومصادر فعلية من قياس المتجر الداخلي، من وقت تفعيله.'],followup:['التسليم والمتابعة','تابع ما بعد الشراء.','رؤية لحالة رسائل الشراء والطلبات التي لم يبدأ تحميلها بعد.']};
+names.promoters = ['روابط المروّجين', 'روابط المروّجين', 'أنشئ رابطًا لكل مروّج وتابع الطلبات التي جاءت من خلاله.'];
 const sources={direct:'زيارة مباشرة',google:'Google',meta:'Facebook / Instagram',snapchat:'Snapchat',bing:'Bing',other:'إحالات أخرى'},mediums={direct:'مباشرة',paid:'إعلان / نقرة إعلانية',organic:'بحث طبيعي',referral:'إحالة',unknown:'غير متاح'};
 const num=n=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:0}).format(Number(n)||0);
 const money=(v,c)=>new Intl.NumberFormat('en-US',{style:'currency',currency:c,maximumFractionDigits:2}).format(Number(v)||0);
@@ -11,7 +12,145 @@ function empty(target,text='لا توجد بيانات خلال الفترة ا�
 function message(id,text,error=true){$(id).textContent=text;$(id).className=text?(error?'error':'notice'):'';}
 async function api(path,body){const r=await fetch('/api/admin-dashboard/'+path,{method:body===undefined?'GET':'POST',credentials:'same-origin',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});let d={};try{d=await r.json()}catch(_){}if(!r.ok){const e=Error(d.error||'تعذر الاتصال. حاول مرة أخرى.');e.status=r.status;throw e}return d;}
 function authenticated(on){$('loginView').hidden=on;$('dashboardView').hidden=!on;}
-function selectView(v){view=Object.hasOwn(names,v)?v:'overview';const n=names[view];$('sectionCaption').textContent=n[0];$('viewHeading').textContent=n[1];$('viewDescription').textContent=n[2];document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==view);$('filters').hidden=['tools','comments'].includes(view);$('reportCaption').hidden=['tools','comments'].includes(view);if(view==='comments')loadReaderAdmin();if(globalThis.TaboStoreTools)globalThis.TaboStoreTools.open(view);if(globalThis.TaboStoreAdmin)globalThis.TaboStoreAdmin.open(view);}
+function selectView(v) {
+  view = Object.hasOwn(names, v) ? v : 'overview';
+  const [caption, heading, description] = names[view];
+  $('sectionCaption').textContent = caption;
+  $('viewHeading').textContent = heading;
+  $('viewDescription').textContent = description;
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== view);
+  $('filters').hidden = $('reportCaption').hidden = ['tools', 'comments', 'promoters'].includes(view);
+  if (view === 'comments') loadReaderAdmin();
+  if (view === 'promoters') loadPromoters();
+  if (globalThis.TaboStoreTools) globalThis.TaboStoreTools.open(view);
+  if (globalThis.TaboStoreAdmin) globalThis.TaboStoreAdmin.open(view);
+}
+
+let promoterOffset = 0;
+let promoterMore = false;
+let promoterBusy = false;
+
+function syncPromoterControls() {
+  $('promoterReload').disabled = promoterBusy;
+  $('promoterCreate').disabled = promoterBusy || !$('promoterDestination').value;
+  $('promoterPrevious').disabled = promoterBusy || promoterOffset === 0;
+  $('promoterNext').disabled = promoterBusy || !promoterMore;
+  document.querySelectorAll('[data-promoter-toggle]').forEach(button => button.disabled = promoterBusy);
+}
+
+async function copyPromoterUrl(input) {
+  try {
+    await navigator.clipboard.writeText(input.value);
+    message('promoterMessage', 'تم نسخ الرابط.', false);
+  } catch (_) {
+    input.focus();
+    input.select();
+    message('promoterMessage', 'تم تحديد الرابط. انسخه من الحقل.', false);
+  }
+}
+
+function renderPromoters(result) {
+  const select = $('promoterDestination');
+  const selected = select.value;
+  select.replaceChildren();
+  for (const [path, label] of Object.entries(result.destinations)) {
+    const option = el('option', label);
+    option.value = path;
+    select.append(option);
+  }
+  select.value = Object.hasOwn(result.destinations, selected) ? selected : '/';
+
+  const list = $('promoterRows');
+  list.replaceChildren();
+  if (!result.rows.length) empty(list, 'لا توجد روابط في هذه الصفحة.');
+  for (const row of result.rows) {
+    const card = el('article', undefined, 'ranking-row');
+    const header = el('div', undefined, 'promoter-summary');
+    const state = el('span', row.active ? 'فعّال' : 'متوقف', 'status-tag ' + (row.active ? 'paid' : 'pending'));
+    header.append(el('strong', row.name), state);
+    const destination = el('p', result.destinations[row.destination] || row.destination, 'small-note');
+    const count = el('p', 'مرات الفتح ' + num(row.opens) + ' · الطلبات المدفوعة ' + num(row.paidOrders));
+    card.append(header, destination, count);
+    if (row.sales.length) {
+      const amounts = el('p', undefined, 'promoter-summary');
+      for (const sale of row.sales) {
+        const amount = el('bdi', new Intl.NumberFormat('en-US', {
+          style: 'currency', currency: sale.currency, currencyDisplay: 'code',
+        }).format(sale.amount), 'money');
+        amounts.append(amount);
+      }
+      card.append(amounts);
+    }
+    const url = el('input');
+    url.type = 'url';
+    url.className = 'promoter-url';
+    url.value = row.url;
+    url.readOnly = true;
+    url.dir = 'ltr';
+    url.setAttribute('aria-label', 'رابط المروّج ' + row.name);
+    const actions = el('div', undefined, 'editor-actions');
+    const copy = el('button', 'نسخ الرابط', 'secondary');
+    copy.type = 'button';
+    copy.addEventListener('click', () => copyPromoterUrl(url));
+    const toggle = el('button', row.active ? 'إيقاف' : 'تفعيل', 'secondary');
+    toggle.type = 'button';
+    toggle.dataset.promoterToggle = '';
+    toggle.addEventListener('click', () => loadPromoters(promoterOffset, {
+      action: 'setActive', code: row.code, active: !row.active,
+    }));
+    actions.append(copy, toggle);
+    card.append(url, actions);
+    list.append(card);
+  }
+}
+
+async function loadPromoters(start = promoterOffset, change) {
+  if (promoterBusy) return;
+  promoterBusy = true;
+  syncPromoterControls();
+  message('promoterMessage', '');
+  let notice = '';
+  try {
+    if (change) {
+      const saved = await api('promoters', change);
+      if (change.action === 'create') {
+        $('promoterCreatedUrl').value = saved.url;
+        $('promoterCreated').hidden = false;
+        $('promoterName').value = '';
+        notice = 'الرابط جاهز للنسخ والمشاركة.';
+      } else {
+        notice = change.active ? 'تم تفعيل الرابط.' : 'تم إيقاف تسجيل مرات الفتح الجديدة.';
+      }
+    }
+    const result = await api('promoters?offset=' + start);
+    renderPromoters(result);
+    promoterOffset = start;
+    promoterMore = result.more;
+    $('promoterPagination').hidden = !promoterOffset && !promoterMore;
+    $('promoterPage').textContent = 'صفحة ' + num(promoterOffset / 20 + 1);
+    if (notice) message('promoterMessage', notice, false);
+  } catch (e) {
+    if (e.status === 403) {
+      authenticated(false);
+      message('loginMessage', 'انتهت جلسة الدخول. اطلب رمزًا جديدًا.');
+    } else {
+      message('promoterMessage', notice ? notice + ' تعذر تحديث قائمة الروابط.' : e.message);
+    }
+  } finally {
+    promoterBusy = false;
+    syncPromoterControls();
+  }
+}
+
+$('promoterReload').addEventListener('click', () => loadPromoters());
+$('promoterPrevious').addEventListener('click', () => loadPromoters(Math.max(0, promoterOffset - 20)));
+$('promoterNext').addEventListener('click', () => loadPromoters(promoterOffset + 20));
+$('promoterCopyCreated').addEventListener('click', () => copyPromoterUrl($('promoterCreatedUrl')));
+$('promoterForm').addEventListener('submit', event => {
+  event.preventDefault();
+  loadPromoters(0, {action: 'create', name: $('promoterName').value, destination: $('promoterDestination').value});
+});
 const readerAdmin={
  comments:{target:'readerAdminComments',more:'readerCommentsMore',offset:0,loading:false},
  subscribers:{target:'readerAdminSubscribers',more:'readerSubscribersMore',offset:0,loading:false}
