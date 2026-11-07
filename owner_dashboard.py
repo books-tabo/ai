@@ -5,15 +5,21 @@ import os
 import re
 import secrets
 import threading
+import time
 from datetime import datetime,timedelta,timezone
 from urllib.parse import urlparse
 import order_receipts
 import supabase_store as store
 import catalog
 import localization
+import seo
 
 COOKIE='__Host-tabo_dashboard'
 INSIGHT_COOKIE='__Host-tabo_insight'
+PROMOTER_COOKIE = '__Host-tabo_promoter'
+PROMOTER_TTL = 7 * 24 * 3600
+PROMOTER_CODE = re.compile(r'[a-f0-9]{16}')
+PROMOTER_PATH = re.compile(r'/(?:books/book[1-9][0-9]*|offers(?:/[a-z0-9-]{1,80})?)?')
 HEX=re.compile(r'[a-f0-9]{64}')
 PUBLIC_PATH=re.compile(r'/(?:books/book[1-9][0-9]*|checkout|offers(?:/[a-z0-9-]+)?|categories(?:/[a-z0-9-]+)?|authors(?:/[a-z0-9-]+)?|about|contact|privacy|refund|delivery)?')
 TZ=timezone(timedelta(hours=3))
@@ -111,6 +117,78 @@ def report(cookie,device,params):
     return {**result,'range':{'from':begin,'to':end},'timezone':'Asia/Kuwait','updatedAt':datetime.now(timezone.utc).isoformat(),
             'trackingSince':os.environ.get('TABO_INSIGHTS_SINCE'),'catalog':{bid:value[0] for bid,value in catalog.BOOKS.items()},
             'countries':{k:v['ar'] for k,v in localization.COUNTRIES.items()},'adminEmail':owner()}
+
+
+def promoter_destinations():
+    with catalog.store_catalog.context(public_read=True):
+        return {
+            '/': 'الصفحة الرئيسية',
+            '/offers': 'كل عروض الباقات',
+            **{'/books/' + bid: book['name'] for bid, book in seo.current_books().items()},
+            **{'/offers/' + slug: offer['title']['ar'] for slug, offer in catalog.current_offers().items()},
+        }
+
+
+def promoter_report(offset):
+    if not re.fullmatch(r'[0-9]{1,5}', offset) or int(offset) > 10000:
+        raise ValueError('صفحة غير صالحة.')
+    rows = rpc('owner_promoter_report', offset=int(offset))
+    return {
+        'rows': [{**row, 'url': seo.ORIGIN + '/r/' + row['code']} for row in rows[:20]],
+        'more': len(rows) > 20,
+        'destinations': promoter_destinations(),
+    }
+
+
+def change_promoter(data):
+    action = data.get('action')
+    if action == 'create':
+        name = data.get('name')
+        name = ' '.join(name.split()) if isinstance(name, str) else ''
+        destination = data.get('destination')
+        if not 1 <= len(name) <= 80:
+            raise ValueError('اكتب اسم المروّج في ٨٠ حرفًا أو أقل.')
+        if not isinstance(destination, str) or destination not in promoter_destinations():
+            raise ValueError('اختر صفحة من المتجر.')
+        code = rpc('owner_promoter_create', code=secrets.token_hex(8), name=name, destination=destination)
+        return {'code': code, 'url': seo.ORIGIN + '/r/' + code}
+    if action == 'setActive':
+        code, active = data.get('code'), data.get('active')
+        if not isinstance(code, str) or not PROMOTER_CODE.fullmatch(code) or not isinstance(active, bool):
+            raise ValueError('الرابط أو حالته غير صالحين.')
+        rows = store.request('/rest/v1/owner_promoter_links', 'PATCH', {'active': active},
+                             params={'code': 'eq.' + code, 'select': 'code'},
+                             headers={'Prefer': 'return=representation'})
+        return {'ok': True} if rows else None
+    raise ValueError('الإجراء غير صالح.')
+
+
+def open_promoter(code):
+    link = rpc('owner_promoter_open', code=code)
+    if not link or not PROMOTER_PATH.fullmatch(link['destination']):
+        return '/', False
+    destination = link['destination']
+    if destination.startswith('/offers/'):
+        with catalog.store_catalog.context(public_read=True):
+            if destination.removeprefix('/offers/') not in catalog.current_offers():
+                destination = '/offers'
+    return destination, link['active'] is True
+
+
+def promoter_cookie(code):
+    value = f'{code}.{int(time.time()) + PROMOTER_TTL}'
+    return value + '.' + digest('promoter', value)
+
+
+def promoter_code(cookie):
+    if not isinstance(cookie, str) or not re.fullmatch(r'[a-f0-9]{16}\.[0-9]{10}\.[a-f0-9]{64}', cookie):
+        return None
+    if len(os.environ.get('TABO_SESSION_BINDING_KEY', '')) < 32:
+        return None
+    code, expiry, signature = cookie.split('.')
+    if int(expiry) > time.time() and hmac.compare_digest(signature, digest('promoter', code + '.' + expiry)):
+        return code
+    return None
 
 
 def source(data):

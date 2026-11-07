@@ -83,6 +83,7 @@ POST_LIMITS = {
     '/api/admin-dashboard/catalog/publish': (10, 600),
     '/api/admin-dashboard/catalog/cover': (5, 600),
     '/api/admin-dashboard/recovery': (10, 600),
+    '/api/admin-dashboard/promoters': (40, 600),
     '/api/checkout-reminders/unsubscribe': (10, 600),
     '/api/admin-dashboard/request': (5, 600),
     '/api/admin-dashboard/verify': (15, 600),
@@ -112,6 +113,8 @@ GET_LIMITS = {
     '/api/admin-dashboard/recovery': (30, 600),
     '/api/admin-dashboard/session': (30, 600),
     '/api/admin-dashboard/report': (30, 600),
+    '/api/admin-dashboard/promoters': (90, 600),
+    '/r/': (120, 60),
     '/api/order-help/status': (60, 600),
     '/api/book-comments': (120, 600),
     '/previews/view': (30, 600),
@@ -256,9 +259,9 @@ def checkout_cookie_name(order_id):
 def download_cookie_name(order_id):
     return '__Host-tabo_download_'+order_cookie_suffix(order_id)
 
-def secure_cookie(name, value, max_age):
+def secure_cookie(name, value, max_age, *, same_site='Strict'):
     return (f'{name}={value}; Path=/; Max-Age={int(max_age)}; HttpOnly; Secure; '
-            'SameSite=Strict; Priority=High')
+            f'SameSite={same_site}; Priority=High')
 
 def timestamp(value):
     if not value: return None
@@ -642,6 +645,8 @@ class Handler(BaseHTTPRequestHandler):
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
         bucket=route
+        if method == 'GET' and route.startswith('/r/'):
+            bucket = '/r/'
         if method=='GET' and re.fullmatch(r'/previews/book[1-9][0-9]*',route):
             bucket='/previews/view'
         if method=='GET' and re.fullmatch(r'/previews/book[1-9][0-9]*/(?:info|page/[1-9][0-9]*)',route):
@@ -798,6 +803,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond(200,{'ok':True})
             if route.startswith('/api/admin-dashboard/'):
                 if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
+                if route == '/api/admin-dashboard/promoters':
+                    if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE), self.device_hash()):
+                        return self.respond(403, {'error': 'سجّل الدخول أولًا.'})
+                    try:
+                        result = owner_dashboard.change_promoter(data)
+                    except ValueError as exc:
+                        return self.respond(400, {'error': str(exc)})
+                    if result is None:
+                        return self.respond(404, {'error': 'الرابط غير متاح.'})
+                    return self.respond(200, result)
                 if route=='/api/admin-dashboard/comments':
                     if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):
                         return self.respond(403,{'error':'سجّل الدخول أولًا.'})
@@ -1001,6 +1016,9 @@ class Handler(BaseHTTPRequestHandler):
                                              'recoveryConsent':checkout_recovery.enabled() and data.get('recoveryConsent') is True},
                        'transactionId':None,'statusKey':secrets.token_hex(32),
                        'checkoutSessionHash':hash_secret(checkout_secret)}
+                promoter_code = owner_dashboard.promoter_code(self.cookie(owner_dashboard.PROMOTER_COOKIE))
+                if promoter_code:
+                    order['promoterCode'] = promoter_code
                 store.insert(order)
                 if order['buyer']['recoveryConsent']:
                     try:checkout_recovery.enroll(order['id'])
@@ -1319,6 +1337,20 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(503 if catalog.preview_enabled(book_id) else 404,
                                 {'ok':False,'error':'Preview originals are not connected to the review environment'})
         if not self.enforce_rate_limit(route,'GET'): return
+        promoter = re.fullmatch(r'/r/([a-f0-9]{16})', route)
+        if promoter:
+            destination, active = '/', False
+            if not seo.review_mode() and owner_dashboard.enabled():
+                try:
+                    destination, active = owner_dashboard.open_promoter(promoter[1])
+                except store.StoreError:
+                    pass  # A temporary measurement outage still lets the visitor enter the store.
+            headers = {'Location': destination, 'X-Robots-Tag': 'noindex, nofollow, noarchive'}
+            if active:
+                headers['Set-Cookie'] = secure_cookie(
+                    owner_dashboard.PROMOTER_COOKIE, owner_dashboard.promoter_cookie(promoter[1]),
+                    owner_dashboard.PROMOTER_TTL, same_site='Lax')
+            return self.respond(302, {}, headers)
         if route in ('/resume-checkout','/stop-reminders'):
             if not checkout_recovery.enabled():return self.respond(404,{'error':'Not found'})
             if route=='/stop-reminders':self._recovery_data={'mode':'unsubscribe','token':token if checkout_recovery.TOKEN.fullmatch(token) else ''}
@@ -1346,6 +1378,14 @@ class Handler(BaseHTTPRequestHandler):
         if route.startswith('/api/admin-dashboard/'):
             if not owner_dashboard.enabled():return self.respond(503,{'error':'لوحة الإدارة غير متاحة مؤقتًا.'})
             try:
+                if route == '/api/admin-dashboard/promoters':
+                    if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE), self.device_hash()):
+                        return self.respond(403, {'error': 'سجّل الدخول أولًا.'})
+                    offset = parse_qs(parsed.query, keep_blank_values=True).get('offset', ['0'])[0]
+                    try:
+                        return self.respond(200, owner_dashboard.promoter_report(offset))
+                    except ValueError as exc:
+                        return self.respond(400, {'error': str(exc)})
                 if route=='/api/admin-dashboard/comments':
                     if not owner_dashboard.authenticated(self.cookie(owner_dashboard.COOKIE),self.device_hash()):
                         return self.respond(403,{'error':'سجّل الدخول أولًا.'})

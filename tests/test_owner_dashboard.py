@@ -1,7 +1,8 @@
 """Synthetic owner-only dashboard tests. No production mail, order or PDF access."""
 import json,os,unittest
+from http.cookies import SimpleCookie
 from unittest.mock import patch
-from urllib.request import Request
+from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHandler
 from urllib.error import HTTPError
 import app
 import owner_dashboard as dashboard
@@ -99,3 +100,49 @@ class DashboardHTTPTests(HTTPCase):
    code,body,_=self.get(path);self.assertEqual(code,200);self.assertEqual(body.count(b'/store-insights.js?v='),1)
   for path in ('/admin','/pending.html','/success.html','/order-help'):
    self.assertNotIn(b'/store-insights.js',self.get(path)[1])
+
+ def test_promoter_management_is_owner_only_and_restricts_destinations(self):
+  route = '/api/admin-dashboard/promoters'
+  code = '1234567890abcdef'
+  create = {'action': 'create', 'name': '  مروّج   تجريبي  ', 'destination': '/books/book21'}
+  self.assertEqual(self.get(route)[0], 403)
+  self.assertEqual(self.post(route, create)[0], 403)
+  with patch.object(dashboard, 'authenticated', return_value=True), patch.object(dashboard, 'rpc', return_value=code) as rpc:
+   self.assertEqual(self.post(route, {**create, 'destination': '//example.invalid'})[0], 400)
+   self.assertEqual(self.post(route, {**create, 'destination': '/books/book9999'})[0], 400)
+   self.assertEqual(self.post(route, create, {'Origin': 'https://example.invalid'})[0], 403)
+   rpc.assert_not_called()
+   status, reply, _ = self.post(route, create)
+   self.assertEqual(status, 200)
+   self.assertEqual(reply['url'], 'https://tabobooks.com/r/' + code)
+   self.assertEqual(rpc.call_args.kwargs['name'], 'مروّج تجريبي')
+   rpc.return_value = [{'code': code, 'name': 'مروّج تجريبي', 'opens': 5, 'sales': []}]
+   status, body, _ = self.get(route)
+   self.assertEqual(status, 200)
+   result = json.loads(body)
+   self.assertEqual(result['rows'][0]['url'], reply['url'])
+   self.assertIn('/books/book21', result['destinations'])
+
+ def test_promoter_redirect_cookie_cannot_be_forged_and_expires(self):
+  class NoRedirect(HTTPRedirectHandler):
+   def redirect_request(self, *args):
+    return None
+
+  self.opener = build_opener(ProxyHandler({}), NoRedirect())
+  code = '1234567890abcdef'
+  with patch.object(dashboard, 'rpc', return_value={'destination': '/books/book21', 'active': True}) as rpc:
+   status, _, headers = self.get('/r/' + code + '?next=https://example.invalid')
+   self.assertEqual((status, headers['Location'], headers['Cache-Control']), (302, '/books/book21', 'no-store'))
+   cookie = SimpleCookie(headers['Set-Cookie'])[dashboard.PROMOTER_COOKIE]
+   self.assertTrue(cookie['secure'] and cookie['httponly'])
+   self.assertEqual(cookie['max-age'], str(7 * 24 * 3600))
+   self.assertEqual(dashboard.promoter_code(cookie.value), code)
+   self.assertIsNone(dashboard.promoter_code('0' * 16 + cookie.value[16:]))
+   with patch.object(dashboard.time, 'time', return_value=int(cookie.value.split('.')[1])):
+    self.assertIsNone(dashboard.promoter_code(cookie.value))
+   rpc.return_value = {'destination': '/books/book21', 'active': False}
+   status, _, headers = self.get('/r/' + code)
+   self.assertEqual((status, headers['Location']), (302, '/books/book21'))
+   self.assertIsNone(headers['Set-Cookie'])
+   rpc.return_value = {'destination': '//example.invalid', 'active': True}
+   self.assertEqual(self.get('/r/' + code)[2]['Location'], '/')

@@ -88,14 +88,17 @@ def find(field, value):
     return order(rows[0]) if rows else None
 
 def insert(o):
-    request('/rest/v1/orders', 'POST', {
+    row = {
         'id': o['id'], 'status': 'PENDING', 'items': o['items'], 'total': o['total'],
         'currency': o['currency'], 'payment_method': o['paymentMethod'],
         'status_key': o['statusKey'], 'country': o.get('country','EG'),
         'paymob_method_id': o.get('paymobMethodId'), 'buyer': o.get('buyer'),
         'checkout_session_hash': o.get('checkoutSessionHash')
         ,'payment_mode':o.get('paymentMode','test'), 'pricing_quote':o.get('pricingQuote')
-    }, headers={'Prefer': 'return=minimal'})
+    }
+    if o.get('promoterCode'):
+        row['promoter_code'] = o['promoterCode']
+    request('/rest/v1/orders', 'POST', row, headers={'Prefer': 'return=minimal'})
 
 def patch(oid, changes, conditions=None):
     params={'id': 'eq.' + oid}

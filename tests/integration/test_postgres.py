@@ -24,7 +24,7 @@ class PostgresTests(unittest.TestCase):
 
     def setUp(self):
         with self.connect() as c:
-            c.execute('TRUNCATE public.meta_conversion_outbox,public.order_book_emails,public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.reader_comment_subscribers,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats')
+            c.execute('TRUNCATE public.meta_conversion_outbox,public.order_book_emails,public.store_checkout_reminders,public.store_reminder_optouts,public.store_catalog_history,public.store_catalog_covers,public.owner_order_sources,public.owner_store_sessions,public.owner_dashboard_logins,public.order_help_messages,public.order_help_challenges,public.order_receipts,public.paypal_payment_events,public.reader_comment_subscribers,public.book_comments,public.payment_events,public.order_downloads,public.book_ratings,public.orders,public.book_stats,public.owner_promoter_links')
             c.execute("UPDATE public.store_catalog_state SET published='{}'::jsonb,draft='{}'::jsonb,revision=0,draft_revision=0,reminders_enabled=true,published_at=NULL WHERE id")
             c.execute("INSERT INTO public.book_stats(book_id,file_size_bytes) SELECT book_id,1234 FROM unnest(%s::text[]) AS book_id", (list(app.BOOKS),))
             c.execute("INSERT INTO public.orders(id,status,items,total,status_key,transaction_id,paid_at,payment_method,payment_mode,paymob_order_id,download_session_hash,download_device_hash,download_session_expires_at,buyer) VALUES('TABO-0000000000000001','PAID',%s,199,%s,'TX-SYNTHETIC',now(),'Kashier','test','synthetic-session',%s,%s,now()+interval '1 hour',%s)",
@@ -193,14 +193,41 @@ class PostgresTests(unittest.TestCase):
         self.assertFalse(self.owner_rpc('owner_session_valid',cid,'e'*64,'d'*64,'b'*64))
         with self.connect() as c:
             for role in ('anon','authenticated'):
-                for table in ('owner_dashboard_logins','owner_store_sessions','owner_order_sources'):
+                for table in ('owner_dashboard_logins','owner_store_sessions','owner_order_sources','owner_promoter_links'):
                     self.assertTrue(c.execute("SELECT relrowsecurity FROM pg_class WHERE oid=%s::regclass",('public.'+table,)).fetchone()[0])
                     for privilege in ('SELECT','INSERT','UPDATE','DELETE'):
                         self.assertFalse(c.execute('SELECT has_table_privilege(%s,%s,%s)',(role,'public.'+table,privilege)).fetchone()[0])
                 funcs=c.execute("SELECT p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname LIKE 'owner_%'").fetchall()
-                self.assertEqual(len(funcs),9)
+                self.assertEqual(len(funcs),12)
                 for (oid,) in funcs:self.assertFalse(c.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')",(role,oid)).fetchone()[0])
             self.assertEqual(c.execute("SELECT count(*) FROM pg_proc WHERE proname LIKE 'owner_%' AND prosecdef").fetchone()[0],0)
+
+    def test_promoter_open_counts_and_only_confirmed_live_sales(self):
+        code = '1' * 16
+        self.assertEqual(self.owner_rpc('owner_promoter_create', code, 'Synthetic promoter', '/books/book21'), code)
+        self.assertEqual(self.owner_rpc('owner_promoter_create', '2' * 16, 'Synthetic promoter', '/books/book21'), code)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(lambda _: self.owner_rpc('owner_promoter_open', code), range(8)))
+        self.assertEqual(results, [{'destination': '/books/book21', 'active': True}] * 8)
+        self.assertIsNone(self.owner_rpc('owner_promoter_open', '0' * 16))
+
+        usd, egp, refunded, pending = (self.receipt_order(i) for i in range(2, 6))
+        test = self.receipt_order(6, mode='test')
+        for i, oid in enumerate((usd, egp, refunded), start=2):
+            self.receipt_payment(oid, number=i)
+        self.receipt_payment(test, number=6, mode='test')
+        with self.connect() as c:
+            c.execute('UPDATE public.orders SET promoter_code=%s WHERE id=ANY(%s)', (code, [usd, egp, refunded, pending, test]))
+            c.execute("UPDATE public.orders SET currency='EGP',total=500 WHERE id=%s", (egp,))
+            c.execute("UPDATE public.orders SET status='REFUNDED',checkout_session_hash=NULL,download_session_hash=NULL,download_token=NULL WHERE id=%s", (refunded,))
+            c.execute('UPDATE public.owner_promoter_links SET active=false WHERE code=%s', (code,))
+        self.assertEqual(self.owner_rpc('owner_promoter_open', code), {'destination': '/books/book21', 'active': False})
+        rows = self.owner_rpc('owner_promoter_report', 0)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual((rows[0]['opens'], rows[0]['paidOrders']), (8, 2))
+        self.assertEqual(rows[0]['sales'], [{'currency': 'EGP', 'amount': 500}, {'currency': 'USD', 'amount': 20}])
+        self.assertNotIn('reader@example.invalid', json.dumps(rows))
+        self.assertNotIn(usd, json.dumps(rows))
 
     def test_owner_reports_paid_live_separate_currencies_private_allowlist_and_filters(self):
         auth=self.owner_auth();usd=self.receipt_order(2);self.receipt_payment(usd,number=2)
