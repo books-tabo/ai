@@ -138,16 +138,18 @@ def pricing_breakdown(ids, price_config):
     """
     if len(set(ids)) != len(ids) or any(book_id not in BOOKS for book_id in ids):
         raise ValueError('Invalid or duplicate book')
-    fixed_prices=current_fixed_prices()
-    ordinary = set(ids) - set(fixed_prices)
     currency = price_config['currency']
+    policies = price_config.get('bookPolicies')
+    if policies is None:
+        policies = public_policies(currency, price_config['prices'].get('1'))
+    fixed = {book_id: Decimal(str(policies[book_id]['price'])) for book_id in ids
+             if not policies[book_id]['bundleEligible']}
+    ordinary = set(ids) - fixed.keys()
     def regular(count):
         return Decimal(str(price_config['prices'][str(count)])) if count else Decimal(0)
     def remainder(used):
-        fixed = sum((Decimal(str(fixed_prices[b].get(currency, kwd_from_custom_usd(fixed_prices[b]['USD'])
-                       if currency == 'KWD' else None))) for b in ids
-                     if b in fixed_prices and b not in used), Decimal(0))
-        return regular(len(ordinary - used)) + fixed
+        fixed_total = sum((price for book_id, price in fixed.items() if book_id not in used), Decimal(0))
+        return regular(len(ordinary - used)) + fixed_total
     baseline = remainder(set())
     best, applied, covered = baseline, [], 0
     eligible = [(key,offer) for key,offer in current_offers().items()
@@ -170,5 +172,6 @@ def pricing_breakdown(ids, price_config):
 
 
 def total_for_items(ids, price_config):
-    total = pricing_breakdown(ids,price_config)['total'].quantize(Decimal('0.01'))
+    unit = Decimal('0.001' if price_config['currency'] == 'KWD' else '0.01')
+    total = pricing_breakdown(ids,price_config)['total'].quantize(unit)
     return int(total) if total == total.to_integral_value() else float(total)
