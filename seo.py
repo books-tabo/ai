@@ -362,6 +362,7 @@ def render(source, path, host, filename, *, blog_enabled=False):
     elif filename == 'book.html':
         book_id = path.rsplit('/', 1)[-1]
         book = current_books()[book_id]
+        source = source.replace('<body>', '<body data-book-id="' + escape(book_id) + '">', 1)
         share_url = ORIGIN + '/books/' + book_id
         share_target = 'https://wa.me/?text=' + quote(book['name']+'\n'+share_url, safe='')
         source = source.replace('id="shareWhatsApp"', 'id="shareWhatsApp" href="'+escape(share_target)+'"')
