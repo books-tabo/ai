@@ -1,4 +1,5 @@
 """Country detection and fixed EGP/USD/KWD pricing helpers for TABO BOOKS."""
+import book_promotion
 import catalog
 import ipaddress
 import json
@@ -140,7 +141,7 @@ def pricing_country(requested, detected):
     return 'SA'
 
 
-def pricing_for_country(base_prices, country):
+def pricing_for_country(base_prices, country, *, at=None):
     code = normalize_country(country)
     meta = COUNTRIES[code]
     egypt = code == 'EG'
@@ -151,7 +152,7 @@ def pricing_for_country(base_prices, country):
     # approved Kuwait price ladder independently of those existing values.
     if currency != 'KWD':
         prices=catalog.store_catalog.document().get('prices',{}).get(currency,prices)
-    return {
+    config = {
         'country': code,
         'currency': currency,
         'multiplier': 1 if egypt else 2,
@@ -166,6 +167,7 @@ def pricing_for_country(base_prices, country):
             for item_code, item in COUNTRIES.items()
         ],
     }
+    return book_promotion.apply(config, time.time() if at is None else at)
 
 
 def payment_methods():

@@ -32,6 +32,7 @@ import journey_tracking
 import snap_tracking
 import checkout_pricing
 import catalog
+import book_promotion
 import seo
 import autoseo
 from catalog import BOOKS, PRICES
@@ -955,7 +956,11 @@ class Handler(BaseHTTPRequestHandler):
                 headers={'Set-Cookie':f'__Host-tabo_rating_id={rating_id}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Strict; Priority=High'}
                 return self.respond(200,{'ok':True,'rating':rating,'stats':stats},headers)
             if route in ('/api/orders','/api/checkout-quote'):
-                if store_catalog.enabled() and data.get('catalogRevision')!=store_catalog.revision():
+                pricing_at = time.time()
+                requested_revision = data.get('catalogRevision')
+                has_promotion_revision = isinstance(requested_revision, str) and ':promotion:' in requested_revision
+                if (store_catalog.enabled() or book_promotion.CAMPAIGN or has_promotion_revision) and (
+                        requested_revision != book_promotion.revision(store_catalog.revision(), pricing_at)):
                     return self.respond(409,{'ok':False,'code':'CATALOG_REFRESH_REQUIRED','error':'تغيرت الأسعار أو العروض. حدّث السلة وراجع الإجمالي قبل الدفع.'})
                 selected=data.get('paymentProvider') or payment_provider()
                 if selected not in (payment_provider(),'paypal'):
@@ -970,7 +975,7 @@ class Handler(BaseHTTPRequestHandler):
                 if any(i not in BOOKS for i in ids) or len(set(ids))!=len(ids):
                     return self.respond(400,{'ok':False,'error':'الكتب غير صالحة أو مكررة.'})
                 country=self.pricing_country(data.get('country'))
-                price_config=localization.pricing_for_country(PRICES,country)
+                price_config=localization.pricing_for_country(PRICES,country,at=pricing_at)
                 total=catalog.total_for_items(ids,price_config)
                 currency=price_config['currency']
                 paypal_kwd=using_paypal and currency=='KWD'
@@ -978,7 +983,7 @@ class Handler(BaseHTTPRequestHandler):
                     # KWD is a display currency only: PayPal charges the same
                     # server-authoritative USD prices offered outside Egypt.
                     kwd_display_total=total
-                    usd_config=localization.pricing_for_country(PRICES,'SA')
+                    usd_config=localization.pricing_for_country(PRICES,'SA',at=pricing_at)
                     total=catalog.total_for_items(ids,usd_config)
                     currency='USD'
                 if not (paypal_ready(currency) if using_paypal else payment_currency_supported(currency)):
@@ -1545,20 +1550,21 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/api/config': return self.respond(200,{
             'checkoutEnabled':checkout_ready(),'paymentProvider':payment_provider()})
         if route=='/api/store-config':
+            pricing_at = time.time()
             requested=parse_qs(parsed.query).get('country',[''])[0]
             country=self.pricing_country(requested)
-            config=localization.pricing_for_country(PRICES,country)
+            config=localization.pricing_for_country(PRICES,country,at=pricing_at)
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=payment_currency_supported(config['currency'])
             config['paypalAvailable']=config['currency'] in ('USD','KWD') and paypal_ready('USD')
             if config['paypalAvailable'] and config['currency']=='KWD':
                 # The client displays the exact USD amount PayPal will collect;
                 # the order endpoint recalculates it independently.
-                usd=localization.pricing_for_country(PRICES,'SA')
+                usd=localization.pricing_for_country(PRICES,'SA',at=pricing_at)
                 config['paypalPricing']={key:usd[key] for key in ('currency','prices','bookPolicies','offers')}
             config['receiptEmailEnabled']=order_receipts.enabled()
             config['bookEmailEnabled']=book_emails.enabled()
-            config['catalogRevision']=store_catalog.revision()
+            config['catalogRevision']=book_promotion.revision(store_catalog.revision(), pricing_at)
             config['recoveryEmailEnabled']=checkout_recovery.enabled() and store_catalog.reminders_enabled()
             config['paymentProvider']=payment_provider()
             config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']
