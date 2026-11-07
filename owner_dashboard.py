@@ -39,8 +39,8 @@ def owner():
     return os.environ.get('TABO_DASHBOARD_ADMIN_EMAIL','').strip().casefold()
 
 
-def rpc(name,**params):
-    return store.request('/rest/v1/rpc/'+name,'POST',{'p_'+k:v for k,v in params.items()})
+def rpc(function_name, /, **params):
+    return store.request('/rest/v1/rpc/' + function_name, 'POST', {'p_' + k: v for k, v in params.items()})
 
 
 def credentials(cookie,device):
