@@ -152,14 +152,21 @@ def change_promoter(data):
             raise ValueError('اختر صفحة من المتجر.')
         code = rpc('owner_promoter_create', code=secrets.token_hex(8), name=name, destination=destination)
         return {'code': code, 'url': seo.ORIGIN + '/r/' + code}
-    if action == 'setActive':
-        code, active = data.get('code'), data.get('active')
-        if not isinstance(code, str) or not PROMOTER_CODE.fullmatch(code) or not isinstance(active, bool):
-            raise ValueError('الرابط أو حالته غير صالحين.')
-        rows = store.request('/rest/v1/owner_promoter_links', 'PATCH', {'active': active},
-                             params={'code': 'eq.' + code, 'select': 'code'},
+    if action in ('setActive', 'delete'):
+        code = data.get('code')
+        if not isinstance(code, str) or not PROMOTER_CODE.fullmatch(code):
+            raise ValueError('معرّف الرابط غير صالح.')
+        if action == 'delete':
+            changes = {'active': False, 'deleted_at': datetime.now(timezone.utc).isoformat()}
+        else:
+            active = data.get('active')
+            if not isinstance(active, bool):
+                raise ValueError('حالة الرابط غير صالحة.')
+            changes = {'active': active}
+        rows = store.request('/rest/v1/owner_promoter_links', 'PATCH', changes,
+                             params={'code': 'eq.' + code, 'deleted_at': 'is.null', 'select': 'code'},
                              headers={'Prefer': 'return=representation'})
-        return {'ok': True} if rows else None
+        return {'ok': True} if rows or action == 'delete' else None
     raise ValueError('الإجراء غير صالح.')
 
 
