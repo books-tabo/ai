@@ -79,7 +79,7 @@ class BookEmailTests(unittest.TestCase):
              patch.object(emails.store,'claim_download') as download:
             result=emails.attachment(value,'book23')
         self.assertEqual(result,b'%PDF-stamped')
-        original.assert_called_once_with('book23.pdf');download.assert_not_called()
+        original.assert_called_once_with(emails.catalog.BOOKS['book23'][1]);download.assert_not_called()
         self.assertEqual(stamp.call_args.args[0],'email_watermark')
         self.assertEqual(stamp.call_args.args[2]['order']['buyer']['phone'],'01000000000')
         payload=emails.message(value,'book23',result)

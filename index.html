@@ -518,22 +518,11 @@ header p{
     isolation:isolate;
 }
 
-/* Position adjustments for specific cover images. */
-.book-cover-link[href="/books/book2"]{
-    --cover-stage-top:6%;
-    --cover-stage-outline:polygon(1.2% 2.4%, 9% 0, 99.2% .7%, 99.2% 96.8%, 10% 98.1%, 1.2% 97.3%);
-}
-
-.book-cover-link:is([href="/books/book7"], [href="/books/book11"], [href="/books/book12"], [href="/books/book13"], [href="/books/book16"], [href="/books/book19"], [href="/books/book20"]){
-    --cover-stage-top:9.5%;
-    --cover-pages-bottom:10.8%;
-}
-
-.book-cover-link:not([href="/books/book2"], [href="/books/book15"])::before{
+.book-cover-link::before{
     content:"";
     position:absolute;
-    top:var(--cover-stage-top, 7%);
-    bottom:var(--cover-pages-bottom, 8%);
+    top:7%;
+    bottom:8%;
     left:7%;
     width:10%;
     background:repeating-linear-gradient(90deg, #907761 0, #e9d3af 2px, #b49a7c 3px);
@@ -552,10 +541,10 @@ header p{
     filter:blur(7px);
 }
 
-.book-cover-link:not([href="/books/book2"], [href="/books/book15"]) .book-image{
+.book-cover-link .book-image{
     position:absolute;
     display:block;
-    top:var(--cover-stage-top, 7%);
+    top:7%;
     left:14%;
     width:80%;
     height:auto;
@@ -564,18 +553,6 @@ header p{
     transform:perspective(520px) rotateY(12deg);
     transform-origin:left center;
     box-shadow:-2px 0 3px #3b252b, 5px 9px 12px rgba(0,0,0,.48);
-}
-
-/* These covers already include their spines and perspective. */
-.book-cover-link:is([href="/books/book2"], [href="/books/book15"]) .book-image{
-    position:absolute;
-    display:block;
-    top:var(--cover-stage-top, 9%);
-    left:8%;
-    width:84%;
-    height:auto;
-    aspect-ratio:auto;
-    clip-path:var(--cover-stage-outline, polygon(1.3% 2%, 6% .5%, 98.5% 3.5%, 98.5% 96.4%, 6.5% 99%, 1.3% 98%));
 }
 
 .book-cover-link:focus-visible{

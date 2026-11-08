@@ -6,6 +6,7 @@ import re
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
+from urllib.parse import urlsplit
 from urllib.request import Request
 from xml.etree import ElementTree
 
@@ -156,7 +157,8 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(set(seo.BOOKS),set(catalog.BOOKS))
         for key, book in seo.BOOKS.items():
             self.assertEqual(book['name'],catalog.BOOKS[key][0])
-            self.assertTrue((Path(app.ROOT)/book['image'].lstrip('/')).is_file())
+            cover_path = urlsplit(book['image']).path
+            self.assertTrue((Path(app.ROOT)/cover_path.lstrip('/')).is_file())
             self.assertGreater(book['imageWidth'],0);self.assertGreater(book['imageHeight'],0)
             self.assertTrue(all(other in catalog.BOOKS and other!=key for other in book['related']))
             self.assertTrue(seo.categories_for(key))

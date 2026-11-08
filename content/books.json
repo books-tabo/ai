@@ -2,7 +2,7 @@
   "book1": {
     "name": "هرمون",
     "enName": "Hormone",
-    "image": "/covers/book1.webp",
+    "image": "/covers/book1.webp?v=d16771e28e34",
     "size": 9357358,
     "short": "رحلة لفهم القوة والانضباط والجسد والإرادة وبناء شخصية أكثر وعيًا وقدرة على قيادة نفسها.",
     "enShort": "A journey into strength, discipline, the body and willpower — and how to build a more self-aware character.",
@@ -55,14 +55,14 @@
         ]
       ]
     },
-    "imageWidth": 427,
-    "imageHeight": 640,
+    "imageWidth": 720,
+    "imageHeight": 1080,
     "pageCount": 440
   },
   "book2": {
     "name": "نحو القمة",
     "enName": "Toward the Summit",
-    "image": "/covers/book2.webp",
+    "image": "/covers/book2.webp?v=9fe5fed88c2a",
     "size": 5864290,
     "short": "رحلة عملية في الوعي والانضباط والعمل والمال والفشل والنجاح لبناء حياة أكثر صدقًا وقدرة.",
     "enShort": "A practical journey through awareness, discipline, work, money, failure and success.",
@@ -115,14 +115,14 @@
         ]
       ]
     },
-    "imageWidth": 427,
-    "imageHeight": 640,
+    "imageWidth": 720,
+    "imageHeight": 1080,
     "pageCount": 304
   },
   "book3": {
     "name": "تمرد",
     "enName": "Rebellion",
-    "image": "/covers/book3.webp",
+    "image": "/covers/book3.webp?v=ddcc65245056",
     "size": 7023447,
     "short": "رحلة نحو الحرية والوعي والاختيار، لفهم تأثير الخوف والعادات وتوقعات الآخرين على حياتنا.",
     "enShort": "A journey toward freedom, conscious choice and understanding the effect of fear and social expectations.",
@@ -175,14 +175,14 @@
         ]
       ]
     },
-    "imageWidth": 427,
-    "imageHeight": 640,
+    "imageWidth": 720,
+    "imageHeight": 1080,
     "pageCount": 276
   },
   "book4": {
     "name": "كيف تصنع المليون الأول",
     "enName": "How to Make Your First Million",
-    "image": "/covers/book4.webp",
+    "image": "/covers/book4.webp?v=d0bcf54438a3",
     "size": 8096147,
     "short": "دليل عملي لفهم المال والقيمة والدخل ورأس المال والاستثمار وبناء القدرة على صناعة الثروة.",
     "enShort": "A practical guide to value, income, capital, investing and building the ability to create wealth.",
@@ -235,14 +235,14 @@
         ]
       ]
     },
-    "imageWidth": 427,
-    "imageHeight": 640,
+    "imageWidth": 720,
+    "imageHeight": 1080,
     "pageCount": 434
   },
   "book5": {
     "name": "شهوات",
     "enName": "Desires",
-    "image": "/covers/book5.webp",
+    "image": "/covers/book5.webp?v=452daca733ff",
     "size": 10032567,
     "short": "رحلة لفهم الرغبات الخفية وراء المال والحب والنجاح والاهتمام والمكانة، واكتشاف ما تقوله شهواتنا عن الإنسان الذي نكونه.",
     "enShort": "Understand the hidden desires behind money, love, success, attention and status.",
@@ -295,14 +295,14 @@
         ]
       ]
     },
-    "imageWidth": 427,
-    "imageHeight": 640,
+    "imageWidth": 720,
+    "imageHeight": 1080,
     "pageCount": 362
   },
   "book6": {
     "name": "دليل السمو",
     "enName": "Guide to Elevation",
-    "image": "/covers/book6.webp",
+    "image": "/covers/book6.webp?v=55f602ce4dab",
     "size": 9743195,
     "short": "رحلة عملية للارتقاء بالإنسان من الداخل إلى الخارج؛ من سمو العقل والانضباط والعادات إلى المال والعلاقات والصحة والرسالة والأثر.",
     "enShort": "A practical journey of inner and outer growth through thought, discipline, health, money, relationships and purpose.",
@@ -355,14 +355,14 @@
         ]
       ]
     },
-    "imageWidth": 427,
-    "imageHeight": 640,
+    "imageWidth": 720,
+    "imageHeight": 1080,
     "pageCount": 379
   },
   "book7": {
     "name": "إلى كل بنت",
     "enName": "To Every Girl",
-    "image": "/covers/book7.webp",
+    "image": "/covers/book7.webp?v=c8404dc5727e",
     "size": 8087582,
     "short": "رحلة نفسية واجتماعية تساعد كل فتاة على فهم ذاتها، ووضع حدودها، والتمييز بين الحب والتعلّق، واختيار حياتها دون أن تخسر نفسها.",
     "enShort": "A psychological and social journey into self-worth, boundaries, love, attachment and choosing your life without losing yourself.",
@@ -416,13 +416,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018,
+    "imageHeight": 1080,
     "pageCount": 377
   },
   "book8": {
     "name": "أصنام",
     "enName": "Idols",
-    "image": "/covers/book8.webp",
+    "image": "/covers/book8.webp?v=e3b051145b33",
     "size": 13035946,
     "short": "رحلة في الوعي والإرادة تكشف أصنام العصر الحديث، وتساعدك على امتلاك المال والتقنية والرغبة دون أن تمتلكك.",
     "enShort": "A journey through awareness and willpower that exposes modern idols and helps you use money, technology and desire without being ruled by them.",
@@ -482,7 +482,7 @@
   "book9": {
     "name": "تأثير الكوبرا",
     "enName": "Cobra Effect",
-    "image": "/covers/book9.webp",
+    "image": "/covers/book9.webp?v=0fb0a61ddb42",
     "size": 8352046,
     "short": "رحلة في الاقتصاد السلوكي وصناعة القرار تكشف كيف قد تحوّل الحوافز غير المحسوبة الحلول الذكية إلى مشكلات أكبر.",
     "enShort": "A behavioral-economics journey into how poorly designed incentives can turn sensible solutions into larger problems.",
@@ -536,13 +536,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1077,
+    "imageHeight": 1080,
     "pageCount": 329
   },
   "book10": {
     "name": "دليل التحرر من العادة السرية",
     "enName": "A Guide to Freedom from Masturbation",
-    "image": "/covers/book10.webp",
+    "image": "/covers/book10.webp?v=f027a63608f9",
     "size": 8875987,
     "short": "دليل عملي وواقعي لفهم الحلقة السلوكية للعادة السرية، وإدارة المحفزات والرغبة، وكسر الانتكاس دون جلد للذات أو وعود وهمية.",
     "enShort": "A practical, realistic guide to understanding the habit loop, managing triggers and urges, and recovering from setbacks without shame or false promises.",
@@ -596,13 +596,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1078,
+    "imageHeight": 1080,
     "pageCount": 326
   },
   "book11": {
     "name": "الأفعى والمنشار",
     "enName": "The Snake and the Saw",
-    "image": "/covers/book11.webp",
+    "image": "/covers/book11.webp?v=f71315bb3a8a",
     "size": 5613162,
     "short": "كتاب عن فن الابتعاد عن الأشخاص والعلاقات والمعارك التي تستنزفك، وكيف تحمي نفسك دون انتقام أو قسوة.",
     "enShort": "A guide to walking away from people, relationships and battles that drain you, without revenge, cruelty or losing yourself.",
@@ -656,13 +656,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1015,
+    "imageHeight": 1080,
     "pageCount": 208
   },
   "book12": {
     "name": "جسد",
     "enName": "Body",
-    "image": "/covers/book12.webp",
+    "image": "/covers/book12.webp?v=985aea5ec112",
     "size": 9236156,
     "short": "رحلة نفسية واجتماعية تكشف كيف يتحول جسد المرأة إلى صورة تحاكمها العيون والمعايير، وكيف تستعيد إنسانيتها وحقها في تعريف نفسها.",
     "enShort": "A psychological and social journey into how a woman's body can be reduced to an image judged by others, and how she can reclaim her full humanity and self-definition.",
@@ -716,13 +716,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018,
+    "imageHeight": 1080,
     "pageCount": 532
   },
   "book13": {
     "name": "بنت تخطت الثلاثين",
     "enName": "A Woman Past Thirty",
-    "image": "/covers/book13.webp",
+    "image": "/covers/book13.webp?v=90b16378933f",
     "size": 7819094,
     "short": "رحلة نفسية واجتماعية تساعد المرأة بعد الثلاثين على التحرر من ضغط الساعة الاجتماعية والمقارنة، واستعادة قيمتها وحياتها دون إنكار رغبتها في الحب والزواج.",
     "enShort": "A psychological and social journey for women beyond thirty to escape the pressure of the social clock and comparison, reclaim their worth, and live fully without denying their desire for love and marriage.",
@@ -776,13 +776,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018,
+    "imageHeight": 1080,
     "pageCount": 222
   },
   "book14": {
     "name": "أنت",
     "enName": "You",
-    "image": "/covers/book14.webp",
+    "image": "/covers/book14.webp?v=372fe27a475e",
     "size": 8513958,
     "short": "رحلة نفسية وتطويرية لاستعادة احترام الذات، وبناء الحدود والانضباط، واختيار نفسك دون أنانية أو هروب من المسؤولية.",
     "enShort": "A psychological self-development journey into self-respect, healthy boundaries, discipline and choosing yourself without selfishness or escaping responsibility.",
@@ -842,7 +842,7 @@
   "book15": {
     "name": "شفرة الحياة",
     "enName": "The Life Code",
-    "image": "/covers/book15.webp",
+    "image": "/covers/book15.webp?v=61f9a8d2be80",
     "size": 9894067,
     "short": "25 قاعدة لفهم نفسك، وبناء قوتك، وتحسين علاقاتك، وصناعة ثروتك، والعيش بوعي.",
     "enShort": "25 principles for understanding yourself, building strength, improving relationships, creating wealth and living consciously.",
@@ -896,13 +896,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 960,
+    "imageHeight": 1080,
     "pageCount": 187
   },
   "book16": {
     "name": "شفرة قلب الأنثى",
     "enName": "The Code of Her Heart",
-    "image": "/covers/book16.webp",
+    "image": "/covers/book16.webp?v=1081b60644ba",
     "size": 8954181,
     "short": "رحلة لفهم عالم المرأة العاطفي، والتمييز بين الانجذاب والتعلق والحب، وبناء الثقة والأمان دون تلاعب.",
     "enShort": "A journey into women's emotional lives, attraction, attachment and love, and building trust and emotional safety without manipulation.",
@@ -956,13 +956,13 @@
       ]
     },
     "imageWidth": 720,
-    "imageHeight": 1018,
+    "imageHeight": 1080,
     "pageCount": 580
   },
   "book17": {
     "name": "عجلة الفئران",
     "enName": "The Rat Race",
-    "image": "/covers/book17.webp",
+    "image": "/covers/book17.webp?v=a9adcc96c297",
     "size": 8209326,
     "short": "رحلة لفهم دائرة العمل والدخل والاستهلاك والديون، وبناء حرية مالية وحياة أوسع دون التفريط في مسؤولياتك.",
     "enShort": "A journey into work, income, consumption and debt, and building financial flexibility and a fuller life without abandoning your responsibilities.",
@@ -1022,7 +1022,7 @@
   "book18": {
     "name": "كيف تغير حياتك",
     "enName": "How to Change Your Life in One Day",
-    "image": "/covers/book18.webp",
+    "image": "/covers/book18.webp?v=3924e6e50bc2",
     "size": 10078612,
     "short": "رحلة عملية لفهم أسباب التعثر، وإعادة بناء هويتك، وصناعة اتجاه واضح، وتحويل يوم واحد إلى بداية قابلة للاستمرار.",
     "enShort": "A practical journey to understand why change stalls, rebuild identity, choose a clear direction and turn one day into a sustainable beginning.",
@@ -1082,7 +1082,7 @@
   "book19": {
     "name": "بدون شهادة جامعية",
     "enName": "Without a University Degree",
-    "image": "/covers/book19.webp",
+    "image": "/covers/book19.webp?v=d716573ade30",
     "size": 9565961,
     "short": "رحلة نفسية وعملية لتجاوز ضغط الشهادة، وبناء معرفة ومهارة وخبرة تثبت قيمتك دون التقليل من التعليم الجامعي.",
     "enShort": "A psychological and practical journey beyond degree-related pressure, building knowledge, skills and experience while respecting university education.",
@@ -1159,12 +1159,12 @@
       "اكتب شهادتك بنفسك"
     ],
     "imageWidth": 720,
-    "imageHeight": 1018
+    "imageHeight": 1080
   },
   "book20": {
     "name": "السيجما: الذكر الملكي",
     "enName": "Sigma: The Royal Male",
-    "image": "/covers/book20.webp",
+    "image": "/covers/book20.webp?v=f50ee63ce604",
     "size": 7658509,
     "fixedPrices": {
       "EGP": 500,
@@ -1246,13 +1246,13 @@
       "الذكر الملكي — الفحولة التي لا تحتاج إلى إثبات"
     ],
     "imageWidth": 720,
-    "imageHeight": 1018,
+    "imageHeight": 1080,
     "primaryCategory": "marriage-family"
   },
   "book21": {
     "name": "السيجما: أنوثة طاغية",
     "enName": "Sigma: Captivating Femininity",
-    "image": "/covers/book21.webp",
+    "image": "/covers/book21.webp?v=82ce89a3d53a",
     "size": 10079348,
     "fixedPrices": {
       "EGP": 500,
@@ -1356,7 +1356,7 @@
   "book22": {
     "name": "محكمة الحب والجنس",
     "enName": "The Court of Love & Sex",
-    "image": "/covers/book22.webp",
+    "image": "/covers/book22.webp?v=e034f54576eb",
     "size": 12185488,
     "fixedPrices": {
       "EGP": 500,
@@ -1460,7 +1460,7 @@
   "book23": {
     "name": "هرمونات أنثى",
     "enName": "Female Hormones",
-    "image": "/covers/book23.webp",
+    "image": "/covers/book23.webp?v=7315d667f743",
     "size": 10712104,
     "fixedPrices": {
       "EGP": 500,
@@ -1569,7 +1569,7 @@
   "book24": {
     "name": "تحت المجهر",
     "enName": "Under the Microscope",
-    "image": "/covers/book24.webp",
+    "image": "/covers/book24.webp?v=a331862a7e7c",
     "size": 10722930,
     "fixedPrices": {
       "EGP": 500,

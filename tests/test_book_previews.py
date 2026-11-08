@@ -95,7 +95,7 @@ class BookPreviewTests(unittest.TestCase):
                     urlopen(Request(base+path,headers=headers),timeout=3)
                 self.assertEqual(caught.exception.code,status)
                 self.assertEqual(caught.exception.headers['Cache-Control'],'no-store')
-            fetch.assert_called_once_with('book1.pdf')
+            fetch.assert_called_once_with(app.BOOKS['book1'][1])
             claim.assert_not_called()
 
     def test_session_is_expiring_and_bound_to_book_and_browser(self):
