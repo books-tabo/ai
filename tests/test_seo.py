@@ -173,7 +173,7 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(seo.BOOKS['book21']['pageCount'],471)
         self.assertEqual(len(seo.BOOKS['book21']['chapters']),15)
         self.assertEqual(seo.BOOKS['book23']['pageCount'],457)
-        self.assertEqual(seo.BOOKS['book23']['size'],10712104)
+        self.assertEqual(seo.BOOKS['book23']['size'],10990434)
         self.assertEqual(len(seo.BOOKS['book23']['chapters']),20)
         self.assertEqual(seo.BOOKS['book23']['chapters'][11], 'الجسد الذي لا يرغب دائمًا: سيكولوجيا الفتور الجنسي')
         self.assertEqual(seo.CATEGORIES['marriage-family']['books'],['book20','book21','book22','book23','book24'])
