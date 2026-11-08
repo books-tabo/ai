@@ -6,6 +6,7 @@ import re
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
+from urllib.parse import urlsplit
 from urllib.request import Request
 from xml.etree import ElementTree
 
@@ -156,7 +157,8 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(set(seo.BOOKS),set(catalog.BOOKS))
         for key, book in seo.BOOKS.items():
             self.assertEqual(book['name'],catalog.BOOKS[key][0])
-            self.assertTrue((Path(app.ROOT)/book['image'].lstrip('/')).is_file())
+            cover_path = urlsplit(book['image']).path
+            self.assertTrue((Path(app.ROOT)/cover_path.lstrip('/')).is_file())
             self.assertGreater(book['imageWidth'],0);self.assertGreater(book['imageHeight'],0)
             self.assertTrue(all(other in catalog.BOOKS and other!=key for other in book['related']))
             self.assertTrue(seo.categories_for(key))
@@ -171,7 +173,7 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(seo.BOOKS['book21']['pageCount'],471)
         self.assertEqual(len(seo.BOOKS['book21']['chapters']),15)
         self.assertEqual(seo.BOOKS['book23']['pageCount'],457)
-        self.assertEqual(seo.BOOKS['book23']['size'],10712104)
+        self.assertEqual(seo.BOOKS['book23']['size'],10990434)
         self.assertEqual(len(seo.BOOKS['book23']['chapters']),20)
         self.assertEqual(seo.BOOKS['book23']['chapters'][11], 'الجسد الذي لا يرغب دائمًا: سيكولوجيا الفتور الجنسي')
         self.assertEqual(seo.CATEGORIES['marriage-family']['books'],['book20','book21','book22','book23','book24'])
