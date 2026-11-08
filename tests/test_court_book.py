@@ -25,7 +25,7 @@ class CourtBookTests(HTTPCase):
             self.assertEqual(config['bookPolicies']['book22'], {
                 'price': float(price), 'bundleEligible': False, 'previewEnabled': False})
         self.assertEqual(seo.BOOKS['book22']['pageCount'], 419)
-        self.assertEqual(seo.BOOKS['book22']['size'], 12185488)
+        self.assertEqual(seo.BOOKS['book22']['size'], 12519883)
         self.assertEqual(seo.categories_for('book22')[0][0], 'marriage-family')
         self.assertEqual(catalog.FIXED_PRICES['book20'], {'EGP': 500, 'USD': 19.99, 'KWD': 6.2})
         self.assertEqual(catalog.FIXED_PRICES['book21'], {'EGP': 500, 'USD': 19.99, 'KWD': 6.2})
@@ -59,4 +59,4 @@ class CourtBookTests(HTTPCase):
                 code, _, response_headers = self.post('/api/download/'+bid, {'order_id': order['id']}, headers)
                 self.assertEqual(code, 200)
                 self.assertIn('no-store', response_headers['Cache-Control'])
-                original.assert_called_once_with(bid+'.pdf')
+                original.assert_called_once_with(catalog.BOOKS[bid][1])
