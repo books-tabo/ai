@@ -66,5 +66,19 @@
       "badge": "Written course · Coming soon",
       "description": "A practical course for men who are married or preparing for marriage. It begins with understanding performance anxiety and a wife’s desire, then covers preparing for intimacy and talking about what feels comfortable for both partners. It also looks at care afterward and renewing intimacy over time."
     }
+  },
+  {
+    "slug": "jasaduki",
+    "cover": "/covers/upcoming/jasaduki.webp?v=326bc6a0e1b0",
+    "ar": {
+      "title": "جسدكِ",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "من البلوغ إلى ما بعد انقطاع الطمث، تتغيّر احتياجات جسدكِ. يعرّفكِ هذا الكورس بمناطق الجسد وكيف تعتنين بها، ويساعدكِ على فهم الدورة الشهرية والتغيّرات الهرمونية واختيار عادات العناية بالبشرة والشعر والنظافة الشخصية المناسبة لكل مرحلة."
+    },
+    "en": {
+      "title": "Your Body",
+      "badge": "Written course · Coming soon",
+      "description": "From puberty through postmenopause, your body’s needs change. This course introduces you to the different parts of your body and how to care for them. It helps you understand menstruation and hormonal changes and choose skin care, hair care, and personal hygiene habits that suit each stage."
+    }
   }
 ]
