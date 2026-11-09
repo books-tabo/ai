@@ -80,5 +80,19 @@
       "badge": "Written course · Coming soon",
       "description": "From puberty through postmenopause, your body’s needs change. This course introduces you to the different parts of your body and how to care for them. It helps you understand menstruation and hormonal changes and choose skin care, hair care, and personal hygiene habits that suit each stage."
     }
+  },
+  {
+    "slug": "dalil-al-rujula-al-kamila",
+    "cover": "/covers/upcoming/dalil-al-rujula-al-kamila.webp?v=35ee8700a7ac",
+    "ar": {
+      "title": "دليل الرجولة الكاملة",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "كيف تتصرّف حين يتعارض ما تريده مع ما أنت مسؤول عنه؟ يتناول الكورس بناء شخصية الرجل من خلال قراراته اليومية، من تنظيم الوقت والمال إلى التعامل مع المشاعر والخلافات في العمل والعلاقات."
+    },
+    "en": {
+      "title": "The Complete Guide to Manhood",
+      "badge": "Written course · Coming soon",
+      "description": "How do you respond when what you want conflicts with what you’re responsible for? This course explores how men build character through everyday decisions, from managing time and money to handling emotions and disagreements at work and in relationships."
+    }
   }
 ]
