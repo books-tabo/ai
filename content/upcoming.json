@@ -94,5 +94,19 @@
       "badge": "Written course · Coming soon",
       "description": "How do you respond when what you want conflicts with what you’re responsible for? This course explores how men build character through everyday decisions, from managing time and money to handling emotions and disagreements at work and in relationships."
     }
+  },
+  {
+    "slug": "dalil-al-unutha-al-kamila",
+    "cover": "/covers/upcoming/dalil-al-unutha-al-kamila.webp?v=2acaf129222a",
+    "ar": {
+      "title": "دليل الأنوثة الكاملة",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "كيف تتغيّر طريقة حضوركِ حين تتغيّر نظرتكِ إلى نفسكِ؟ يتناول الكورس لغة الجسد والتواصل والتعبير عن مشاعركِ واحتياجاتكِ، ويستكشف كيف تبنين علاقات قريبة تحافظين فيها على استقلالكِ."
+    },
+    "en": {
+      "title": "The Complete Guide to Femininity",
+      "badge": "Written course · Coming soon",
+      "description": "How does the way you carry yourself change when your view of yourself changes? The course explores body language, communication, and expressing your feelings and needs. It looks at how to build close relationships while maintaining your independence."
+    }
   }
 ]
