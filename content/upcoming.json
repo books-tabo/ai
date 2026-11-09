@@ -262,5 +262,19 @@
       "badge": "Book · Coming soon",
       "description": "What happens within us when we fall in love? This book explores how we make sense of our feelings, how attachment forms, and how the fear of loss influences our actions. It asks a practical question: How can we grow closer to someone we love while keeping our boundaries and sense of self?"
     }
+  },
+  {
+    "slug": "guide-to-safety",
+    "cover": "/covers/upcoming/guide-to-safety.webp?v=d37fef7d1e12",
+    "ar": {
+      "title": "دليل الأمان",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "لماذا نشعر بالخوف أحيانًا حتى في اللحظات الهادئة؟ يتتبّع الكتاب جذور الخوف، ويستكشف كيف نلجأ إلى السيطرة أو التجنّب لنشعر بالأمان. ثم يتناول دور الثقة بالنفس والحدود الواضحة والعادات اليومية في بناء الطمأنينة حين تتغيّر الظروف."
+    },
+    "en": {
+      "title": "Guide to Feeling Safe",
+      "badge": "Book · Coming soon",
+      "description": "Why do we sometimes feel afraid even in quiet moments? This book traces the roots of fear and explores why we turn to control or avoidance to feel safe. It then looks at how self-confidence, clear boundaries, and everyday habits can help us feel steadier when circumstances change."
+    }
   }
 ]
