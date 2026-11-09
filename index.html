@@ -11,6 +11,10 @@
 
 <title>TABO BOOKS | مكتبة تابو الرقمية</title>
 
+<script>
+if(location.hash==="#coming-soon") location.replace("/coming-soon"+location.search);
+</script>
+
 <meta
     name="description"
     content="TABO BOOKS - مكتبة تابو الرقمية للكتب الإلكترونية في الوعي وتطوير الذات والمال والطموح."
@@ -1870,62 +1874,6 @@ html[lang="en"] #heroDescription{white-space:pre-line}
 @media(max-width:600px){.book-sample-link{font-size:11px;padding:8px 4px}}
 .fixed-price-note{font-size:12px;line-height:1.7;color:#806615;margin:7px 0}
 
-.store-section-links{
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:0 10px;
-}
-.coming-soon{
-    max-width:980px;
-    margin:0 auto 32px;
-    padding-inline:20px;
-    scroll-margin-top:76px;
-}
-.coming-soon h2{
-    font-size:clamp(22px,4vw,30px);
-    margin-block-end:14px;
-}
-.upcoming-cards{display:grid;gap:16px}
-.upcoming-card{
-    display:grid;
-    grid-template-columns:clamp(120px,22vw,190px) minmax(0,1fr);
-    align-items:center;
-    gap:clamp(16px,4vw,36px);
-    padding:clamp(16px,3vw,28px);
-    background:#fffaf4;
-    border:1px solid #dfcfb4;
-    border-radius:18px;
-}
-.upcoming-card img{
-    display:block;
-    width:100%;
-    height:auto;
-    border-radius:9px;
-    box-shadow:0 8px 18px rgba(45,22,17,.15);
-}
-.upcoming-card h3{
-    font-size:clamp(21px,4.5vw,34px);
-    line-height:1.45;
-    margin-block:8px;
-}
-.upcoming-card p{max-width:60ch;color:#4c3f32;line-height:1.9}
-.upcoming-badge{
-    display:inline-block;
-    padding:4px 12px;
-    border-radius:24px;
-    background:#6b233b;
-    color:#fff;
-    font-size:13px;
-    font-weight:700;
-}
-html[lang="ar"] :is(.coming-soon,.coming-soon-link) [lang="en"],
-html[lang="en"] :is(.coming-soon,.coming-soon-link) [lang="ar"]{display:none}
-@media(max-width:540px){
-    .coming-soon{padding-inline:10px}
-    .upcoming-card{grid-template-columns:minmax(0,1fr)}
-    .upcoming-card img{width:min(55vw,180px);justify-self:center}
-}
 </style>
 
 </head>
@@ -1987,6 +1935,12 @@ html[lang="en"] :is(.coming-soon,.coming-soon-link) [lang="ar"]{display:none}
                 <span class="drawer-card-icon" aria-hidden="true">%</span>
                 <span><strong id="offersDrawerTitle">العروض</strong><small id="offersDrawerHint">باقات الكتب والأسعار الخاصة</small></span>
             </button>
+            <div class="drawer-links">
+                <a class="drawer-card" href="/coming-soon">
+                    <span class="drawer-card-icon" aria-hidden="true">◷</span>
+                    <span><strong id="comingSoonDrawerTitle">قريبًا</strong><small id="comingSoonDrawerHint">الإصدارات القادمة</small></span>
+                </a>
+            </div>
             <div class="drawer-links" id="categoryLinks"></div>
         </div>
 
@@ -2011,10 +1965,7 @@ html[lang="en"] :is(.coming-soon,.coming-soon-link) [lang="ar"]{display:none}
     </div>
 
     <div class="brand-line"></div>
-    <div class="store-section-links">
-        <a href="/offers" data-offers-label class="offers-home-link">عروض الباقات</a>
-        <a href="#coming-soon" class="offers-home-link coming-soon-link"><span lang="ar">قريبًا</span><span lang="en">Coming soon</span></a>
-    </div>
+    <a href="/offers" data-offers-label class="offers-home-link">عروض الباقات</a>
 
     <h1 id="heroTitle">
         مكتبة تابو الرقمية
@@ -2042,12 +1993,6 @@ html[lang="en"] :is(.coming-soon,.coming-soon-link) [lang="ar"]{display:none}
     ></div>
 
 </section>
-
-<section class="coming-soon" id="coming-soon" aria-labelledby="coming-soon-title">
-    <h2 id="coming-soon-title"><span lang="ar">قريبًا في TABO BOOKS</span><span lang="en">Coming soon to TABO BOOKS</span></h2>
-    <div class="upcoming-cards"><!-- UPCOMING_CARDS --></div>
-</section>
-
 
 <!-- =========================================================
      AUTHOR
@@ -2739,6 +2684,7 @@ const UI_COPY = {
     ar:{
         countryLabel:"الدولة", language:"اللغة", menu:"القائمة", close:"إغلاق", cartLabel:"السلة",
         categories:"الأقسام", authors:"المؤلفين", offers:"العروض", offersHint:"باقات الكتب والأسعار الخاصة",
+        comingSoon:"قريبًا", comingSoonHint:"الإصدارات القادمة",
         drawerAuthorHint:"تعرّف على المؤلف وكتبه",
         heroTitle:"مكتبة تابو الرقمية",
         heroDescription:"كتب في الوعي، تطوير الذات\nالمال، ريادة الأعمال، الطموح\nوفهم الإنسان لنفسه والعالم من حوله",
@@ -2765,6 +2711,7 @@ const UI_COPY = {
     en:{
         countryLabel:"Country", language:"Language", menu:"Menu", close:"Close", cartLabel:"Cart",
         categories:"Categories", authors:"Authors", offers:"Offers", offersHint:"Book bundles and special prices",
+        comingSoon:"Coming soon", comingSoonHint:"Upcoming releases",
         drawerAuthorHint:"Meet the author and explore his books",
         heroTitle:"TABO Digital Library",
         heroDescription:"Books on awareness and personal growth\nMoney, entrepreneurship and ambition\nUnderstanding yourself and the world around you",
@@ -2916,6 +2863,7 @@ function applyStaticCopy(){
         cartTitle:"cartTitle",original:"originalPriceLabel",final:"finalPriceLabel",checkoutFields:"checkoutFieldsLabel",
         checkout:"checkoutBtn",aboutBook:"detailsAboutTitle",adds:"detailsAddsTitle",
         menu:"drawerTitle",categories:"categoriesTab",authors:"authorsTab",offers:"offersDrawerTitle",offersHint:"offersDrawerHint",
+        comingSoon:"comingSoonDrawerTitle",comingSoonHint:"comingSoonDrawerHint",
         drawerAuthorHint:"drawerAuthorHint"};
     Object.entries(ids).forEach(([key,id])=>{const el=document.getElementById(id);if(el) el.textContent=t(key);});
     const drawerAuthorName=document.getElementById("drawerAuthorName");
@@ -3700,13 +3648,8 @@ document.addEventListener(
             const button=event.target.closest("[data-add-offer]");
             if(button)addCuratedOffer(button.dataset.addOffer);
         });
-        const storeReady=Promise.allSettled([loadStoreConfig(),loadBookStats()]);
-        if(location.hash==="#coming-soon"){
-            // Pricing and ratings rebuild the catalog above the initial fragment.
-            storeReady.then(()=>{
-                if(location.hash==="#coming-soon") document.getElementById("coming-soon").scrollIntoView({behavior:"instant"});
-            });
-        }
+        loadStoreConfig();
+        loadBookStats();
         openCartFromQuery();
 
     }

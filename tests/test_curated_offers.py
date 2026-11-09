@@ -129,8 +129,8 @@ class OfferPageTests(HTTPCase):
             if not offer.get('fixedPriceBundle'):
                 self.assertNotIn('href="/books/book20"',source)
         self.assertEqual(self.get('/offers/unknown')[0],404)
-        self.assertEqual(len(seo.public_paths()),46)
-        self.assertIn('/offers',seo.public_paths())
+        offer_paths = {path for path in seo.public_paths() if path == '/offers' or path.startswith('/offers/')}
+        self.assertEqual(offer_paths, {'/offers'} | {'/offers/' + slug for slug in catalog.OFFERS})
         home=self.get('/')[2]
         self.assertIn('data-add-offer="change-starter"',home)
         self.assertIn('height:auto',home)

@@ -14,6 +14,47 @@ body {
 
 .offers-home-link{display:inline-block;margin-top:20px;padding:9px 18px;border:1px solid #c9a227;border-radius:8px;color:#755a12;text-decoration:none;font-size:15px;font-weight:bold}
 
+.upcoming-cards{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+}
+.upcoming-card{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    padding:clamp(14px,3vw,22px);
+    background:#fffaf4;
+    border:1px solid #dfcfb4;
+    border-radius:18px;
+}
+.upcoming-card img{
+    align-self:center;
+    display:block;
+    width:min(100%,175px);
+    height:auto;
+    border-radius:9px;
+    box-shadow:0 8px 18px rgba(45,22,17,.15);
+}
+.upcoming-card h2{
+    font-size:clamp(20px,3vw,25px);
+    line-height:1.45;
+    margin-block:8px;
+}
+.upcoming-card p{margin:0;color:#4c3f32;line-height:1.9}
+.upcoming-badge{
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:24px;
+    background:#6b233b;
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+}
+@media(max-width:650px){
+    .upcoming-cards{grid-template-columns:minmax(0,1fr)}
+}
+
 .sigma-offer-detail .sigma-offer-intro{color:#171717;font-weight:bold}
 .sigma-offer-detail .sigma-offer-books{list-style:none;padding:0;display:grid;gap:8px}
 .sigma-offer-books li{line-height:1.5}
