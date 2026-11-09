@@ -276,5 +276,145 @@
       "badge": "Book · Coming soon",
       "description": "Why do we sometimes feel afraid even in quiet moments? This book traces the roots of fear and explores why we turn to control or avoidance to feel safe. It then looks at how self-confidence, clear boundaries, and everyday habits can help us feel steadier when circumstances change."
     }
+  },
+  {
+    "slug": "guide-to-control",
+    "cover": "/covers/upcoming/guide-to-control.webp?v=7f33bdc4e6ea",
+    "ar": {
+      "title": "دليل السيطرة",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كم مرة انتهى يومك قبل أن تبدأ ما خططت له؟ يتناول الكتاب كيف تستعيد انتباهك من المشتّتات، وتنظّم يومك، وتبني عادات تساعدك على تنفيذ قراراتك. ويبدأ بسؤال عملي عمّا تستطيع التحكّم فيه، وما يمكنك التأثير فيه، وما يقع خارج سيطرتك."
+    },
+    "en": {
+      "title": "Guide to Taking Control",
+      "badge": "Book · Coming soon",
+      "description": "How often does the day end before you start what you planned? This book explores how to reclaim your attention, organize your day, and build habits that help you follow through on decisions. It begins by distinguishing what you can control, what you can influence, and what lies outside your control."
+    }
+  },
+  {
+    "slug": "guide-to-freedom",
+    "cover": "/covers/upcoming/guide-to-freedom.webp?v=b82b95757925",
+    "ar": {
+      "title": "دليل الحرية",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "متى يكون القرار قرارك فعلًا؟ يستكشف الكتاب كيف يضيّق الخوف من الرفض وتوقّعات الآخرين وأثر الماضي مساحة اختيارك. ثم يتناول وضع الحدود، واتخاذ قرارات تعبّر عنك، وتحمّل نتائجها."
+    },
+    "en": {
+      "title": "Guide to Freedom",
+      "badge": "Book · Coming soon",
+      "description": "When is a decision truly yours? This book explores how fear of rejection, other people’s expectations, and the past can narrow your choices. It then looks at setting boundaries, making decisions that reflect what matters to you, and accepting their consequences."
+    }
+  },
+  {
+    "slug": "crimes-the-law-does-not-punish",
+    "cover": "/covers/upcoming/crimes-the-law-does-not-punish.webp?v=a850cca2d5e0",
+    "ar": {
+      "title": "جرائم لا يعاقب عليها القانون",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يتركه الأذى حين لا يخلّف جرحًا ظاهرًا؟ يتتبّع الكتاب أشكالًا من الأذى النفسي والاجتماعي، من الإهانة المتكررة إلى التلاعب بالمشاعر. ويستكشف كيف تتراكم آثارها، ولماذا يصعب أحيانًا تسمية ما حدث أو الاعتراف بوقعه."
+    },
+    "en": {
+      "title": "Crimes the Law Does Not Punish",
+      "badge": "Book · Coming soon",
+      "description": "What can harm leave behind when there is no visible wound? This book examines psychological and social harm, from repeated humiliation to emotional manipulation. It explores how the effects accumulate and why it can be hard to name what happened or acknowledge its impact."
+    }
+  },
+  {
+    "slug": "words-of-a-madman",
+    "cover": "/covers/upcoming/words-of-a-madman.webp?v=5577e554a36f",
+    "ar": {
+      "title": "كلمات رجل مجنون",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "متى يبدو قول الحقيقة جنونًا؟ شذرات ومقالات قصيرة عن الحب والمال والوحدة، وعن المسافة بين ما نقوله وما نفعله. يلتقط الكتاب تناقضات من الحياة اليومية ويسأل عمّا نخفيه حين نحاول أن نبدو كما يتوقّع منا الآخرون."
+    },
+    "en": {
+      "title": "Words of a Madman",
+      "badge": "Book · Coming soon",
+      "description": "When does telling the truth seem like madness? Short essays and fragments on love, money, loneliness, and the distance between what we say and what we do. The book notices everyday contradictions and asks what we hide to live up to others’ expectations."
+    }
+  },
+  {
+    "slug": "the-brain-rot-cure",
+    "cover": "/covers/upcoming/the-brain-rot-cure.webp?v=61dec72de1c2",
+    "ar": {
+      "title": "علاج التعفّن الدماغي",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "تفتح هاتفك لدقيقة، ثم تكتشف أن نصف ساعة مرّت. يستكشف الكتاب كيف يتشتّت انتباهك بين المقاطع القصيرة والإشعارات، ولماذا يصعب بعدها الرجوع إلى القراءة أو العمل بتركيز. ويقدّم برنامجًا عمليًا من ٣٠ يومًا لمراجعة عادات التصفّح والتدرّب على التركيز."
+    },
+    "en": {
+      "title": "The Brain Rot Cure",
+      "badge": "Book · Coming soon",
+      "description": "You pick up your phone for a minute and realize half an hour has passed. This book explores how short clips and notifications scatter your attention and make it harder to return to focused reading or work. It offers a 30-day program for reviewing your browsing habits and practicing focus."
+    }
+  },
+  {
+    "slug": "90-day-life-reset",
+    "cover": "/covers/upcoming/90-day-life-reset.webp?v=cb4764efcec5",
+    "ar": {
+      "title": "خطة 90 يوم لتغيير مجرى الحياة",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ماذا لو خصّصت ٩٠ يومًا لإعادة ترتيب حياتك؟ يقسّم الكتاب الخطة إلى ثلاث مراحل. تبدأ بتقييم عاداتك وكيف تقضي وقتك، ثم تضع خطوات يومية لصحتك وعملك ومالك وعلاقاتك. وفي المرحلة الأخيرة تحدّد اتجاهك وتبني نظامًا يمكنك مواصلته بعد اليوم التسعين."
+    },
+    "en": {
+      "title": "The 90-Day Life Reset",
+      "badge": "Book · Coming soon",
+      "description": "What if you set aside 90 days to reorganize your life? The book divides the plan into three stages. You review your habits and how you spend your time, then set daily steps for your health, work, money, and relationships. Finally, you choose a direction and build a routine you can keep after day 90."
+    }
+  },
+  {
+    "slug": "what-you-missed",
+    "cover": "/covers/upcoming/what-you-missed.webp?v=cd326a007c81",
+    "ar": {
+      "title": "لا تحزن على ما فاتك",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي تفعله بعد فرصة ضاعت أو مشروع لم ينجح؟ يتناول الكتاب كيف تراجع قراراتك السابقة وتستخرج منها خبرة تساعدك في العمل وريادة الأعمال. ثم يناقش كيف تستعد للفرصة التالية، من تحديد المهارة التي تحتاجها إلى اختبار فكرة جديدة بخطوة محسوبة."
+    },
+    "en": {
+      "title": "Don’t Dwell on What You Missed",
+      "badge": "Book · Coming soon",
+      "description": "What do you do after a missed opportunity or a project that didn’t work out? This book explores how to review past decisions and draw on them in your work or business. It then looks at preparing for the next opportunity, from identifying a skill you need to testing a new idea with a measured first step."
+    }
+  },
+  {
+    "slug": "tomorrows-bill",
+    "cover": "/covers/upcoming/tomorrows-bill.webp?v=887eeae3b991",
+    "ar": {
+      "title": "فاتورة بكرة",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما ثمن القرار الذي تؤجّله اليوم؟ يتتبّع الكتاب كيف تتحوّل قرارات صغيرة، من تأجيل مهمة إلى قبول التزام زائد، إلى أعباء تستهلك وقتك وطاقتك وتؤثّر في علاقاتك. ثم يناقش كيف تراجع التزاماتك وتعيد توزيع وقتك وانتباهك على ما يهمّك."
+    },
+    "en": {
+      "title": "Tomorrow’s Bill",
+      "badge": "Book · Coming soon",
+      "description": "What is the cost of a decision you put off today? This book traces how small choices, from delaying a task to taking on one commitment too many, can drain your time and energy and affect your relationships. It then looks at reviewing your commitments and giving more time and attention to what matters."
+    }
+  },
+  {
+    "slug": "the-gamblers-mindset",
+    "cover": "/covers/upcoming/the-gamblers-mindset.webp?v=da5e2491ab46",
+    "ar": {
+      "title": "عقلية المقامر",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كم مرة علّقت أملك على قرار واحد يغيّر كل شيء؟ يستكشف الكتاب كيف تغرينا الإثارة ووعد المكافأة السريعة بمطاردة الضربة الكبرى. ثم ينتقل إلى عقلية البناء، ويبيّن كيف تتخذ قرارات محسوبة، وتعمل بانتظام، وتقيس تقدّمك حتى حين تتأخّر النتائج."
+    },
+    "en": {
+      "title": "The Gambler’s Mindset",
+      "badge": "Book · Coming soon",
+      "description": "How often have you pinned your hopes on one decision changing everything? This book explores how excitement and the promise of a quick reward draw us into chasing the big break. It then turns to the builder’s mindset and shows how to make considered decisions, work steadily, and measure progress even when results take time."
+    }
+  },
+  {
+    "slug": "social-pressure",
+    "cover": "/covers/upcoming/social-pressure.webp?v=f2fcd23dd2d3",
+    "ar": {
+      "title": "الضغط المجتمعي",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كم قرارًا اتخذته لأن الناس يتوقّعونه منك؟ يتناول الكتاب كيف تتحوّل توقّعات الناس حول الزواج والعمل والمظهر إلى مقاييس نحاكم بها أنفسنا. ويتتبّع أثرها على النساء والرجال، ويسأل كيف نميّز بين ما نريده فعلًا وما نفعله طلبًا للقبول."
+    },
+    "en": {
+      "title": "Social Pressure",
+      "badge": "Book · Coming soon",
+      "description": "How many decisions have you made because people expected them of you? This book looks at how expectations around marriage, work, and appearance become standards we use to judge ourselves. It traces their effects on women and men and asks how to distinguish what we truly want from what we do to gain approval."
+    }
   }
 ]
