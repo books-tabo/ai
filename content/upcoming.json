@@ -248,5 +248,19 @@
       "badge": "Book · Coming soon",
       "description": "How do you turn a clear goal into steps you can stick to? The book explores vision, knowledge, discipline, courage, and leadership. Each door gets three chapters that connect its theme to everyday actions, from deciding what you need to learn to making a decision and taking responsibility for it."
     }
+  },
+  {
+    "slug": "guide-to-love",
+    "cover": "/covers/upcoming/guide-to-love.webp?v=61e30f1110cc",
+    "ar": {
+      "title": "دليل الحب",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ماذا يحدث داخلنا حين نحبّ؟ يتناول الكتاب كيف نفهم مشاعرنا، وكيف يتشكّل التعلّق، وكيف يؤثّر الخوف من الفقد على تصرّفاتنا. ومن هنا يطرح سؤالًا عمليًا: كيف نقترب ممن نحبّ ونحافظ على حدودنا وهويتنا؟"
+    },
+    "en": {
+      "title": "Guide to Love",
+      "badge": "Book · Coming soon",
+      "description": "What happens within us when we fall in love? This book explores how we make sense of our feelings, how attachment forms, and how the fear of loss influences our actions. It asks a practical question: How can we grow closer to someone we love while keeping our boundaries and sense of self?"
+    }
   }
 ]
