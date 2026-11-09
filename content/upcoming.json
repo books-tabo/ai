@@ -24,5 +24,19 @@
       "badge": "Horror novel · Coming soon",
       "description": "Six people arrive on Failaka Island for a camping trip. On the second day, one of them disappears. As the others search for him, they realize that something on the island is tracking them."
     }
+  },
+  {
+    "slug": "legend-an-extraordinary-woman",
+    "cover": "/covers/upcoming/legend-an-extraordinary-woman.webp?v=44231f0b4ca3",
+    "ar": {
+      "title": "الأسطورة: أنثى غير عادية",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يتغيّر في علاقتكِ حين تجرئين على قول ما تحبّين؟ يتناول هذا الكتاب الثقة بالجسد والعناية بالنفس والتعبير عن الرغبات والحدود، ويستكشف كيف يعمّق الحوار والاهتمام المتبادل الحميمية بين الزوجين."
+    },
+    "en": {
+      "title": "The Legend: An Extraordinary Woman",
+      "badge": "Book · Coming soon",
+      "description": "What changes in your relationship when you dare to say what you like? This book explores body confidence, self-care, and expressing your desires and boundaries. It looks at how open conversation and mutual care deepen intimacy in marriage."
+    }
   }
 ]
