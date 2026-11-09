@@ -1869,6 +1869,63 @@ html[lang="en"] #heroDescription{white-space:pre-line}
 .book-sample-link:hover{background:#fbf7e9}
 @media(max-width:600px){.book-sample-link{font-size:11px;padding:8px 4px}}
 .fixed-price-note{font-size:12px;line-height:1.7;color:#806615;margin:7px 0}
+
+.store-section-links{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:0 10px;
+}
+.coming-soon{
+    max-width:980px;
+    margin:0 auto 32px;
+    padding-inline:20px;
+    scroll-margin-top:76px;
+}
+.coming-soon h2{
+    font-size:clamp(22px,4vw,30px);
+    margin-block-end:14px;
+}
+.upcoming-cards{display:grid;gap:16px}
+.upcoming-card{
+    display:grid;
+    grid-template-columns:clamp(120px,22vw,190px) minmax(0,1fr);
+    align-items:center;
+    gap:clamp(16px,4vw,36px);
+    padding:clamp(16px,3vw,28px);
+    background:#fffaf4;
+    border:1px solid #dfcfb4;
+    border-radius:18px;
+}
+.upcoming-card img{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:9px;
+    box-shadow:0 8px 18px rgba(45,22,17,.15);
+}
+.upcoming-card h3{
+    font-size:clamp(21px,4.5vw,34px);
+    line-height:1.45;
+    margin-block:8px;
+}
+.upcoming-card p{max-width:60ch;color:#4c3f32;line-height:1.9}
+.upcoming-badge{
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:24px;
+    background:#6b233b;
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+}
+html[lang="ar"] :is(.coming-soon,.coming-soon-link) [lang="en"],
+html[lang="en"] :is(.coming-soon,.coming-soon-link) [lang="ar"]{display:none}
+@media(max-width:540px){
+    .coming-soon{padding-inline:10px}
+    .upcoming-card{grid-template-columns:minmax(0,1fr)}
+    .upcoming-card img{width:min(55vw,180px);justify-self:center}
+}
 </style>
 
 </head>
@@ -1954,7 +2011,10 @@ html[lang="en"] #heroDescription{white-space:pre-line}
     </div>
 
     <div class="brand-line"></div>
-    <a href="/offers" data-offers-label class="offers-home-link">عروض الباقات</a>
+    <div class="store-section-links">
+        <a href="/offers" data-offers-label class="offers-home-link">عروض الباقات</a>
+        <a href="#coming-soon" class="offers-home-link coming-soon-link"><span lang="ar">قريبًا</span><span lang="en">Coming soon</span></a>
+    </div>
 
     <h1 id="heroTitle">
         مكتبة تابو الرقمية
@@ -1983,6 +2043,10 @@ html[lang="en"] #heroDescription{white-space:pre-line}
 
 </section>
 
+<section class="coming-soon" id="coming-soon" aria-labelledby="coming-soon-title">
+    <h2 id="coming-soon-title"><span lang="ar">قريبًا في TABO BOOKS</span><span lang="en">Coming soon to TABO BOOKS</span></h2>
+    <div class="upcoming-cards"><!-- UPCOMING_CARDS --></div>
+</section>
 
 
 <!-- =========================================================

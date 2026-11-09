@@ -1524,6 +1524,10 @@ class Handler(BaseHTTPRequestHandler):
         optimized_cover=re.fullmatch(r'/covers/(book[1-9][0-9]*)\.webp',route)
         if optimized_cover and optimized_cover.group(1) in BOOKS:
             return self.asset('covers/'+optimized_cover.group(1)+'.webp','image/webp')
+        if re.fullmatch(r'/covers/upcoming/[a-z0-9]+(?:-[a-z0-9]+)*\.webp', route):
+            filename = route.lstrip('/')
+            if (ROOT / filename).is_file():
+                return self.asset(filename, 'image/webp')
         if route=='/paypal-return.html': return self.html('paypal-return.html')
         if route=='/order-help': return self.html('order-help.html')
         if route=='/order-help.js': return self.asset('order-help.js','text/javascript; charset=utf-8')

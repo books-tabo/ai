@@ -13,6 +13,7 @@ import catalog
 ROOT = Path(__file__).resolve().parent
 ORIGIN = 'https://tabobooks.com'
 BOOKS = json.loads((ROOT / 'content/books.json').read_text())
+UPCOMING = json.loads((ROOT / 'content/upcoming.json').read_text(encoding='utf-8'))
 PAGES = json.loads((ROOT / 'content/pages.json').read_text())
 CATEGORIES = json.loads((ROOT / 'content/categories.json').read_text())
 ARTICLES = json.loads((ROOT / 'content/articles.json').read_text())
@@ -77,6 +78,22 @@ def book_card(book_id, language='ar', home=False, position=0):
 
 def book_list(ids, language):
     return '<div class="seo-book-grid">' + ''.join(book_card(key, language) for key in ids if key in catalog.BOOKS) + '</div>'
+
+
+def upcoming_cards():
+    cards = []
+    for item in UPCOMING:
+        ar, en = item['ar'], item['en']
+        cards.append(f'''
+        <article class="upcoming-card" id="{escape(item['slug'])}">
+            <img src="{escape(item['cover'])}" alt="" width="720" height="1080" loading="lazy" decoding="async">
+            <div>
+                <span class="upcoming-badge"><span lang="ar">يتوفر قريبًا</span><span lang="en">Coming soon</span></span>
+                <h3><span lang="ar">{escape(ar['title'])}</span><span lang="en">{escape(en['title'])}</span></h3>
+                <p><span lang="ar">{escape(ar['description'])}</span><span lang="en">{escape(en['description'])}</span></p>
+            </div>
+        </article>''')
+    return ''.join(cards)
 
 
 def crumbs(items, language):
@@ -357,6 +374,7 @@ def render(source, path, host, filename, *, blog_enabled=False):
         grid = re.compile(r'(<div\s+class="books-grid"\s+id="booksGrid"\s*>)[\s\S]*?</div>')
         cards = ''.join(book_card(key, home=True, position=i) for i, key in enumerate(current_books()))
         source = grid.sub(lambda m: m[1] + cards + '</div>', source, count=1)
+        source = source.replace('<!-- UPCOMING_CARDS -->', upcoming_cards(), 1)
         source = source.replace('<section class="book-panorama"', offers_section(home=True)+'<section class="book-panorama"',1)
         source = source.replace('<section class="book-panorama"', '<div id="seo-body" class="seo-home-nav">' + ar['body'] + '</div><section class="book-panorama"', 1)
     elif filename == 'book.html':
