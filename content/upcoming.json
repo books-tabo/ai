@@ -52,5 +52,19 @@
       "badge": "Book · Coming soon",
       "description": "When does a man’s initiative help his partner feel secure, and when does it become pressure? This book explores the psychology of leadership in relationships, from managing money and disagreements to intimacy. It examines how partners can agree on who takes initiative and how they make decisions while respecting each other’s desires and boundaries."
     }
+  },
+  {
+    "slug": "shifrat-al-sareer",
+    "cover": "/covers/upcoming/shifrat-al-sareer.webp?v=9751dcf72aec",
+    "ar": {
+      "title": "شفرة السرير",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "كورس عملي للرجل المتزوج أو المقبل على الزواج. يبدأ بفهم قلق الأداء ورغبة الزوجة، وينتقل إلى الاستعداد للقاء والحديث عمّا يريح كلًّا من الزوجين. ويتناول أيضًا الاهتمام بعد اللقاء وتجديد الحميمية مع الوقت."
+    },
+    "en": {
+      "title": "The Bedroom Code",
+      "badge": "Written course · Coming soon",
+      "description": "A practical course for men who are married or preparing for marriage. It begins with understanding performance anxiety and a wife’s desire, then covers preparing for intimacy and talking about what feels comfortable for both partners. It also looks at care afterward and renewing intimacy over time."
+    }
   }
 ]
