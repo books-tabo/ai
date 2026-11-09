@@ -556,5 +556,145 @@
       "badge": "Book · Coming soon",
       "description": "This book offers a contemporary economic reading of a saying attributed to Uthman ibn Affan. It explores growing capital, valuing modest profits, and putting returns back to work, then considers how a business can benefit people beyond its owners."
     }
+  },
+  {
+    "slug": "nahd",
+    "cover": "/covers/upcoming/nahd.webp?v=8f08148c9d88",
+    "ar": {
+      "title": "نَهْد",
+      "badge": "رواية · يتوفر قريبًا",
+      "description": "تدخل نهاد، تحت ضغط الفقر، عالمًا يقوم على استغلال النساء، وتُعرَف فيه باسم «نهد». ومع صعودها إلى المال والنفوذ، يصبح لها دور في الاستغلال الذي عرفته. وحين تنكشف الشبكة، تواجه محاكمة تضع اختياراتها وأثرها في حياة الآخرين موضع السؤال."
+    },
+    "en": {
+      "title": "Nahd",
+      "badge": "Novel · Coming soon",
+      "description": "Under the pressure of poverty, Nihad enters a world that exploits women and becomes known there as Nahd. As she gains money and influence, she takes a role in the exploitation she once experienced. When the network is exposed, her trial brings her choices and their consequences for others into question."
+    }
+  },
+  {
+    "slug": "i-love-you",
+    "cover": "/covers/upcoming/i-love-you.webp?v=a35d2b01d6b0",
+    "ar": {
+      "title": "I LOVE YOU",
+      "badge": "رواية · يتوفر قريبًا",
+      "description": "يحكي آدم منصور ليوسف عن النساء اللواتي مررن بحياته. ومع أسئلة يوسف، تظهر التناقضات في رواية آدم عن نفسه، ويبدأ في مواجهة أثر اختياراته في الآخرين. تتناول الرواية الرغبة والذاكرة والمسؤولية داخل العلاقات."
+    },
+    "en": {
+      "title": "I LOVE YOU",
+      "badge": "Novel · Coming soon",
+      "description": "Adam Mansour tells Youssef about the women who have passed through his life. Youssef's questions expose contradictions in the way Adam describes himself, and Adam begins to reckon with the effect his choices have had on others. The novel explores desire, memory, and responsibility in relationships."
+    }
+  },
+  {
+    "slug": "the-second-wife",
+    "cover": "/covers/upcoming/the-second-wife.webp?v=a485990186bd",
+    "ar": {
+      "title": "الزوجة الثانية",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يدفع الرجل إلى التفكير في زواجٍ ثانٍ، وكيف تتغيّر حياته بعد القرار؟ يستكشف الكتاب دوافع الاختيار وتوقّعات الزوجتين، ثم يناقش الحياة العاطفية وتقسيم الوقت والمسؤوليات بين بيتين."
+    },
+    "en": {
+      "title": "The Second Wife",
+      "badge": "Book · Coming soon",
+      "description": "What leads a man to consider a second marriage, and how does his life change after the decision? This book explores his motives and the expectations of both wives, then looks at emotional life and the way time and responsibilities are shared across two households."
+    }
+  },
+  {
+    "slug": "the-royal-phase",
+    "cover": "/covers/upcoming/the-royal-phase.webp?v=d72acb400928",
+    "ar": {
+      "title": "المرحلة الملكية",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف تعرف أي مواجهة تستحق وقتك؟ يناقش الكتاب ثمن الصراعات اليومية وكيف تختار متى تواجه ومتى تنسحب، لتوفّر وقتك وتركيزك لما تريد تحقيقه."
+    },
+    "en": {
+      "title": "The Royal Phase",
+      "badge": "Book · Coming soon",
+      "description": "How do you know which conflicts deserve your time? This book explores the cost of everyday conflicts and how to choose when to stand your ground or step back, so you can focus on what you want to achieve."
+    }
+  },
+  {
+    "slug": "deadly-ease",
+    "cover": "/covers/upcoming/deadly-ease.webp?v=24b15ae3f30a",
+    "ar": {
+      "title": "السهل المميت",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "سقط فأر في وعاء أرز. كان يستطيع القفز خارجه، لكنه بقي يأكل حتى انخفض مستوى الأرز وعجز عن بلوغ الحافة. يستكشف الكتاب كيف تدفعنا المكافآت السهلة إلى تأجيل التغيير حتى يصبح أصعب."
+    },
+    "en": {
+      "title": "Deadly Ease",
+      "badge": "Book · Coming soon",
+      "description": "A mouse falls into a pot of rice. It can jump out at first, but keeps eating until the rice level drops and the rim is out of reach. The book explores how easy rewards can lead us to delay change until it becomes harder."
+    }
+  },
+  {
+    "slug": "the-man-protocol",
+    "cover": "/covers/upcoming/the-man-protocol.webp?v=c146592be49d",
+    "ar": {
+      "title": "بروتوكول الرجل",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما القواعد التي تعلّمتها عن الرجولة قبل أن تختارها؟ يتتبّع الكتاب التوقّعات غير المكتوبة التي تربط قيمة الرجل بما يقدّمه للآخرين وتشكّل طريقة تعبيره عن مشاعره. ثم يدعوه إلى مراجعتها واختيار ما تعنيه له القوة والمسؤولية والكرامة."
+    },
+    "en": {
+      "title": "The Man Protocol",
+      "badge": "Book · Coming soon",
+      "description": "What rules of manhood did you learn before you could choose them? The book examines the unwritten expectations that tie a man's worth to what he provides and shape how he expresses emotion. It invites him to reconsider those expectations and define strength, responsibility, and dignity for himself."
+    }
+  },
+  {
+    "slug": "architecture-of-manipulation",
+    "cover": "/covers/upcoming/architecture-of-manipulation.webp?v=7570db3ab1df",
+    "ar": {
+      "title": "هندسة التلاعب",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ماذا يحدث حين تقول «لا»؟ يستكشف الكتاب كيف يضيّق التلاعب بين الشركاء مساحة الاختيار حين يصبح الرفض مكلفًا. ويتتبّع كيف تتآكل الحدود تدريجيًا حتى تبدو الموافقة قرارًا حرًا."
+    },
+    "en": {
+      "title": "The Architecture of Manipulation",
+      "badge": "Book · Coming soon",
+      "description": "What happens when you say no? This book explores how manipulation between partners narrows their choices by making refusal costly. It traces how boundaries erode until agreement can feel like a free choice."
+    }
+  },
+  {
+    "slug": "architects-of-chaos",
+    "cover": "/covers/upcoming/architects-of-chaos.webp?v=009da9c46152",
+    "ar": {
+      "title": "صناع الفوضى",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف اختلفت مسارات الربيع العربي من بلد إلى آخر؟ يقارن الكتاب تجارب مصر وليبيا وسوريا واليمن، ويتتبّع دور الغضب الشعبي وصراعات السلطة والإعلام والتدخلات الخارجية في كل مسار."
+    },
+    "en": {
+      "title": "The Architects of Chaos",
+      "badge": "Book · Coming soon",
+      "description": "What shaped the different paths of the Arab Spring? This book compares Egypt, Libya, Syria, and Yemen, examining the roles of public anger, struggles for power, the media, and foreign intervention in each case."
+    }
+  },
+  {
+    "slug": "prophets-of-wealth",
+    "cover": "/covers/upcoming/prophets-of-wealth.webp?v=e9696b2cb798",
+    "ar": {
+      "title": "أنبياء المال",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف تُبنى الثروات الكبيرة، وما الذي يساعدها على البقاء عبر الأجيال؟ يقارن الكتاب عشرين تجربة لأفراد وعائلات، ويدرس قراراتهم في الملكية وإعادة الاستثمار ونقل الثروة إلى الجيل التالي."
+    },
+    "en": {
+      "title": "The Prophets of Wealth",
+      "badge": "Book · Coming soon",
+      "description": "How are large fortunes built, and what helps them last across generations? Through twenty cases involving individuals and families, this book examines decisions about ownership, reinvestment, and passing wealth to the next generation."
+    }
+  },
+  {
+    "slug": "casanova",
+    "cover": "/covers/upcoming/casanova.webp?v=9a3da7a5e398",
+    "ar": {
+      "title": "كازانوفا",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "لماذا يلاحق بعض الرجال الإعجاب من علاقة إلى أخرى؟ يستكشف الكتاب كيف قد يصبح تعدّد العلاقات خارج الزواج وسيلة لإثبات الذات أو تفادي القرب. ويتتبّع أثر الخداع على الثقة بين الشركاء."
+    },
+    "en": {
+      "title": "Casanova",
+      "badge": "Book · Coming soon",
+      "description": "Why do some men chase admiration from one relationship to the next? This book explores how repeated affairs can become a way to prove one's worth or avoid intimacy. It also examines what deception does to trust between partners."
+    }
   }
 ]
