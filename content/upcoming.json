@@ -136,5 +136,19 @@
       "badge": "Written course · Coming soon",
       "description": "A practical guide for men preparing for marriage, from getting ready for the wedding to the first three days of married life. It covers managing nerves, talking with your partner about what feels comfortable for both of you, and easing into intimacy at a pace you agree on together."
     }
+  },
+  {
+    "slug": "dalil-laylat-al-zifaf-lilnisaa",
+    "cover": "/covers/upcoming/dalil-laylat-al-zifaf-lilnisaa.webp?v=7ea540e78c0b",
+    "ar": {
+      "title": "دليل ليلة الزفاف للنساء خطوة بخطوة",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "دليل عملي للمقبلة على الزواج، من التحضير للزفاف إلى الأيام الثلاثة الأولى من الزواج. يتناول فهم استجابة جسدكِ للتوتر، والحديث مع شريككِ عمّا يطمئنكِ، وكيف تعبّرين عن رغبتكِ في التمهّل أو التوقّف."
+    },
+    "en": {
+      "title": "A Step-by-Step Wedding Night Guide for Women",
+      "badge": "Written course · Coming soon",
+      "description": "A practical guide for women preparing for marriage, from getting ready for the wedding through the first three days of married life. It covers how your body responds to stress, how to talk with your partner about what helps you feel at ease, and how to say when you want to slow down or stop."
+    }
   }
 ]
