@@ -100,9 +100,10 @@ def prepare(manifest_name='batch-one.json'):
             'meta_keywords':row['primary_keyword'],'hero_image':None,'infographic_image':None,
             'hero_alt':'','faq':[],'source_article_id':None,'editorial_book_id':row['book_id'],
             'editorial_batch':manifest['batch'],'word_count':words})
-    assert len(posts) == 12 and len({p['id'] for p in posts}) == 12
+    expected = len(manifest['articles']) if manifest.get('partial_reviewed_batch') is True else 12
+    assert expected in (4, 8, 12) and len(posts) == len({p['id'] for p in posts}) == expected
     counts = Counter(p['editorial_book_id'] for p in posts)
-    assert len(counts) == 3 and set(counts.values()) == {4}, counts
+    assert len(counts) == expected // 4 and set(counts.values()) == {4}, counts
     return rows, posts
 
 
