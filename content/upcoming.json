@@ -416,5 +416,145 @@
       "badge": "Book · Coming soon",
       "description": "How many decisions have you made because people expected them of you? This book looks at how expectations around marriage, work, and appearance become standards we use to judge ourselves. It traces their effects on women and men and asks how to distinguish what we truly want from what we do to gain approval."
     }
+  },
+  {
+    "slug": "what-you-expect",
+    "cover": "/covers/upcoming/what-you-expect.webp?v=b55f23dd6a25",
+    "ar": {
+      "title": "كل متوقَّع آتٍ",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كم مرة تراجعت قبل أن تبدأ لأنك توقّعت الفشل؟ يستكشف الكتاب كيف توجّه توقّعاتك انتباهك ومشاعرك وقراراتك. ويقترح تمارين تساعدك على مراجعة توقّعاتك السلبية واختبارها بخطوات صغيرة في حياتك اليومية."
+    },
+    "en": {
+      "title": "What You Expect Shapes What Comes Next",
+      "badge": "Book · Coming soon",
+      "description": "How often have you backed out before you began because you expected to fail? This book explores how expectations guide your attention, feelings, and decisions. It offers exercises for examining negative expectations and testing them in small steps in everyday life."
+    }
+  },
+  {
+    "slug": "tabos-laws",
+    "cover": "/covers/upcoming/tabos-laws.webp?v=bfeb4dea9beb",
+    "ar": {
+      "title": "قوانين تابو",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ثلاثون قانونًا في المال والحب والعلاقات، لكل قانون فصل مستقل. يبدأ الفصل بصياغة القانون، ثم يشرح فكرته ويقدّم تعليقًا عليها يربطها بالمواقف التي نعيشها والقرارات التي نتخذها."
+    },
+    "en": {
+      "title": "Tabo's Laws",
+      "badge": "Book · Coming soon",
+      "description": "Thirty laws on money, love, and relationships. Each law has its own chapter, beginning with the law itself and followed by an explanation and commentary that connect it to everyday situations and decisions."
+    }
+  },
+  {
+    "slug": "break-the-narcissists-grip",
+    "cover": "/covers/upcoming/break-the-narcissists-grip.webp?v=e5bcf67da837",
+    "ar": {
+      "title": "حطِّم أنف النرجسي",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف يتحوّل الاهتمام في بداية العلاقة إلى ضغط يجعلك تشكّ في نفسك؟ يتتبّع الكتاب أساليب التلاعب، من الإغراق بالاهتمام إلى قلب اللوم والتشكيك في إدراكك. ثم يتناول وضع الحدود واستعادة الثقة في قراراتك."
+    },
+    "en": {
+      "title": "Break the Narcissist's Grip",
+      "badge": "Book · Coming soon",
+      "description": "How can the attention at the start of a relationship turn into pressure that makes you doubt yourself? This book traces patterns of manipulation, from overwhelming attention to blame-shifting and attempts to make you question your own perception. It then explores setting boundaries and rebuilding trust in your decisions."
+    }
+  },
+  {
+    "slug": "stay-in-the-back-end",
+    "cover": "/covers/upcoming/stay-in-the-back-end.webp?v=47c11b5fdae7",
+    "ar": {
+      "title": "خليك في Back-End",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يمكن أن تبنيه حين تقلّل انشغالك بالظهور؟ يتناول الكتاب كلفة الظهور المبكر، وكيف تستثمر وقتك في تطوير مهاراتك وبناء نظام عمل تتراكم نتائجه. ثم يناقش كيف تعرف أن ما بنيته صار جاهزًا للظهور."
+    },
+    "en": {
+      "title": "Stay Behind the Scenes",
+      "badge": "Book · Coming soon",
+      "description": "What can you build when you spend less time trying to be seen? This book explores the cost of going public too early and how to use that time to develop skills and build a work system whose results compound. It then asks how to tell when what you have built is ready to share."
+    }
+  },
+  {
+    "slug": "the-treasure",
+    "cover": "/covers/upcoming/the-treasure.webp?v=583ed03efc62",
+    "ar": {
+      "title": "الكنز",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف تؤثر طريقة تفكيرك في قراراتك؟ يستكشف الكتاب كيف تفسّر المواقف وتلاحظ عاداتك الذهنية، ثم يتناول الانتباه والذاكرة وطرق التعلّم. ويختتم بتطبيق هذه القدرات على قراراتك وخططك للمستقبل."
+    },
+    "en": {
+      "title": "The Treasure",
+      "badge": "Book · Coming soon",
+      "description": "How does the way you think shape the decisions you make? This book explores how you interpret situations and notice your mental habits, then turns to attention, memory, and ways to learn. It closes by applying these abilities to decisions and plans for the future."
+    }
+  },
+  {
+    "slug": "patience",
+    "cover": "/covers/upcoming/patience.webp?v=e26b30c97506",
+    "ar": {
+      "title": "الصبر",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف تواصل السعي حين تتأخر النتيجة؟ يستكشف الكتاب سيكولوجيا الانتظار والتعامل مع الإحباط، ويشرح كيف تبذل ما في وسعك، وتراجع خطواتك، وتمنح عملك الوقت الكافي ليظهر أثره."
+    },
+    "en": {
+      "title": "Patience",
+      "badge": "Book · Coming soon",
+      "description": "How do you keep going when results take longer than you hoped? This book explores the psychology of waiting and dealing with frustration. It looks at how to give your best effort, review your steps, and give your work the time it needs to bear fruit."
+    }
+  },
+  {
+    "slug": "my-life-partner",
+    "cover": "/covers/upcoming/my-life-partner.webp?v=403c109bbf46",
+    "ar": {
+      "title": "شريكة حياتي",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي تحتاج إلى فهمه عن نفسك وعنها قبل قرار الزواج؟ يبدأ الكتاب بدوافعك واستعدادك للشراكة، ثم يناقش الانجذاب والتوافق في القيم والطباع. ويطرح حوارات تساعدكما على فهم طريقة كل منكما في إدارة الخلاف وبناء حياة مشتركة."
+    },
+    "en": {
+      "title": "My Life Partner",
+      "badge": "Book · Coming soon",
+      "description": "What do you need to understand about yourself and about her before deciding to marry? The book begins with your motivations and readiness for partnership, then explores attraction and compatibility in values and temperament. It suggests conversations that help you understand how each of you handles disagreements and how you can build a life together."
+    }
+  },
+  {
+    "slug": "from-darkness-to-light",
+    "cover": "/covers/upcoming/from-darkness-to-light.webp?v=72def8b2cce1",
+    "ar": {
+      "title": "من الظلمات إلى النور",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف يبدأ الشاب من جديد بعد فترة من الضياع؟ يتتبّع الكتاب رحلة العودة إلى الدين والاستقامة، ثم بناء النفس والعادات، والانتقال إلى العمل وإدارة المال وبناء مشروع. ويتناول في بابه الأخير كيف يمكن أن ينفع الشاب غيره بما تعلّمه وبناه."
+    },
+    "en": {
+      "title": "From Darkness to Light",
+      "badge": "Book · Coming soon",
+      "description": "How can a young person start again after losing direction? This book traces a return to faith and upright conduct, then moves through personal growth and daily habits to work, managing money, and building a business. Its final section explores how to use what you have learned and built to help others."
+    }
+  },
+  {
+    "slug": "letters-to-yasmine",
+    "cover": "/covers/upcoming/letters-to-yasmine.webp?v=804039bc048c",
+    "ar": {
+      "title": "رسائل الياسمين",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "في رسائل وجدانية مستقلة، يستعيد شاب ذكريات البراءة وبدايات تعلّقه بياسمين. وتتغيّر نبرة الرسائل مع الوقت، من الشوق والانتظار إلى الفراق، ثم محاولة التصالح مع ما بقي في الذاكرة."
+    },
+    "en": {
+      "title": "Letters to Yasmine",
+      "badge": "Book · Coming soon",
+      "description": "In a series of self-contained letters, a young man revisits memories of innocence and the beginnings of his attachment to Yasmine. Their tone moves from longing and waiting to parting and an attempt to come to terms with what remains in memory."
+    }
+  },
+  {
+    "slug": "uthman-ibn-affan-theory",
+    "cover": "/covers/upcoming/uthman-ibn-affan-theory.webp?v=e835c8aa1d0e",
+    "ar": {
+      "title": "نظرية عثمان بن عفان",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "يقدّم الكتاب قراءة اقتصادية معاصرة لمقولة منسوبة إلى عثمان بن عفان. ومن خلالها يناقش تنمية رأس المال وتقدير الأرباح الصغيرة وإعادة توظيف العائد، وكيف يمكن أن يمتد أثر المشروع إلى من حوله."
+    },
+    "en": {
+      "title": "The Uthman ibn Affan Theory",
+      "badge": "Book · Coming soon",
+      "description": "This book offers a contemporary economic reading of a saying attributed to Uthman ibn Affan. It explores growing capital, valuing modest profits, and putting returns back to work, then considers how a business can benefit people beyond its owners."
+    }
   }
 ]
