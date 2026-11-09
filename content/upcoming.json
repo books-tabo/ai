@@ -164,5 +164,19 @@
       "badge": "Written course · Coming soon",
       "description": "How often have you had something to say and held back? In this course, you’ll practice speaking up, asking for what you need, and handling rejection. You’ll keep a record of your attempts so you can see how your responses change in situations you used to avoid."
     }
+  },
+  {
+    "slug": "startup",
+    "cover": "/covers/upcoming/startup.webp?v=6581af659d2f",
+    "ar": {
+      "title": "ستارت أب",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "هل سيدفع أحد مقابل فكرتك؟ تتدرّب في هذا الكورس على تحديد مشكلة يواجهها العملاء، واختبار الطلب، وتجربة أول عرض بيع. وتستخدم ردود العملاء المحتملين لتقرّر هل تواصل العمل على الفكرة أم تعدّلها."
+    },
+    "en": {
+      "title": "Startup",
+      "badge": "Written course · Coming soon",
+      "description": "Would anyone pay for your idea? In this course, you’ll practice identifying a problem customers face, testing demand, and trying out your first sales offer. You’ll use feedback from potential customers to decide whether to keep working on the idea or revise it."
+    }
   }
 ]
