@@ -192,5 +192,19 @@
       "badge": "Written course · Coming soon",
       "description": "How often have you made a decision out of habit and later wished you’d given it more thought? In this course, you’ll practice noticing the thoughts that come before your decisions and questioning your assumptions. Then you’ll try different ways to deal with distraction, procrastination, and fear of failure."
     }
+  },
+  {
+    "slug": "learn-a-new-skill",
+    "cover": "/covers/upcoming/learn-a-new-skill.webp?v=80a373ce0a1d",
+    "ar": {
+      "title": "تعلّم مهارة جديدة",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "كيف تحوّل ما تتعلّمه إلى عمل يمكنك عرضه؟ تتدرّب في هذا الكورس على اختيار مهارة تناسب هدفك، وتعلّم أساسياتها بالممارسة، وتنفيذ مشروع صغير تعرضه كنموذج من أعمالك عند التقدّم لفرصة عمل أو مشروع مستقل."
+    },
+    "en": {
+      "title": "Learn a New Skill",
+      "badge": "Written course · Coming soon",
+      "description": "How do you turn what you learn into work you can show? In this course, you’ll choose a skill that fits your goal, learn the basics through practice, and complete a small project you can present as a work sample when applying for a job or a freelance project."
+    }
   }
 ]
