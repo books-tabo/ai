@@ -10,5 +10,19 @@
       "title": "Ten Languages of Love",
       "description": "A look or a small act at the right moment can say “I love you.” This book explores ten ways to express love, from listening and everyday gestures to intimacy, to help you understand how you share your feelings and how the person you love receives them."
     }
+  },
+  {
+    "slug": "failaka",
+    "cover": "/covers/upcoming/failaka.webp?v=632b35d38d8b",
+    "ar": {
+      "title": "فيلكا",
+      "badge": "رواية رعب · يتوفر قريبًا",
+      "description": "يصل ستة أشخاص إلى جزيرة فيلكا في رحلة تخييم. في اليوم الثاني، يختفي أحدهم. وحين يخرج الباقون للبحث عنه، يدركون أن شيئًا ما في الجزيرة يتعقّبهم."
+    },
+    "en": {
+      "title": "Failaka",
+      "badge": "Horror novel · Coming soon",
+      "description": "Six people arrive on Failaka Island for a camping trip. On the second day, one of them disappears. As the others search for him, they realize that something on the island is tracking them."
+    }
   }
 ]

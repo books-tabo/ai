@@ -84,11 +84,13 @@ def upcoming_cards():
     cards = []
     for item in UPCOMING:
         ar, en = item['ar'], item['en']
+        ar_badge = ar.get('badge', 'يتوفر قريبًا')
+        en_badge = en.get('badge', 'Coming soon')
         cards.append(f'''
         <article class="upcoming-card" id="{escape(item['slug'])}">
             <img src="{escape(item['cover'])}" alt="" width="720" height="1080" loading="lazy" decoding="async">
             <div>
-                <span class="upcoming-badge"><span lang="ar">يتوفر قريبًا</span><span lang="en">Coming soon</span></span>
+                <span class="upcoming-badge"><span lang="ar">{escape(ar_badge)}</span><span lang="en">{escape(en_badge)}</span></span>
                 <h3><span lang="ar">{escape(ar['title'])}</span><span lang="en">{escape(en['title'])}</span></h3>
                 <p><span lang="ar">{escape(ar['description'])}</span><span lang="en">{escape(en['description'])}</span></p>
             </div>
