@@ -122,5 +122,19 @@
       "badge": "Written course · Coming soon",
       "description": "How do you make your own decisions when what you want clashes with what others expect? This course covers setting boundaries, negotiating for what matters to you at work and in relationships, and managing your time and money around your priorities."
     }
+  },
+  {
+    "slug": "dalil-laylat-al-zifaf-lilrijal",
+    "cover": "/covers/upcoming/dalil-laylat-al-zifaf-lilrijal.webp?v=9b79f507c7c0",
+    "ar": {
+      "title": "دليل ليلة الزفاف للرجال خطوة بخطوة",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "دليل عملي للرجل المقبل على الزواج، من الاستعداد للزفاف إلى الأيام الثلاثة الأولى من الزواج. يتناول التعامل مع التوتر، والحديث مع شريكتك عمّا يريح كلًّا منكما، والتدرّج في الحميمية وفق ما تتفقان عليه."
+    },
+    "en": {
+      "title": "A Step-by-Step Wedding Night Guide for Men",
+      "badge": "Written course · Coming soon",
+      "description": "A practical guide for men preparing for marriage, from getting ready for the wedding to the first three days of married life. It covers managing nerves, talking with your partner about what feels comfortable for both of you, and easing into intimacy at a pace you agree on together."
+    }
   }
 ]
