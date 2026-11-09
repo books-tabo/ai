@@ -206,5 +206,19 @@
       "badge": "Written course · Coming soon",
       "description": "How do you turn what you learn into work you can show? In this course, you’ll choose a skill that fits your goal, learn the basics through practice, and complete a small project you can present as a work sample when applying for a job or a freelance project."
     }
+  },
+  {
+    "slug": "comfort-zone-expansion",
+    "cover": "/covers/upcoming/comfort-zone-expansion.webp?v=d712ca594951",
+    "ar": {
+      "title": "الهروب من منطقة الراحة",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "ما الخطوة التي تؤجّلها لأنها غير مألوفة؟ تتدرّب في هذا الكورس على توسيع منطقة راحتك بتحدّيات متدرّجة، من تسجيل مقطع فيديو قصير وبدء محادثة مع شخص في مجالك، إلى عرض خدمة على عميل محتمل."
+    },
+    "en": {
+      "title": "Comfort Zone Expansion",
+      "badge": "Written course · Coming soon",
+      "description": "What step are you putting off because it feels unfamiliar? In this course, you’ll practice expanding your comfort zone through gradual challenges, from recording a short video and starting a conversation with someone in your field to pitching a service to a potential client."
+    }
   }
 ]
