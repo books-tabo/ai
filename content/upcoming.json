@@ -234,5 +234,19 @@
       "badge": "Book · Coming soon",
       "description": "How can a habit you repeat every day begin to hold you back? The book examines distraction, excuses, fear, lack of discipline, and arrogance. It devotes three chapters to each door, showing how it appears in your daily decisions and offering practical steps to close it."
     }
+  },
+  {
+    "slug": "five-doors-of-success",
+    "cover": "/covers/upcoming/five-doors-of-success.webp?v=835ce02b40ec",
+    "ar": {
+      "title": "أبواب النجاح الخمسة — افتحها الآن",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف تحوّل هدفًا واضحًا إلى خطوات تلتزم بها؟ يتناول الكتاب الرؤية والمعرفة والانضباط والشجاعة والقيادة. ويخصّص لكل باب ثلاثة فصول تربط فكرته بخطوات يومية، من اختيار ما تحتاج إلى تعلّمه إلى اتخاذ قرار وتحمّل مسؤوليته."
+    },
+    "en": {
+      "title": "The Five Doors of Success — Open Them Now",
+      "badge": "Book · Coming soon",
+      "description": "How do you turn a clear goal into steps you can stick to? The book explores vision, knowledge, discipline, courage, and leadership. Each door gets three chapters that connect its theme to everyday actions, from deciding what you need to learn to making a decision and taking responsibility for it."
+    }
   }
 ]
