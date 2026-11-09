@@ -38,5 +38,19 @@
       "badge": "Book · Coming soon",
       "description": "What changes in your relationship when you dare to say what you like? This book explores body confidence, self-care, and expressing your desires and boundaries. It looks at how open conversation and mutual care deepen intimacy in marriage."
     }
+  },
+  {
+    "slug": "sayter",
+    "cover": "/covers/upcoming/sayter.webp?v=5bcafcd7d9b2",
+    "ar": {
+      "title": "سيطر",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "متى تمنح مبادرة الرجل شريكته إحساسًا بالأمان، ومتى تتحوّل إلى ضغط؟ يستكشف الكتاب سيكولوجيا القيادة في العلاقة، من إدارة المال والخلافات إلى الحميمية. ويناقش كيف يتفق الشريكان على مساحة المبادرة واتخاذ القرار مع احترام رغباتهما وحدودهما."
+    },
+    "en": {
+      "title": "Take the Lead",
+      "badge": "Book · Coming soon",
+      "description": "When does a man’s initiative help his partner feel secure, and when does it become pressure? This book explores the psychology of leadership in relationships, from managing money and disagreements to intimacy. It examines how partners can agree on who takes initiative and how they make decisions while respecting each other’s desires and boundaries."
+    }
   }
 ]
