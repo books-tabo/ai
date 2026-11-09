@@ -1,0 +1,23 @@
+{
+  "batch": "tabo-editorial-20261102-03",
+  "keyword_research": "Qualitative editorial mapping; no search-volume or indexing claims. Partial reviewed batch: four independent book8 angles. Technical claims checked against Google Android/Account Help and FTC primary guidance on 2026-11-02. Other planned titles are deferred pending their own source review. Exercises are original, not quotations from books.",
+  "partial_reviewed_batch": true,
+  "articles": [
+    {
+      "slug": "digital-attention-audit",
+      "description": "راجع استخدام الهاتف عبر الغرض والمدة والإشعارات، ثم اختبر تعديلًا محددًا يناسب مسؤولياتك دون تحويل وقت الشاشة إلى تشخيص أو حكم على نفسك."
+    },
+    {
+      "slug": "buying-for-public-image",
+      "description": "افصل منفعة المنتج عن الصورة التي تتوقع أن يصنعها أمام الناس، وافحص البديل وسبب الشراء وضغط الرسالة قبل الالتزام دون وعود مالية."
+    },
+    {
+      "slug": "tool-versus-dependence",
+      "description": "افحص دور الأداة الرقمية في مهمتك وصلاحياتها وحدود مراجعتك لمخرجاتها، وجهز طريقًا بديلًا ببيانات مناسبة دون التخلي عن مسؤولية القرار."
+    },
+    {
+      "slug": "online-approval-and-choice",
+      "description": "راجع هدف منشورك وصدق الوقائع وحدود مشاركة المعلومات، وافصل تحسين الصياغة عن المبالغة واجعل الردود فرصة للفهم بدل قياس القيمة الشخصية."
+    }
+  ]
+}

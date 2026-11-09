@@ -1,0 +1,54 @@
+{
+  "batch": "tabo-editorial-20261109-04",
+  "keyword_research": "Qualitative intent matching against existing articles. Original hypothetical scenarios; no book excerpts, customer claims, search volumes or clinical claims. Primary sources: CFPB original education activity, NCI implementation-intention material, Kasser and Ryan original data, Edinburgh Reflection Toolkit, Acas research and CCI materials.",
+  "articles": [
+    {
+      "slug": "need-want-and-status",
+      "description": "افحص قرارًا واحدًا عبر ثلاثة أسئلة عن الحاجة والرغبة والمكانة. تمرين عملي لاختيار الدور أو الالتزام الذي يناسب غرضك ووقتك."
+    },
+    {
+      "slug": "attention-without-self-judgment",
+      "description": "افهم الحاجة إلى الاهتمام عبر مراجعة موقف واحد، وتحديد نوع الاستجابة التي تريده، وطلبها بوضوح مع احترام وقت الطرف الآخر."
+    },
+    {
+      "slug": "success-for-approval",
+      "description": "راجع هدفًا مهنيًا أو شخصيًا يهمك عبر فصل مقياس الإنجاز عن رد فعل الجمهور، وتحديد عمل يبقى ذا قيمة إذا تأخر التقدير."
+    },
+    {
+      "slug": "pause-between-urge-and-choice",
+      "description": "صمّم وقفة قصيرة بين ظهور رغبة واتخاذ قرار، وحدد إشارة قابلة للملاحظة وخطوة للمراجعة تناسب الالتزامات اليومية."
+    },
+    {
+      "slug": "circle-of-influence-in-daily-life",
+      "description": "ارسم خريطة لموقف عملي يميز ما تقرره وما تستطيع التأثير فيه وما يحتاج إلى قرار جهة أخرى، ثم اختر خطوة ومسؤولًا وموعد مراجعة."
+    },
+    {
+      "slug": "balanced-growth-with-real-limits",
+      "description": "ضع خطة تطوير تراعي الطاقة والوقت والواجبات. اختر حدًا أدنى قابلًا للاستمرار، وحدًا أقصى يمنع مزاحمة الالتزامات الأساسية."
+    },
+    {
+      "slug": "personal-mission-in-ordinary-days",
+      "description": "حوّل رسالة شخصية عامة إلى معيار قرار يمكن تجربته في أسبوع عادي. تمرين لصياغة رسالة ترتبط بمستفيد وفعل وحدود واقعية."
+    },
+    {
+      "slug": "progress-without-superiority",
+      "description": "قِس تقدمك في مهمة قابلة للمراجعة، وخذ من أمثلة الآخرين ما يناسب ظروفك، واستخدم التغذية الراجعة لتطوير مهارتك باحترام."
+    },
+    {
+      "slug": "confront-or-step-away",
+      "description": "حدد غرض الحوار وظروفه، واختر بين نقاش محدود أو تأجيل أو طلب مسار مناسب عند الخلاف المتكرر أو الموقف غير الآمن."
+    },
+    {
+      "slug": "waiting-for-an-apology",
+      "description": "حدّد ما تحتاجه بعد خلاف بقي بلا اعتذار، وافصل طلب إصلاح الضرر عن الخطوات اليومية التي تستطيع اتخاذها في حدود دورك."
+    },
+    {
+      "slug": "revenge-and-continuing-conflict",
+      "description": "افحص ما يكلفه استمرار الخلاف من وقت وعمل وعلاقات، وحدد أثرًا ملموسًا تريد إصلاحه وخطوة يمكن مراجعة نتيجتها."
+    },
+    {
+      "slug": "boundaries-after-repeated-harm",
+      "description": "صِغ حدًا يرتبط بسلوك محدد وبفعل يقع تحت سيطرتك، وحدد قناة دعم أو تصعيد عندما يتكرر الأذى أو يغيب الأمان."
+    }
+  ]
+}
