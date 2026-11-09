@@ -220,5 +220,19 @@
       "badge": "Written course · Coming soon",
       "description": "What step are you putting off because it feels unfamiliar? In this course, you’ll practice expanding your comfort zone through gradual challenges, from recording a short video and starting a conversation with someone in your field to pitching a service to a potential client."
     }
+  },
+  {
+    "slug": "five-doors-of-failure",
+    "cover": "/covers/upcoming/five-doors-of-failure.webp?v=3ee0016a1416",
+    "ar": {
+      "title": "أبواب الفشل الخمسة — أغلقها الآن",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف يبدأ التعثّر بعادة تكرّرها كل يوم؟ يتناول الكتاب التشتّت والأعذار والخوف وغياب الانضباط والغرور. ويخصّص لكل باب ثلاثة فصول توضّح كيف يظهر في قراراتك اليومية، وتقدّم خطوات عملية لإغلاقه."
+    },
+    "en": {
+      "title": "The Five Doors of Failure — Close Them Now",
+      "badge": "Book · Coming soon",
+      "description": "How can a habit you repeat every day begin to hold you back? The book examines distraction, excuses, fear, lack of discipline, and arrogance. It devotes three chapters to each door, showing how it appears in your daily decisions and offering practical steps to close it."
+    }
   }
 ]
