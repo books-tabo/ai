@@ -178,5 +178,19 @@
       "badge": "Written course · Coming soon",
       "description": "Would anyone pay for your idea? In this course, you’ll practice identifying a problem customers face, testing demand, and trying out your first sales offer. You’ll use feedback from potential customers to decide whether to keep working on the idea or revise it."
     }
+  },
+  {
+    "slug": "building-a-new-mindset",
+    "cover": "/covers/upcoming/building-a-new-mindset.webp?v=e8523e9540bc",
+    "ar": {
+      "title": "بناء عقلية جديدة",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "كم مرة اتخذت قرارًا بدافع العادة ثم تمنّيت لو فكّرت فيه قليلًا؟ تتدرّب في هذا الكورس على ملاحظة الأفكار التي تسبق قراراتك ومراجعة افتراضاتك. ثم تجرّب طرقًا مختلفة للتعامل مع التشتّت والتأجيل والخوف من الفشل."
+    },
+    "en": {
+      "title": "Building a New Mindset",
+      "badge": "Written course · Coming soon",
+      "description": "How often have you made a decision out of habit and later wished you’d given it more thought? In this course, you’ll practice noticing the thoughts that come before your decisions and questioning your assumptions. Then you’ll try different ways to deal with distraction, procrastination, and fear of failure."
+    }
   }
 ]
