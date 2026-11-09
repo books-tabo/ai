@@ -150,5 +150,19 @@
       "badge": "Written course · Coming soon",
       "description": "A practical guide for women preparing for marriage, from getting ready for the wedding through the first three days of married life. It covers how your body responds to stress, how to talk with your partner about what helps you feel at ease, and how to say when you want to slow down or stop."
     }
+  },
+  {
+    "slug": "self-confidence",
+    "cover": "/covers/upcoming/self-confidence.webp?v=ee51aafd4bc7",
+    "ar": {
+      "title": "الثقة بالنفس",
+      "badge": "كورس مكتوب · يتوفر قريبًا",
+      "description": "كم مرة كان لديك ما تقوله فتردّدت؟ تتدرّب في هذا الكورس على إبداء رأيك، وطلب ما تحتاج إليه، والتعامل مع الرفض. وتدوّن محاولاتك لتلاحظ كيف يتغيّر تصرّفك في المواقف التي كنت تتجنّبها."
+    },
+    "en": {
+      "title": "Self-Confidence",
+      "badge": "Written course · Coming soon",
+      "description": "How often have you had something to say and held back? In this course, you’ll practice speaking up, asking for what you need, and handling rejection. You’ll keep a record of your attempts so you can see how your responses change in situations you used to avoid."
+    }
   }
 ]
