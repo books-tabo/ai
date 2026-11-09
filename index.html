@@ -3700,8 +3700,13 @@ document.addEventListener(
             const button=event.target.closest("[data-add-offer]");
             if(button)addCuratedOffer(button.dataset.addOffer);
         });
-        loadStoreConfig();
-        loadBookStats();
+        const storeReady=Promise.allSettled([loadStoreConfig(),loadBookStats()]);
+        if(location.hash==="#coming-soon"){
+            // Pricing and ratings rebuild the catalog above the initial fragment.
+            storeReady.then(()=>{
+                if(location.hash==="#coming-soon") document.getElementById("coming-soon").scrollIntoView({behavior:"instant"});
+            });
+        }
         openCartFromQuery();
 
     }
