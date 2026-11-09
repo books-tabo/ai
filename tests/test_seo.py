@@ -66,6 +66,27 @@ class PublicHTMLTests(HTTPCase):
         self.assertIn('google-site-verification',source)
         self.assertIn('facebook-domain-verification',source)
 
+    def test_coming_soon_has_its_own_page_and_categories_links(self):
+        status, _, home = self.get('/')
+        self.assertEqual(status, 200)
+        self.assertIn('/coming-soon', Page(home).anchors)
+        self.assertNotIn('class="upcoming-card"', home)
+
+        status, _, categories = self.get('/categories')
+        self.assertEqual(status, 200)
+        self.assertIn('/coming-soon', Page(categories).anchors)
+
+        status, _, source = self.get('/coming-soon')
+        self.assertEqual(status, 200)
+        page = Page(source)
+        self.assertEqual(page.h1, 'قريبًا')
+        self.assertIn('/categories', page.anchors)
+        self.assertEqual(re.findall(r'<article class="upcoming-card" id="([^"]+)">', source),
+                         [item['slug'] for item in seo.UPCOMING])
+        for item in seo.UPCOMING:
+            self.assertIn(item['cover'], source)
+            self.assertIn(seo.escape(item['ar']['description']), source)
+
     def test_canonical_alias_and_invalid_ids_never_fall_back_to_another_book(self):
         status, _, source = self.get('/book.html?id=book19&utm_campaign=existing&fbclid=test')
         self.assertEqual(status,200)

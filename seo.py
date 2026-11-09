@@ -14,6 +14,10 @@ ROOT = Path(__file__).resolve().parent
 ORIGIN = 'https://tabobooks.com'
 BOOKS = json.loads((ROOT / 'content/books.json').read_text())
 UPCOMING = json.loads((ROOT / 'content/upcoming.json').read_text(encoding='utf-8'))
+UPCOMING_PAGE = {
+    'ar': ('قريبًا', 'تصفّح أغلفة الإصدارات القادمة واقرأ نبذة عن كل إصدار.'),
+    'en': ('Coming soon', 'Explore the upcoming releases and read a short introduction to each one.'),
+}
 PAGES = json.loads((ROOT / 'content/pages.json').read_text())
 CATEGORIES = json.loads((ROOT / 'content/categories.json').read_text())
 ARTICLES = json.loads((ROOT / 'content/articles.json').read_text())
@@ -80,22 +84,21 @@ def book_list(ids, language):
     return '<div class="seo-book-grid">' + ''.join(book_card(key, language) for key in ids if key in catalog.BOOKS) + '</div>'
 
 
-def upcoming_cards():
+def upcoming_cards(language):
     cards = []
+    default_badge = 'يتوفر قريبًا' if language == 'ar' else 'Coming soon'
     for item in UPCOMING:
-        ar, en = item['ar'], item['en']
-        ar_badge = ar.get('badge', 'يتوفر قريبًا')
-        en_badge = en.get('badge', 'Coming soon')
+        copy = item[language]
         cards.append(f'''
         <article class="upcoming-card" id="{escape(item['slug'])}">
             <img src="{escape(item['cover'])}" alt="" width="720" height="1080" loading="lazy" decoding="async">
             <div>
-                <span class="upcoming-badge"><span lang="ar">{escape(ar_badge)}</span><span lang="en">{escape(en_badge)}</span></span>
-                <h3><span lang="ar">{escape(ar['title'])}</span><span lang="en">{escape(en['title'])}</span></h3>
-                <p><span lang="ar">{escape(ar['description'])}</span><span lang="en">{escape(en['description'])}</span></p>
+                <span class="upcoming-badge">{escape(copy.get('badge', default_badge))}</span>
+                <h2>{escape(copy['title'])}</h2>
+                <p>{escape(copy['description'])}</p>
             </div>
         </article>''')
-    return ''.join(cards)
+    return '<div class="upcoming-cards">' + ''.join(cards) + '</div>'
 
 
 def crumbs(items, language):
@@ -194,7 +197,7 @@ def listed_articles(include_drafts=False):
 
 def public_paths():
     paths = ['/'] + ['/books/' + book_id for book_id in catalog.BOOKS]
-    paths += ['/' + key for key in PAGES] + ['/categories', '/authors/tabo-noor']
+    paths += ['/' + key for key in PAGES] + ['/categories', '/coming-soon', '/authors/tabo-noor']
     paths += ['/offers'] + ['/offers/' + key for key in catalog.current_offers()]
     paths += ['/categories/' + key for key, cat in CATEGORIES.items() if cat['books']]
     articles = listed_articles()
@@ -286,6 +289,12 @@ def page_data(path, include_drafts=False):
             description = 'تصفح أقسام كتب تابو نور حسب موضوعها: تطوير الذات، علم النفس، المال والأعمال، الثروة، ريادة الأعمال والعلاقات الزوجية والأسرية.' if ar else 'Browse TABO NOOR books by subject: personal growth, psychology, money and business, wealth, entrepreneurship, and marriage and family relationships.'
             trail += [(None, title)]
             body = ''.join('<section class="seo-section"><h2>' + link('/categories/' + key, cat[language]) + '</h2>' + paragraphs(cat['description'][language]) + '</section>' for key, cat in CATEGORIES.items() if cat['books'])
+            upcoming_title, upcoming_description = UPCOMING_PAGE[language]
+            body += '<section class="seo-section"><h2>' + link('/coming-soon', upcoming_title) + '</h2>' + paragraphs(upcoming_description) + '</section>'
+        elif path == '/coming-soon':
+            title, description = UPCOMING_PAGE[language]
+            trail += [('/categories', 'أقسام الكتب' if ar else 'Book categories'), (None, title)]
+            body = paragraphs(description) + upcoming_cards(language)
         elif path.startswith('/categories/') and path.rsplit('/', 1)[-1] in CATEGORIES:
             cat = CATEGORIES[path.rsplit('/', 1)[-1]]
             if not cat['books']:
@@ -376,7 +385,6 @@ def render(source, path, host, filename, *, blog_enabled=False):
         grid = re.compile(r'(<div\s+class="books-grid"\s+id="booksGrid"\s*>)[\s\S]*?</div>')
         cards = ''.join(book_card(key, home=True, position=i) for i, key in enumerate(current_books()))
         source = grid.sub(lambda m: m[1] + cards + '</div>', source, count=1)
-        source = source.replace('<!-- UPCOMING_CARDS -->', upcoming_cards(), 1)
         source = source.replace('<section class="book-panorama"', offers_section(home=True)+'<section class="book-panorama"',1)
         source = source.replace('<section class="book-panorama"', '<div id="seo-body" class="seo-home-nav">' + ar['body'] + '</div><section class="book-panorama"', 1)
     elif filename == 'book.html':
