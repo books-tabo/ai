@@ -6,7 +6,7 @@ import re
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request
 from xml.etree import ElementTree
 
@@ -52,10 +52,22 @@ class PublicHTMLTests(HTTPCase):
             originals.assert_not_called();stats.assert_not_called()
 
     def test_home_and_every_book_are_linked_without_javascript(self):
+        books = list(seo.current_books())
+        for start in range(0, len(books), 6):
+            number = start // 6 + 1
+            route = '/' if number == 1 else f'/?page={number}'
+            status, _, source = self.get(route)
+            self.assertEqual(status, 200)
+            page = Page(source)
+            self.assertEqual(re.findall(r'class="book-cover-link" href="/books/(book\d+)"', source), books[start:start + 6])
+            self.assertIn(f'aria-current="page">{number}</a>', source)
+            self.assertEqual([link['href'] for link in page.links if link.get('rel') == 'canonical'], [seo.ORIGIN + route])
+            self.assertIn('/offers', page.anchors)
+            self.assertNotIn('id="curatedOffers"', source)
         status, _, source = self.get('/')
-        self.assertEqual(status,200)
         page = Page(source)
-        self.assertTrue(all('/books/'+key in page.anchors for key in catalog.BOOKS))
+        self.assertIn('/?page=2#booksSection', page.anchors)
+        self.assertIn('id="curatedOffers"', self.get('/offers')[2])
         for key, category in seo.CATEGORIES.items():
             self.assertIn('/categories/'+key,page.anchors)
             status, _, body = self.get('/categories/'+key)
@@ -65,6 +77,24 @@ class PublicHTMLTests(HTTPCase):
             self.assertTrue(parsed.h1)
         self.assertIn('google-site-verification',source)
         self.assertIn('facebook-domain-verification',source)
+
+    def test_home_page_links_preserve_filters_and_attribution(self):
+        route = '/?category=self-development&page=2&utm_source=facebook&fbclid=synthetic&offer=change-starter&cart=1'
+        status, _, source = self.get(route)
+        self.assertEqual(status, 200)
+        books = [key for key in seo.current_books() if key in seo.CATEGORIES['self-development']['books']]
+        self.assertEqual(re.findall(r'class="book-cover-link" href="/books/(book\d+)"', source), books[6:12])
+        pages = [urlsplit(href) for href in Page(source).anchors if href.endswith('#booksSection')]
+        self.assertEqual(len(pages), 2)
+        for page in pages:
+            query = parse_qs(page.query)
+            self.assertEqual(query['category'], ['self-development'])
+            self.assertEqual(query['utm_source'], ['facebook'])
+            self.assertEqual(query['fbclid'], ['synthetic'])
+            self.assertNotIn('offer', query)
+            self.assertNotIn('cart', query)
+        self.assertIn('aria-current="page">2</a>', source)
+        self.assertIn('aria-current="page">1</a>', self.get('/?page=invalid')[2])
 
     def test_coming_soon_has_its_own_page_and_categories_links(self):
         status, _, home = self.get('/')

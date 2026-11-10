@@ -132,7 +132,11 @@ class OfferPageTests(HTTPCase):
         offer_paths = {path for path in seo.public_paths() if path == '/offers' or path.startswith('/offers/')}
         self.assertEqual(offer_paths, {'/offers'} | {'/offers/' + slug for slug in catalog.OFFERS})
         home=self.get('/')[2]
-        self.assertIn('data-add-offer="change-starter"',home)
+        self.assertIn('href="/offers"',home)
+        self.assertNotIn('id="curatedOffers"',home)
+        listing=self.get('/offers')[2]
+        for slug in catalog.OFFERS:
+            self.assertIn('data-offer-id="'+slug+'"',listing)
         self.assertIn('height:auto',home)
         self.assertIn('id="cartOfferSummary"',self.get('/checkout')[2])
 

@@ -699,7 +699,9 @@ class Handler(BaseHTTPRequestHandler):
                 version=hashlib.sha256((ROOT/asset).read_bytes()).hexdigest()[:12]
                 source=source.replace('src="/'+asset+'"','src="/'+asset+'?v='+version+'"')
         if filename in ('index.html','book.html','info.html','offers.html'):
-            source=seo.render(source,public_path or urlparse(self.path).path,self.headers.get('Host',''),filename,blog_enabled=autoseo.enabled())
+            request_url=urlparse(self.path)
+            source=seo.render(source,public_path or request_url.path,self.headers.get('Host',''),filename,
+                              blog_enabled=autoseo.enabled(),query=request_url.query)
             if source is None:
                 return self.respond(404,{'ok':False,'error':'Not found'})
         if filename in ('index.html','book.html','info.html','offers.html') and autoseo.enabled():

@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
-from urllib.parse import quote
+from urllib.parse import parse_qs, quote, urlencode
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 import catalog
@@ -69,11 +69,11 @@ def categories_for(book_id):
     return sorted(matches, key=lambda item: item[0] != current_books()[book_id].get('primaryCategory'))
 
 
-def book_card(book_id, language='ar', home=False, position=0):
+def book_card(book_id, language='ar', home=False, position=0, *, eager=False):
     book = current_books()[book_id]
     name = book_name(book, language)
     image = book['image']
-    loading = 'eager' if position < 2 else 'lazy'
+    loading = 'eager' if eager or position < 2 else 'lazy'
     if home:
         preview = ('<a class="book-sample-link" href="/previews/' + book_id + '" target="_blank" rel="noopener">اقرأ عينة مجانية</a>') if catalog.preview_enabled(book_id) else ''
         return f'''<div class="book-card"><a class="book-cover-link" href="/books/{book_id}"><img class="book-image" src="{image}" alt="{escape(name)}" width="{book['imageWidth']}" height="{book['imageHeight']}" loading="{loading}" decoding="async"><span class="pdf-badge">PDF</span></a><div class="book-content"><div class="book-title"><span>{escape(name)}</span><span class="title-pdf">PDF</span></div><div class="book-description">{escape(book['short'])}</div><a class="read-more-btn" href="/books/{book_id}">اقرأ المزيد</a><div class="book-bottom">{preview}<div class="book-price">السعر بحسب الدولة</div><div class="book-format">نسخة PDF</div><button class="add-cart-btn" id="addBtn-{position}" data-book-id="{book_id}">أضف للسلة</button></div></div></div>'''
@@ -245,7 +245,7 @@ def graph(path, title, description, image, trail, book_id=None):
     return {'@context': 'https://schema.org', '@graph': nodes}
 
 
-def page_data(path, include_drafts=False):
+def page_data(path, include_drafts=False, *, canonical_path=None):
     """Return both UI languages. URL identity and actual Arabic edition stay fixed."""
     book_id = path.removeprefix('/books/') if path.startswith('/books/') else None
     if book_id not in catalog.BOOKS:
@@ -337,9 +337,10 @@ def page_data(path, include_drafts=False):
             title += ' | TABO BOOKS'
         result[language] = {'title': title, 'description': description, 'image': ORIGIN + image, 'body': body,
                             'extra': extra, 'trail':trail, 'breadcrumb': crumbs(trail, language), 'heading': (book_name(current_books()[book_id], language) if book_id else title.removesuffix(' | TABO BOOKS'))}
-    result['graph'] = graph(path, result['ar']['title'], result['ar']['description'], result['ar']['image'].removeprefix(ORIGIN),
+    canonical_path = canonical_path or path
+    result['graph'] = graph(canonical_path, result['ar']['title'], result['ar']['description'], result['ar']['image'].removeprefix(ORIGIN),
                             result['ar']['trail'], book_id)
-    result['canonical'] = ORIGIN + path
+    result['canonical'] = ORIGIN + canonical_path
     return result
 
 
@@ -348,14 +349,51 @@ def replace_id(source, node_id, content):
     return re.sub(pattern, lambda m: m[1] + content + m[3], source, count=1)
 
 
-def render(source, path, host, filename, *, blog_enabled=False):
-    data = page_data(path, include_drafts=review_mode())
+HOME_PAGE_SIZE = 6
+
+
+def home_catalog_view(books, categories, query):
+    params = parse_qs(query, keep_blank_values=True)
+    requested_category = params.get('category', ['all'])[0]
+    category = next((item for item in categories if item['id'] == requested_category), categories[0])
+    entries = [(index, key) for index, key in enumerate(books)
+               if category['id'] == 'all' or key in category['books']]
+    pages = max(1, (len(entries) + HOME_PAGE_SIZE - 1) // HOME_PAGE_SIZE)
+    raw_page = params.get('page', ['1'])[0]
+    requested_page = int(raw_page) if re.fullmatch(r'[0-9]{1,6}', raw_page) else 1
+    page = min(pages, max(1, requested_page))
+    start = (page - 1) * HOME_PAGE_SIZE
+    view = {'category': category['id'], 'page': page, 'pageSize': HOME_PAGE_SIZE}
+    pagination = []
+    if pages > 1:
+        preserved = [(key, value) for key, values in params.items()
+                     if key not in {'category', 'page', 'cart', 'offer'} for value in values]
+        if category['id'] != 'all':
+            preserved.append(('category', category['id']))
+        for number in range(1, pages + 1):
+            search = urlencode(preserved + ([('page', number)] if number > 1 else []))
+            href = '/' + ('?' + search if search else '') + '#booksSection'
+            current = ' aria-current="page"' if number == page else ''
+            pagination.append(f'<a href="{escape(href)}" aria-label="صفحة {number}"{current}>{number}</a>')
+    return view, entries[start:start + HOME_PAGE_SIZE], ''.join(pagination)
+
+
+def render(source, path, host, filename, *, blog_enabled=False, query=''):
+    canonical_path = None
+    if filename == 'index.html':
+        books = current_books()
+        categories = [{'id':'all','ar':'كل الكتب','en':'All books'}] + [{'id':key,'ar':cat['ar'],'en':cat['en'],'books':cat['books']} for key,cat in CATEGORIES.items()]
+        categories += [{'id':'novels','ar':'روايات','en':'Novels','books':[]},{'id':'articles','ar':'مقالات','en':'Articles','books':[], **({'href':'/blog'} if blog_enabled else {})},{'id':'courses','ar':'الكورسات','en':'Courses','books':[]}]
+        view, entries, pagination = home_catalog_view(books, categories, query)
+        if view['category'] == 'all' and view['page'] > 1:
+            canonical_path = '/?page=' + str(view['page'])
+    data = page_data(path, include_drafts=review_mode(), canonical_path=canonical_path)
     if data is None:
         return None
     ar = data['ar']
     source = re.sub(r'<title>[\s\S]*?</title>', '<title>' + escape(ar['title']) + '</title>', source, count=1)
     source = re.sub(r'<meta\b[^>]*\bname=["\']description["\'][^>]*>', '', source, flags=re.I)
-    head = '<meta name="description" content="' + escape(ar['description']) + '">\n<link rel="canonical" href="' + data['canonical'] + '">\n'
+    head = '<meta name="description" content="' + escape(ar['description']) + '">\n<link rel="canonical" href="' + escape(data['canonical']) + '">\n'
     for key, value in {'og:type': 'book' if path.startswith('/books/') else 'website', 'og:title': ar['title'], 'og:description': ar['description'], 'og:url': data['canonical'], 'og:image': ar['image'], 'og:site_name': 'TABO BOOKS', 'og:locale': 'ar_AR'}.items():
         head += '<meta property="' + key + '" content="' + escape(value) + '">\n'
     head += '<meta name="twitter:card" content="summary_large_image">\n'
@@ -375,17 +413,17 @@ def render(source, path, host, filename, *, blog_enabled=False):
     if filename == 'index.html':
         home_books = [{'id':key,'name':book['name'],'image':book['image'],'imageWidth':book['imageWidth'],'imageHeight':book['imageHeight'],
                        'shortDescription':book['short'],'about':book['about'],'adds':book['adds'],'idea':book['idea'],
-                       **{field:book[field] for field in ('fixedPrices','bundleEligible','previewEnabled') if field in book}} for key,book in current_books().items()]
-        translations = {key:{'name':book['enName'],'shortDescription':book['enShort'],'about':book['enAbout'],'adds':book['enAdds'],'idea':book['enIdea']} for key,book in current_books().items()}
+                       **{field:book[field] for field in ('fixedPrices','bundleEligible','previewEnabled') if field in book}} for key,book in books.items()]
+        translations = {key:{'name':book['enName'],'shortDescription':book['enShort'],'about':book['enAbout'],'adds':book['enAdds'],'idea':book['enIdea']} for key,book in books.items()}
         source = source.replace('const BOOKS = []; /* SSR_HOME_BOOKS */','const BOOKS = ' + safe_json(home_books) + ';')
         source = source.replace('const BOOK_TRANSLATIONS = {}; /* SSR_HOME_TRANSLATIONS */','const BOOK_TRANSLATIONS = ' + safe_json(translations) + ';')
-        categories = [{'id':'all','ar':'كل الكتب','en':'All books'}] + [{'id':key,'ar':cat['ar'],'en':cat['en'],'books':cat['books']} for key,cat in CATEGORIES.items()]
-        categories += [{'id':'novels','ar':'روايات','en':'Novels','books':[]},{'id':'articles','ar':'مقالات','en':'Articles','books':[], **({'href':'/blog'} if blog_enabled else {})},{'id':'courses','ar':'الكورسات','en':'Courses','books':[]}]
         source = source.replace('const BOOK_CATEGORIES = []; /* SSR_CATEGORIES */','const BOOK_CATEGORIES = ' + safe_json(categories) + ';')
+        source = source.replace('const CATALOG_VIEW = {}; /* SSR_CATALOG_VIEW */','const CATALOG_VIEW = ' + safe_json(view) + ';')
         grid = re.compile(r'(<div\s+class="books-grid"\s+id="booksGrid"\s*>)[\s\S]*?</div>')
-        cards = ''.join(book_card(key, home=True, position=i) for i, key in enumerate(current_books()))
+        cards = ''.join(book_card(key, home=True, position=index, eager=offset < 2)
+                        for offset, (index, key) in enumerate(entries))
         source = grid.sub(lambda m: m[1] + cards + '</div>', source, count=1)
-        source = source.replace('<section class="book-panorama"', offers_section(home=True)+'<section class="book-panorama"',1)
+        source = replace_id(source, 'catalogPagination', pagination)
         source = source.replace('<section class="book-panorama"', '<div id="seo-body" class="seo-home-nav">' + ar['body'] + '</div><section class="book-panorama"', 1)
     elif filename == 'book.html':
         book_id = path.rsplit('/', 1)[-1]

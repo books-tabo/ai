@@ -48,7 +48,10 @@ class CatalogEditTests(unittest.TestCase):
    html=seo.render((app.ROOT/'index.html').read_text(),'/','tabobooks.com','index.html')
    self.assertIn('const BOOKS = [{"id":"book24"',html)
    self.assertNotIn('<script>synthetic</script>',html)
-   self.assertIn('&lt;script&gt;synthetic&lt;/script&gt;',html)
+   last_page=(len(catalog.BOOKS)+seo.HOME_PAGE_SIZE-1)//seo.HOME_PAGE_SIZE
+   last_html=seo.render((app.ROOT/'index.html').read_text(),'/','tabobooks.com','index.html',query=f'page={last_page}')
+   self.assertNotIn('<script>synthetic</script>',last_html)
+   self.assertIn('&lt;script&gt;synthetic&lt;/script&gt;',last_html)
   self.assertEqual(seo.current_books()['book1']['name'],seo.BOOKS['book1']['name'])
  def test_thread_snapshots_do_not_leak_drafts_between_requests(self):
   def work(n):

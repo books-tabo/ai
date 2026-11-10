@@ -444,6 +444,7 @@ header p{
 .books-section{
 
     max-width:1300px;
+    scroll-margin-top:62px;
 
     margin:auto;
 
@@ -463,6 +464,48 @@ header p{
 
     gap:25px;
 
+}
+
+.catalog-pagination{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+    margin-top:24px;
+}
+
+.catalog-pagination:empty{
+    display:none;
+}
+
+.catalog-pagination a{
+    display:grid;
+    place-items:center;
+    min-width:44px;
+    min-height:44px;
+    padding-inline:10px;
+    border:1px solid var(--store-border);
+    border-radius:9px;
+    background:var(--store-panel);
+    color:var(--store-text);
+    font-weight:700;
+    text-decoration:none;
+}
+
+.catalog-pagination a:hover,
+.catalog-pagination a:focus-visible{
+    border-color:var(--store-accent);
+}
+
+.catalog-pagination a:focus-visible{
+    outline:2px solid var(--store-accent);
+    outline-offset:3px;
+}
+
+.catalog-pagination a[aria-current="page"]{
+    border-color:var(--store-accent);
+    background:var(--store-accent);
+    color:#111;
 }
 
 .book-card{
@@ -1994,6 +2037,8 @@ html[lang="en"] #heroDescription{white-space:pre-line}
         id="booksGrid"
     ></div>
 
+    <nav class="catalog-pagination" id="catalogPagination" aria-label="صفحات الكتب"></nav>
+
 </section>
 
 <!-- =========================================================
@@ -2700,7 +2745,7 @@ const UI_COPY = {
         checkout:"متابعة الدفع",
         preview:"الطلبات غير متاحة حاليًا؛ هذه نسخة معاينة للمتجر.",
         currencyPending:"الدفع بهذه العملة غير متاح حاليًا.",
-        aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد",
+        aboutBook:"عن الكتاب", adds:"ماذا يضيف لك؟", readMore:"اقرأ المزيد", catalogPages:"صفحات الكتب", pageLabel:"صفحة",
         pdfCopy:"نسخة PDF", addCart:"🛒 أضف للسلة", added:"✓ تمت الإضافة", newBook:"جديد — لا توجد تقييمات بعد",
         emptyCart:"السلة فارغة حاليًا.", delete:"حذف",
         promoLead:"عروض الباقات للكتب المشمولة فقط", books:"كتب",
@@ -2727,7 +2772,7 @@ const UI_COPY = {
         checkout:"Continue to payment",
         preview:"Orders are currently unavailable; this is a store preview.",
         currencyPending:"Payments in this currency are not available yet.",
-        aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more",
+        aboutBook:"About the book", adds:"What will it add to your life?", readMore:"Read more", catalogPages:"Book pages", pageLabel:"Page",
         pdfCopy:"PDF edition", addCart:"🛒 Add to cart", added:"✓ Added", newBook:"New — no reviews yet",
         emptyCart:"Your cart is currently empty.", delete:"Remove",
         promoLead:"Bundle offers apply to eligible books", books:"books",
@@ -2762,6 +2807,7 @@ BOOKS.forEach((book,index)=>{ book.id=book.id||`book${index+1}`; book.en=BOOK_TR
 
 /* Book categories and author navigation */
 const BOOK_CATEGORIES = []; /* SSR_CATEGORIES */
+const CATALOG_VIEW = {}; /* SSR_CATALOG_VIEW */
 const ADDITIONAL_AUTHORS = [
     {id:"donald-trump",ar:"دونالد ترامب",en:"Donald Trump",initials:"DT"},
     {id:"robert-kiyosaki",ar:"روبرت كيوزاكي",en:"Robert Kiyosaki",initials:"RK"},
@@ -2769,7 +2815,8 @@ const ADDITIONAL_AUTHORS = [
     {id:"brian-tracy",ar:"برايان تريسي",en:"Brian Tracy",initials:"BT"},
     {id:"robert-greene",ar:"روبرت غرين",en:"Robert Greene",initials:"RG"}
 ];
-let selectedCategory=BOOK_CATEGORIES.some(c=>c.id===new URLSearchParams(location.search).get("category"))?new URLSearchParams(location.search).get("category"):"all";
+let selectedCategory=CATALOG_VIEW.category;
+let catalogPage=CATALOG_VIEW.page;
 function categoryBooks(categoryId=selectedCategory){
     const category=BOOK_CATEGORIES.find(item=>item.id===categoryId)||BOOK_CATEGORIES[0];
     return category.id==="all"?BOOKS:BOOKS.filter(book=>category.books.includes(book.id));
@@ -2784,6 +2831,13 @@ function renderNavigation(){
 }
 function selectBookCategory(categoryId){
     selectedCategory=BOOK_CATEGORIES.some(category=>category.id===categoryId)?categoryId:"all";
+    catalogPage=1;
+    const params=new URLSearchParams(location.search);
+    params.delete("page");
+    if(selectedCategory==="all") params.delete("category");
+    else params.set("category",selectedCategory);
+    const search=params.toString();
+    history.replaceState(history.state,"",location.pathname+(search?"?"+search:"")+location.hash);
     renderNavigation();renderBooks();goToStoreSection("booksSection");
 }
 /* End book categories and author navigation */
@@ -3035,15 +3089,40 @@ function completeOfferIntent(){
    RENDER BOOKS
 ========================================================= */
 
-function renderPanorama(){
+function renderPanorama(books){
  const track=document.getElementById("panoramaTrack");if(!track)return;
- const books=categoryBooks();
  const section=track.closest(".book-panorama");if(section)section.hidden=!books.length;
  track.innerHTML=books.map(book=>`<a class="panorama-item" href="/books/${book.id}" aria-label="${escapeBookText(localizedBook(book).name)}"><div class="panorama-cover"><img src="${book.image}" alt="${escapeBookText(localizedBook(book).name)}" width="${book.imageWidth}" height="${book.imageHeight}" loading="lazy" decoding="async"><span class="panorama-pdf">PDF</span></div>${ratingMarkup(book.id)}</a>`).join("");
 }
+
+function renderCatalogPagination(pageCount){
+    const nav=document.getElementById("catalogPagination");
+    nav.setAttribute("aria-label",t("catalogPages"));
+    const links=[];
+    if(pageCount>1){
+        const params=new URLSearchParams(location.search);
+        for(const key of ["page","category","cart","offer"]) params.delete(key);
+        if(selectedCategory!=="all") params.set("category",selectedCategory);
+        for(let number=1;number<=pageCount;number++){
+            if(number>1) params.set("page",number);
+            const search=params.toString();
+            const href="/"+(search?"?"+search:"")+"#booksSection";
+            const current=number===catalogPage?' aria-current="page"':"";
+            links.push('<a href="'+escapeBookText(href)+'" aria-label="'+t("pageLabel")+' '+number+'"'+current+'>'+number+'</a>');
+        }
+    }
+    const markup=links.join("");
+    if(nav.innerHTML!==markup) nav.innerHTML=markup;
+}
+
 function renderBooks(){
-    renderPanorama();
-    const visibleBooks=categoryBooks();
+    const availableBooks=categoryBooks();
+    const pageCount=Math.max(1,Math.ceil(availableBooks.length/CATALOG_VIEW.pageSize));
+    catalogPage=Math.min(catalogPage,pageCount);
+    const start=(catalogPage-1)*CATALOG_VIEW.pageSize;
+    const visibleBooks=availableBooks.slice(start,start+CATALOG_VIEW.pageSize);
+    renderPanorama(visibleBooks);
+    renderCatalogPagination(pageCount);
     const category=BOOK_CATEGORIES.find(item=>item.id===selectedCategory)||BOOK_CATEGORIES[0];
     document.getElementById("catalogFilter").hidden=category.id==="all";
     document.getElementById("catalogFilterTitle").textContent=category[currentLanguage];
@@ -3062,10 +3141,9 @@ function renderBooks(){
         "";
 
 
-    BOOKS.forEach(
-        (book,index) => {
-
-            if(!visibleBooks.includes(book)) return;
+    visibleBooks.forEach(
+        (book,pageIndex) => {
+            const index=BOOKS.indexOf(book);
 
             const displayBook=localizedBook(book);
             const cardName=escapeBookText(displayBook.cardName||displayBook.name);
@@ -3088,7 +3166,7 @@ function renderBooks(){
                     <img
                         class="book-image"
                         src="${book.image}"
-                        alt="${cardName}" width="${book.imageWidth}" height="${book.imageHeight}" loading="${index<2?"eager":"lazy"}" decoding="async"
+                        alt="${cardName}" width="${book.imageWidth}" height="${book.imageHeight}" loading="${pageIndex<2?"eager":"lazy"}" decoding="async"
                     >
                     <span class="pdf-badge">PDF</span>
 
@@ -3377,7 +3455,7 @@ function removeFromCart(
 /* Checkout navigation start */
 function openCart(){
     const params=new URLSearchParams(location.search);
-    params.delete('cart'); params.delete('offer');
+    params.delete('cart'); params.delete('offer'); params.delete('page');
     const search=params.toString();
     window.location.assign('/checkout'+(search?'?'+search:''));
 }
@@ -3645,10 +3723,6 @@ document.addEventListener(
         document.getElementById("countrySelect")?.addEventListener("change",event=>{
             localStorage.setItem("taboCountry",event.target.value);
             loadStoreConfig(event.target.value);
-        });
-        document.getElementById("curatedOffers")?.addEventListener("click",event=>{
-            const button=event.target.closest("[data-add-offer]");
-            if(button)addCuratedOffer(button.dataset.addOffer);
         });
         loadStoreConfig();
         loadBookStats();
