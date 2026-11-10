@@ -836,5 +836,145 @@
       "badge": "Book · Coming soon",
       "description": "How is a woman's sense of self shaped by what happens in her body and what society expects of her? This book explores the relationship between hormones, emotions, and identity, and asks how understanding the body can help women make sense of their experiences and femininity on their own terms."
     }
+  },
+  {
+    "slug": "adrenaline",
+    "cover": "/covers/upcoming/adrenaline.webp?v=7c6720200150",
+    "ar": {
+      "title": "أدرينالين",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "متى يدفعك الخوف إلى التصرّف، ومتى تتحوّل مطاردة الإثارة إلى تهوّر؟ يقرأ الكتاب قراراتنا تحت الضغط، من المواجهة أو الانسحاب في الأزمات إلى البحث عن المخاطرة في الحياة اليومية والعلاقات."
+    },
+    "en": {
+      "title": "Adrenaline",
+      "badge": "Book · Coming soon",
+      "description": "When does fear help us act, and when does the pursuit of excitement turn into recklessness? This book examines how we respond under pressure, from deciding whether to face a crisis or step back to seeking risk in everyday life and relationships."
+    }
+  },
+  {
+    "slug": "testosterone",
+    "cover": "/covers/upcoming/testosterone.webp?v=9c9d89344d92",
+    "ar": {
+      "title": "تستوستيرون",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي تعنيه القوة حين يفهم الرجل رغباته ويعترف بمخاوفه؟ يستكشف الكتاب الصلة بين الجسد والنفس والرغبة والثقة، ويناقش كيف ينعكس فهم الرجل لدوافعه وطريقة استخدامه للقوة على علاقاته."
+    },
+    "en": {
+      "title": "Testosterone",
+      "badge": "Book · Coming soon",
+      "description": "What does strength mean when a man understands his desires and acknowledges his fears? The book explores the connections between the body, emotions, desire, and confidence, and examines how men make sense of their motives and use strength in their relationships."
+    }
+  },
+  {
+    "slug": "al-salfa",
+    "cover": "/covers/upcoming/al-salfa.webp?v=8f963176f27f",
+    "ar": {
+      "title": "السلفع",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "مَن يضع معيار نجاح المرأة بين العمل والأسرة؟ يناقش الكتاب الخطاب الذي يجعل الوظيفة مقياسًا للحرية، ويبحث أثر المقارنة وتوقّعات الأسرة والضغط المادي على قدرة المرأة على اختيار المسار الذي يناسبها."
+    },
+    "en": {
+      "title": "Al-Salfaʿ",
+      "badge": "Book · Coming soon",
+      "description": "Who defines success for women across work and family life? This book examines the idea that paid work is the measure of freedom, and looks at how comparison, family expectations, and financial pressure shape the choices women can make."
+    }
+  },
+  {
+    "slug": "hare-and-tortoise",
+    "cover": "/covers/upcoming/hare-and-tortoise.webp?v=da66d0828d27",
+    "ar": {
+      "title": "الأرنب والسلحفاة",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يحدث حين يطمئن صاحب الموهبة إلى أنه سيلحق بالآخرين لاحقًا؟ ينطلق الكتاب من سباق الأرنب والسلحفاة ليفهم أثر التأجيل وقيمة الخطوات الصغيرة، ثم يتخيّل سباقًا ثانيًا يجمع فيه الأرنب بين السرعة والانضباط."
+    },
+    "en": {
+      "title": "The Hare & the Tortoise",
+      "badge": "Book · Coming soon",
+      "description": "What happens when a talented person assumes they can always catch up later? Starting with the race between the hare and the tortoise, the book explores procrastination and the value of small, steady steps. It then imagines a second race in which the hare combines speed with discipline."
+    }
+  },
+  {
+    "slug": "attraction-and-telepathy",
+    "cover": "/covers/upcoming/attraction-and-telepathy.webp?v=b8ad3c70f73c",
+    "ar": {
+      "title": "قوانين الجذب والتخاطر بين الحقيقة والخرافة",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يجعل مصادفة لافتة تبدو دليلًا؟ يفحص الكتاب ادّعاءات الجذب والتخاطر من خلال دور التوقّع والانتباه والذاكرة في تفسير التجارب. ويسأل كيف نميّز بين الانطباع الشخصي والنتيجة القابلة للاختبار والتكرار."
+    },
+    "en": {
+      "title": "The Laws of Attraction and Telepathy — Between Fact and Myth",
+      "badge": "Book · Coming soon",
+      "description": "What makes a striking coincidence feel like evidence? This book examines claims about attraction and telepathy through the roles of expectation, attention, and memory. It asks how to distinguish a personal impression from a result that can be tested and replicated."
+    }
+  },
+  {
+    "slug": "cristiano-ronaldo-the-legend",
+    "cover": "/covers/upcoming/cristiano-ronaldo-the-legend.webp?v=0ef971c64231",
+    "ar": {
+      "title": "الأسطورة: كريستيانو رونالدو",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يتطلّبه البقاء في القمة بعد الوصول إليها؟ يقرأ الكتاب مسيرة كريستيانو رونالدو من زاوية الانضباط والثقة والمنافسة، ويناقش كيف تتشكّل هوية البطل وما الذي يكلّفه الحفاظ على تفوّقه."
+    },
+    "en": {
+      "title": "The Legend — Cristiano Ronaldo",
+      "badge": "Book · Coming soon",
+      "description": "What does it take to stay at the top after getting there? The book looks at Cristiano Ronaldo’s career through discipline, confidence, and competition. It asks how a champion’s identity is built and what it can cost to maintain excellence."
+    }
+  },
+  {
+    "slug": "messi-the-other-side-of-the-legend",
+    "cover": "/covers/upcoming/messi-the-other-side-of-the-legend.webp?v=684a1d8ef160",
+    "ar": {
+      "title": "ميسي: الوجه الآخر للأسطورة",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ماذا نعرف عن ميسي خارج الملعب؟ يتناول الكتاب كيف شكّلت الشهرة والمال والنفوذ صورته العامة، ويفحص الروايات المثيرة للجدل حول مسيرته ليميّز بين ما تسنده الأدلة وما يُتداول كشائعة."
+    },
+    "en": {
+      "title": "Lionel Messi — The Other Side of the Legend",
+      "badge": "Book · Coming soon",
+      "description": "What do we know about Messi beyond the pitch? This book looks at how fame, money, and influence shape his public image. It examines disputed stories about his career and asks which can be supported by evidence."
+    }
+  },
+  {
+    "slug": "spacetime",
+    "cover": "/covers/upcoming/spacetime.webp?v=9ee6b73c46af",
+    "ar": {
+      "title": "الزمكان",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "لماذا لا تتحقّق كل رغبة حتى حين نسعى إليها؟ يستكشف الكتاب دور الإرادة والفعل والظروف والتوقيت في مصير الأمنيات، ويسأل كيف يواصل الإنسان السعي حين تأتي النتائج على غير ما أراد."
+    },
+    "en": {
+      "title": "Spacetime",
+      "badge": "Book · Coming soon",
+      "description": "Why do some desires remain out of reach even when we act on them? This book explores how will, action, circumstances, and timing shape what comes of our wishes. It asks how we can keep making an effort when outcomes differ from what we hoped for."
+    }
+  },
+  {
+    "slug": "al-ahly",
+    "cover": "/covers/upcoming/al-ahly.webp?v=726d967eb7f8",
+    "ar": {
+      "title": "الأهلي",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف يظلّ نادٍ قادرًا على الفوز بعد رحيل جيلٍ صنع بطولاته؟ يقرأ الكتاب تاريخ الأهلي المصري من زاوية القيادة والانضباط والقرارات تحت الضغط، ويتتبّع كيف ينقل النادي خبرته إلى الأجيال الجديدة ويتعامل مع الإخفاق."
+    },
+    "en": {
+      "title": "Al Ahly",
+      "badge": "Book · Coming soon",
+      "description": "How does a club keep winning after the generation that won its titles has moved on? This book explores the history of Egypt’s Al Ahly through leadership, discipline, and decisions under pressure. It looks at how the club passes on what it has learned to new generations and responds to setbacks."
+    }
+  },
+  {
+    "slug": "forty-days-of-wandering",
+    "cover": "/covers/upcoming/forty-days-of-wandering.webp?v=5ac15f7be046",
+    "ar": {
+      "title": "أيام التيه الأربعون",
+      "badge": "رواية · يتوفر قريبًا",
+      "description": "بعد سيلٍ مفاجئ وانفجار حافلتهم، يتيه الركاب أربعين يومًا في صحراء سيناء. وبينما يحاولون النجاة، تنكشف حكايات من ماضيهم تضع ثقتهم ببعضهم على المحك."
+    },
+    "en": {
+      "title": "Forty Days of Wandering",
+      "badge": "Novel · Coming soon",
+      "description": "After a flash flood and a bus explosion, a group of passengers spend forty days lost in the Sinai desert. As they struggle to survive, stories from their pasts come to light and put their trust in one another to the test."
+    }
   }
 ]
