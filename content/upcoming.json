@@ -696,5 +696,145 @@
       "badge": "Book · Coming soon",
       "description": "Why do some men chase admiration from one relationship to the next? This book explores how repeated affairs can become a way to prove one's worth or avoid intimacy. It also examines what deception does to trust between partners."
     }
+  },
+  {
+    "slug": "the-charlatan",
+    "cover": "/covers/upcoming/the-charlatan.webp?v=47ff809adae7",
+    "ar": {
+      "title": "الدجال",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف يكسب الدجّال ثقة الناس؟ من وعود «المستريح» بالربح السريع إلى ادّعاءات السحر، يتتبّع الكتاب كيف يصنع الدجّال لنفسه سلطة زائفة ويستغل حاجة الناس إلى الأمل والأمان ليكسب المال أو النفوذ."
+    },
+    "en": {
+      "title": "The Charlatan",
+      "badge": "Book · Coming soon",
+      "description": "How does a charlatan win people's trust? From get-rich-quick schemes to claims of magic, this book examines how impostors create a false sense of authority and exploit people's need for hope and security to gain money or influence."
+    }
+  },
+  {
+    "slug": "the-wrong-choice",
+    "cover": "/covers/upcoming/the-wrong-choice.webp?v=2762cd55565f",
+    "ar": {
+      "title": "سوء اختيار",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "حين يتعثّر الزواج، كيف يعرف الطرفان إن كان الخلل في الاختيار أو في إدارة العلاقة؟ ينظر الكتاب إلى التجربة من وجهتي نظر الزوج والزوجة، ويبحث ما يجعل الإصلاح ممكنًا ومتى يصبح الانفصال خيارًا مطروحًا."
+    },
+    "en": {
+      "title": "The Wrong Choice",
+      "badge": "Book · Coming soon",
+      "description": "When a marriage struggles, how can partners tell whether the problem began with their choice or with how they handled the relationship? Looking at both partners' perspectives, this book explores what makes repair possible and when separation becomes an option."
+    }
+  },
+  {
+    "slug": "screen-spell",
+    "cover": "/covers/upcoming/screen-spell.webp?v=80b5ed2efe5c",
+    "ar": {
+      "title": "سحر الشاشات",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي يبقى معنا بعد أن تنطفئ الشاشة؟ يتتبّع الكتاب تطوّر الترفيه من قاعات السينما إلى المنصات الرقمية، ويفحص كيف تؤثّر الصور التي نشاهدها في انتباهنا وخيالنا وما نعدّه طبيعيًا في حياتنا."
+    },
+    "en": {
+      "title": "Screen Spell",
+      "badge": "Book · Coming soon",
+      "description": "What stays with us after the screen goes dark? From movie theaters to digital platforms, the book traces the evolution of screen entertainment and explores how the images we watch shape our attention, imagination, and sense of what is normal."
+    }
+  },
+  {
+    "slug": "polygyny",
+    "cover": "/covers/upcoming/polygyny.webp?v=9b293bbb5a08",
+    "ar": {
+      "title": "التعدد",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما معنى العدل في أسرة تتعدّد فيها الزوجات؟ يتناول الكتاب التعدّد من المنظور الإسلامي والمجتمعي، ويناقش الحقوق والمسؤوليات داخل الأسرة وكيف تصوّر الدراما التعدّد والعلاقات السرية."
+    },
+    "en": {
+      "title": "Polygyny",
+      "badge": "Book · Coming soon",
+      "description": "What does fairness mean in a family with more than one wife? This book examines polygyny from Islamic and social perspectives, discussing family rights and responsibilities and how screen drama portrays polygyny and secret relationships."
+    }
+  },
+  {
+    "slug": "mirrors",
+    "cover": "/covers/upcoming/mirrors.webp?v=5d2504e81d4e",
+    "ar": {
+      "title": "المرايا",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ماذا تعكس ردود الآخرين عنّا وعنهم؟ يقرأ الكتاب العلاقات عبر خمس مرايا تتناول الرؤية والمعاملة والجروح والقوة والاختيار. ويبحث كيف تتشكّل ردودنا وما الذي يساعدنا على اختيارها بوعي."
+    },
+    "en": {
+      "title": "Mirrors",
+      "badge": "Book · Coming soon",
+      "description": "What do other people's responses reflect about us and about them? Through five mirrors, the book looks at how perception, treatment, past wounds, power, and choice shape relationships. It explores how our reactions form and what helps us choose how to respond."
+    }
+  },
+  {
+    "slug": "play-and-diversion",
+    "cover": "/covers/upcoming/play-and-diversion.webp?v=abaa8d55199d",
+    "ar": {
+      "title": "لعب ولهو",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف تسعى للنجاح في الدنيا وتستحضر الآخرة في اختياراتك؟ ينطلق الكتاب من رؤية قرآنية للحياة، ويبحث كيف توجّه طموحك ووقتك ومالك نحو إحسان العمل وأثرٍ يبقى بعد المكاسب العابرة."
+    },
+    "en": {
+      "title": "Play and Diversion",
+      "badge": "Book · Coming soon",
+      "description": "How can you pursue success in this life while keeping the hereafter in view? Drawing on a Quranic perspective, the book explores how to direct ambition, time, and money toward doing good and leaving an impact that outlasts fleeting gains."
+    }
+  },
+  {
+    "slug": "caffeine-concentrate",
+    "cover": "/covers/upcoming/caffeine-concentrate.webp?v=c414a10d9b33",
+    "ar": {
+      "title": "كافيين مركز",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ما الذي نبحث عنه حين نحاول تغيير حالتنا؟ يتتبّع الكتاب دوافع اللجوء إلى الكافيين والمنشطات والمخدرات، سواء بحثًا عن اليقظة أو رغبةً في تحسين الأداء أو الهروب من الضغط. ويبحث متى يمكن أن تتحوّل الدفعة المؤقتة إلى اعتماد."
+    },
+    "en": {
+      "title": "Caffeine Concentrate",
+      "badge": "Book · Coming soon",
+      "description": "What are we looking for when we try to change how we feel? The book explores why people turn to caffeine, stimulants, and other drugs for alertness, performance, or relief from distress. It asks when a temporary boost can turn into reliance."
+    }
+  },
+  {
+    "slug": "the-male-pyramid",
+    "cover": "/covers/upcoming/the-male-pyramid.webp?v=c50c4a09dc04",
+    "ar": {
+      "title": "الهرم الذكوري",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "ماذا تكشف الحياة الزوجية عن الصورة التي يقدّمها الرجل عن نفسه؟ يقرأ الكتاب تسميات مثل «ألفا» و«سيجما» و«بيتا» بوصفها صورًا شائعة للرجولة، ويبحث كيف تتداخل السلطة والغيرة والرغبة مع الثقة والقرب بين الزوجين."
+    },
+    "en": {
+      "title": "The Male Pyramid",
+      "badge": "Book · Coming soon",
+      "description": "What does married life reveal about the image a man presents to the world? The book examines popular labels such as alpha, sigma, and beta, and explores how power, jealousy, and desire intersect with trust and intimacy between spouses."
+    }
+  },
+  {
+    "slug": "dopamine",
+    "cover": "/covers/upcoming/dopamine.webp?v=3127f5a872da",
+    "ar": {
+      "title": "دوبامين",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "لماذا نطارد مكافأة جديدة قبل أن نكتفي بما حصلنا عليه؟ يستكشف الكتاب الفجوة بين الرغبة والرضا في عصر المكافآت السريعة، ويتتبّع كيف تشكّل العادات والبيئة ما نترقّبه وما نرغب فيه."
+    },
+    "en": {
+      "title": "Dopamine",
+      "badge": "Book · Coming soon",
+      "description": "Why do we chase the next reward before we feel satisfied with the last? This book explores the gap between wanting and satisfaction in an age of instant rewards, and examines how habits and surroundings shape what we anticipate and seek."
+    }
+  },
+  {
+    "slug": "estrogen",
+    "cover": "/covers/upcoming/estrogen.webp?v=58c0eb23fb90",
+    "ar": {
+      "title": "إستروجين",
+      "badge": "كتاب · يتوفر قريبًا",
+      "description": "كيف تتشكّل نظرة المرأة إلى نفسها بين ما يحدث في جسدها وما يتوقّعه المجتمع منها؟ يستكشف الكتاب العلاقة بين الهرمونات والمشاعر والهوية، ويبحث كيف يساعد فهم الجسد المرأة على قراءة تجربتها وأنوثتها بطريقتها."
+    },
+    "en": {
+      "title": "Estrogen",
+      "badge": "Book · Coming soon",
+      "description": "How is a woman's sense of self shaped by what happens in her body and what society expects of her? This book explores the relationship between hormones, emotions, and identity, and asks how understanding the body can help women make sense of their experiences and femininity on their own terms."
+    }
   }
 ]
