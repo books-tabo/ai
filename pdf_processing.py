@@ -30,9 +30,9 @@ def watermarked(src, order, max_pages, output_limit, font_path):
         overlay=io.BytesIO(); c=Canvas(overlay,pagesize=(width,height),invariant=1)
         c.drawImage(stamp_image, width*.08, max(10,height*.025), width=width*.84, height=40, mask='auto')
         c.save(); overlay.seek(0)
+        page = writer.add_page(page)
         page.merge_page(PdfReader(overlay).pages[0])
-        writer.add_page(page)
         # merge_page creates a combined, uncompressed content stream. Reapply
         # lossless Flate compression so stamping does not inflate the PDF.
-        writer.pages[-1].compress_content_streams()
+        page.compress_content_streams()
     out=BoundedBuffer(output_limit); writer.write(out); return out.getvalue(),len(reader.pages)
