@@ -64,14 +64,12 @@ body{
     grid-template-columns:56px minmax(0,1fr) 56px;
     direction:ltr;
     min-height:50px;
-    background:#050505;
+    background:var(--store-bar);
     border-bottom:1px solid #c9a227;
     box-shadow:0 5px 18px rgba(0,0,0,.12);
 }
 
 .promo-bar{
-
-    background:#050505;
 
     color:#ffffff;
 
@@ -96,7 +94,7 @@ html[dir="ltr"] .promo-bar{
     width:56px;
     min-height:50px;
     border:0;
-    background:#050505;
+    background:transparent;
     color:#fff;
     display:flex;
     align-items:center;
@@ -107,21 +105,25 @@ html[dir="ltr"] .promo-bar{
 
 .toolbar-button:hover,
 .toolbar-button:focus-visible{
-    background:#171717;
-    color:#e1bc42;
-    outline:none;
+    background:var(--store-bar-hover);
+    color:var(--store-bar-link);
+}
+
+.toolbar-button:focus-visible{
+    outline:2px solid var(--store-bar-link);
+    outline-offset:-4px;
 }
 
 .toolbar-menu{
     grid-column:3;
     grid-row:1;
-    border-left:1px solid #262626;
+    border-left:1px solid #ffffff30;
 }
 
 .toolbar-cart{
     grid-column:1;
     grid-row:1;
-    border-right:1px solid #262626;
+    border-right:1px solid #ffffff30;
 }
 
 .hamburger-icon{
@@ -182,7 +184,7 @@ html[dir="ltr"] .promo-bar{
 
 .promo-highlight{
 
-    color:#c9a227;
+    color:var(--store-bar-link);
 
     font-weight:bold;
 
@@ -231,8 +233,8 @@ body.drawer-open{
     width:min(88vw,390px);
     height:100%;
     overflow-y:auto;
-    background:#fff;
-    color:#111;
+    background:var(--store-panel);
+    color:var(--store-text);
     box-shadow:-20px 0 55px rgba(0,0,0,.24);
     transform:translateX(105%);
     transition:transform .28s ease;
@@ -249,7 +251,7 @@ body.drawer-open{
     justify-content:space-between;
     gap:16px;
     padding:18px 20px;
-    border-bottom:1px solid #eee9da;
+    border-bottom:1px solid var(--store-border);
 }
 
 .drawer-header h2{
@@ -262,8 +264,8 @@ body.drawer-open{
     height:40px;
     border:0;
     border-radius:50%;
-    background:#f2efe7;
-    color:#111;
+    background:var(--store-canvas);
+    color:var(--store-text);
     font-size:25px;
     line-height:1;
     cursor:pointer;
@@ -272,14 +274,14 @@ body.drawer-open{
 .drawer-tabs{
     display:grid;
     grid-template-columns:1fr 1fr;
-    border-bottom:1px solid #eee9da;
+    border-bottom:1px solid var(--store-border);
 }
 
 .drawer-tab{
     border:0;
     border-bottom:3px solid transparent;
-    background:#fff;
-    color:#777;
+    background:transparent;
+    color:var(--store-muted);
     padding:18px 10px 15px;
     font:inherit;
     font-weight:800;
@@ -287,7 +289,7 @@ body.drawer-open{
 }
 
 .drawer-tab.active{
-    color:#111;
+    color:var(--store-text);
     border-bottom-color:#c9a227;
 }
 
@@ -301,10 +303,10 @@ body.drawer-open{
 
 .drawer-card{
     width:100%;
-    border:1px solid #e2dccb;
+    border:1px solid var(--store-border);
     border-radius:16px;
-    background:#fff;
-    color:#111;
+    background:var(--store-canvas);
+    color:var(--store-text);
     display:flex;
     align-items:center;
     gap:15px;
@@ -349,17 +351,17 @@ body.drawer-open{
 }
 
 .drawer-card small{
-    color:#777;
+    color:var(--store-muted);
     line-height:1.55;
 }
 
 .drawer-links{display:grid;gap:12px;margin-top:12px}
 .drawer-links a{text-decoration:none}
-.drawer-card[aria-pressed="true"]{border-color:#c9a227;background:#fbf7e9}
+.drawer-card[aria-pressed="true"]{border-color:#c9a227;background:#282314}
 .catalog-filter{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
-.catalog-filter h2{margin:0;font-size:22px}
-.catalog-filter .read-more-btn{width:auto;margin:0;padding:9px 14px}
-.catalog-empty{padding:30px 12px;text-align:center;color:#666;line-height:1.9}
+.catalog-filter h2{margin:0;color:var(--store-text);font-size:22px}
+.catalog-filter .read-more-btn{width:auto;margin:0;padding:9px 14px;color:var(--store-accent)}
+.catalog-empty{padding:30px 12px;text-align:center;color:var(--store-muted);line-height:1.9}
 
 
 /* =========================================================
@@ -369,6 +371,8 @@ body.drawer-open{
 header{
 
     text-align:center;
+
+    color:var(--store-text);
 
     padding:
     55px
@@ -384,8 +388,6 @@ header{
     font-weight:900;
 
     letter-spacing:5px;
-
-    color:#111111;
 
     margin-bottom:12px;
 
@@ -428,7 +430,7 @@ header p{
 
     margin:auto;
 
-    color:#666;
+    color:var(--store-muted);
 
     font-size:16px;
 
@@ -1865,8 +1867,8 @@ html[dir="ltr"] .info-highlight{
 }
 
 .book-panorama{background:#050505;padding:42px 0}.panorama-track{display:flex;gap:18px;overflow-x:auto;padding:8px 24px 20px;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}.panorama-item{flex:0 0 190px;scroll-snap-align:start;text-decoration:none;color:#ddd}.panorama-cover{position:relative}.panorama-cover img{display:block;width:100%;height:285px;object-fit:cover;border-radius:10px}.panorama-pdf{position:absolute;bottom:10px;right:10px;background:#d2a500;color:#050505;padding:5px 9px;border-radius:7px;font-weight:bold}.panorama-item .book-rating{justify-content:center;font-size:13px;margin:14px 0 0;flex-wrap:wrap}@media(min-width:800px){.panorama-item{flex-basis:220px}.panorama-cover img{height:330px}}
-html[lang="ar"] #heroTitle{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(26px,6.5vw,48px);line-height:1.8;color:#111;margin-bottom:18px}
-html[lang="ar"] #heroDescription{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(13px,3.55vw,22px);line-height:2.3;color:#625631;letter-spacing:0;white-space:pre-line;max-width:900px;margin-inline:auto}
+html[lang="ar"] #heroTitle{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(26px,6.5vw,48px);line-height:1.8;margin-bottom:18px}
+html[lang="ar"] #heroDescription{font-family:"Tabo Kufi",Tahoma,sans-serif;font-weight:700;font-size:clamp(13px,3.55vw,22px);line-height:2.3;color:var(--store-muted);letter-spacing:0;white-space:pre-line;max-width:900px;margin-inline:auto}
 html[lang="en"] #heroDescription{white-space:pre-line}
 
 .book-sample-link{display:block;text-align:center;color:#846410;border:1px solid #c9a227;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;padding:9px 6px;margin:0 0 15px}
