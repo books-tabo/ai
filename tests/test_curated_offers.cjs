@@ -75,6 +75,13 @@ c.cart=[{id:'book20'}];assert.equal(vm.runInContext('calculatePricing().final',c
 c.addCuratedOffer('sigma-couple');assert.equal(events.at(-1).data.value,15);
 assert.equal(vm.runInContext('calculatePricing().final',c),34.99);
 c.addCuratedOffer('change-starter');assert.equal(vm.runInContext('calculatePricing().final',c),49.99);
+const individualSale={bookId:'book21',currency:'USD',price:10};
+c.storeConfig={...fixture[1].config,bookPromotion:individualSale};c.PRICING_LADDER=c.storeConfig.prices;
+for(const [ids,expected] of [[['book21'],10],[['book21','book1'],19.99],
+    [['book20','book21'],34.99],[['book20','book21','book22','book23'],49],[['book20'],19.99]]){
+ c.cart=ids.map(id=>({id}));
+ assert.equal(vm.runInContext('calculatePricing().final',c),expected);
+}
 c.storeConfig=fixture[0].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
 assert.equal(c.addCuratedOffer('sigma-couple'),false);assert.equal(c.cart.length,0);
 c.cart=[{id:'book20'},{id:'book21'}];assert.equal(vm.runInContext('calculatePricing().final',c),1000);

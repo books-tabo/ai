@@ -60,13 +60,16 @@ function renderCountryOptions(){
 function bookPolicy(book){
     return {...{price:book.fixedPrices?.[storeConfig.currency]??PRICING_LADDER[1],bundleEligible:book.bundleEligible!==false,previewEnabled:book.previewEnabled!==false},...(storeConfig.bookPolicies?.[book.id]||{})};
 }
-function bookPrice(book){return Number(bookPolicy(book).price)}
+function bookPrice(book){
+    const promotion=storeConfig.bookPromotion;
+    return Number(promotion?.bookId===book.id&&promotion.currency===storeConfig.currency?promotion.price:bookPolicy(book).price);
+}
 function calculatePricing(){
     const books=cart.map(item=>BOOKS.find(book=>book.id===item.id)).filter(Boolean);
     const ordinary=books.filter(book=>bookPolicy(book).bundleEligible);
     const scale=storeConfig.currency==='KWD'?1000:100;
     const minor=value=>Math.round(Number(value||0)*scale);
-    const fixedMinor=books.filter(book=>!bookPolicy(book).bundleEligible).reduce((total,book)=>total+minor(bookPrice(book)),0);
+    const fixedMinor=books.filter(book=>!bookPolicy(book).bundleEligible).reduce((total,book)=>total+minor(bookPolicy(book).price),0);
     const basicMinor=ordinary.length?minor(PRICING_LADDER[ordinary.length]??ordinary.length*Number(PRICING_LADDER[1]||0)):0;
     const special=typeof TaboOfferPricing!=="undefined"?TaboOfferPricing.best(books.map(book=>book.id),{...storeConfig,prices:PRICING_LADDER,bookPolicies:Object.fromEntries(books.map(book=>[book.id,bookPolicy(book)]))}):{totalMinor:basicMinor+fixedMinor,offerIds:[],savingsMinor:0};
     const originalMinor=ordinary.length*minor(storeConfig.compareAtPrice||PRICING_LADDER[1])+fixedMinor;

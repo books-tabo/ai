@@ -1,6 +1,7 @@
 """Verify scheduled discounts against actual checkout totals in isolation."""
 import json
 import unittest
+from decimal import Decimal
 from unittest.mock import patch
 
 import app
@@ -11,6 +12,8 @@ from support import HTTPCase
 
 
 SALE = {'percent': 20, 'start': 1000, 'end': 2000}
+INDIVIDUAL_SALE = {'bookId': 'book21', 'currency': 'USD', 'price': 10,
+                   'start': 1000, 'end': 1000 + 7 * 86400}
 
 
 class PromotionPricingTests(unittest.TestCase):
@@ -45,8 +48,53 @@ class PromotionPricingTests(unittest.TestCase):
             self.assertEqual(kwd['bookPolicies']['book1']['price'], 2.635)
             self.assertEqual(catalog.total_for_items(['book1'], kwd), 2.635)
 
+    def test_individual_usd_sale_preserves_prices_and_pack_selection(self):
+        with patch.object(book_promotion, 'CAMPAIGN', INDIVIDUAL_SALE):
+            for country in ('SA', 'KW', 'EG'):
+                before = localization.pricing_for_country(catalog.PRICES, country, at=999)
+                active = localization.pricing_for_country(catalog.PRICES, country, at=1000)
+                after = localization.pricing_for_country(catalog.PRICES, country, at=INDIVIDUAL_SALE['end'])
+                promotion = active.pop('bookPromotion')
+                self.assertEqual(promotion, {'bookId': 'book21', 'currency': 'USD', 'price': 10,
+                                             'regularPrice': 19.99, 'percent': 50, 'expiresInMs': 604800000})
+                self.assertEqual(before, active)
+                self.assertEqual(before, after)
+                active['bookPromotion'] = promotion
+                for ids in (['book20'], ['book20', 'book21'], ['book20', 'book21', 'book22', 'book23'],
+                            list(catalog.BOOKS)):
+                    self.assertEqual(catalog.pricing_breakdown(ids, active), catalog.pricing_breakdown(ids, before))
+                if country == 'SA':
+                    self.assertEqual(catalog.total_for_items(['book21'], active), 10)
+                    self.assertEqual(catalog.total_for_items(['book21', 'book1'], active), 19.99)
+                else:
+                    self.assertEqual(catalog.total_for_items(['book21'], active), before['bookPolicies']['book21']['price'])
+
 
 class PromotionHTTPTests(HTTPCase):
+    def test_individual_usd_quote_and_existing_packs_during_the_week(self):
+        with patch.object(book_promotion, 'CAMPAIGN', INDIVIDUAL_SALE), \
+             patch.object(app.time, 'time', return_value=1000) as clock, \
+             patch.object(app, 'checkout_ready', return_value=True), \
+             patch.object(app, 'paypal_ready', return_value=True), \
+             patch.object(app.checkout_pricing, 'usd_egp_rate', return_value=(Decimal('50'), '2026-11-13')), \
+             patch.object(app.store, 'insert') as insert:
+            with self.opener.open(self.base + '/api/store-config?country=KW') as response:
+                kuwait = json.load(response)
+            self.assertEqual(kuwait['paypalPricing']['bookPromotion']['price'], 10)
+            with self.opener.open(self.base + '/api/store-config?country=SA') as response:
+                config = json.load(response)
+            for ids, expected in ((['book21'], '10.00'), (['book20', 'book21'], '34.99'),
+                                  (['book20', 'book21', 'book22', 'book23'], '49.00')):
+                status, result, _ = self.post('/api/checkout-quote', {
+                    'country': 'SA', 'items': [{'id': item} for item in ids],
+                    'catalogRevision': config['catalogRevision'],
+                })
+                self.assertEqual((status, Decimal(result['quote']['displayTotal'])), (200, Decimal(expected)))
+            clock.return_value = INDIVIDUAL_SALE['end']
+            status, result, _ = self.post('/api/checkout-quote', {'catalogRevision': config['catalogRevision']})
+            self.assertEqual((status, result['code']), (409, 'CATALOG_REFRESH_REQUIRED'))
+            insert.assert_not_called()
+
     def test_expired_discount_requires_price_review_before_order_creation(self):
         with patch.object(book_promotion, 'CAMPAIGN', SALE):
             with patch.object(app.time, 'time', return_value=1000):
