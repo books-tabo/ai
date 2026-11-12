@@ -976,5 +976,89 @@
       "badge": "Novel · Coming soon",
       "description": "After a flash flood and a bus explosion, a group of passengers spend forty days lost in the Sinai desert. As they struggle to survive, stories from their pasts come to light and put their trust in one another to the test."
     }
+  },
+  {
+    "slug": "the-x",
+    "cover": "/covers/upcoming/the-x.webp?v=26e26a804121",
+    "ar": {
+      "title": "الـ X",
+      "badge": "كتاب نفسي اجتماعي · يتوفّر قريبًا",
+      "description": "تنتهي العلاقة، وقد يظل جزء منك ينتظر عودتها. يستكشف «الـ X» الحزن على من أحببت وعلى المستقبل الذي تخيّلته معها. ومن خلال مواقف وتمارين عملية، يساعدك على استعادة يومك وقراراتك وبناء حياة بعد الفراق."
+    },
+    "en": {
+      "title": "The X",
+      "badge": "Psychology book · Coming soon",
+      "description": "A relationship can end while part of you is still waiting for her return. The X explores grief for someone you loved and for the future you imagined together. Everyday situations and practical exercises help you reclaim your days, make your own decisions, and build a life after the breakup."
+    }
+  },
+  {
+    "slug": "hayba",
+    "cover": "/covers/upcoming/hayba.webp?v=bcf4a49f9475",
+    "ar": {
+      "title": "هيبة",
+      "badge": "كتاب في تطوير الذات · يتوفّر قريبًا",
+      "description": "كيف تُكمل كلامك حين يقاطعك أحد؟ وكيف تردّ على تعليق محرج أو ترفض طلبًا يرهقك؟ يقدّم «هيبة» حوارات عملية من مواقف البيت والعمل تساعدك على التعبير عن احتياجاتك بوضوح، ووضع حدودك، والتعامل مع الإلحاح بعد أن تقول «لا»."
+    },
+    "en": {
+      "title": "Hayba",
+      "badge": "Personal development book · Coming soon",
+      "description": "How do you finish speaking after someone interrupts you, respond to an embarrassing remark, or turn down an exhausting request? Practical dialogues from home and work help you state your needs, set boundaries, and handle pressure after you have said no."
+    }
+  },
+  {
+    "slug": "drama-and-muslim-society",
+    "cover": "/covers/upcoming/drama-and-muslim-society.webp?v=9a9889533055",
+    "ar": {
+      "title": "التأثير السلبي للدراما على المجتمع المسلم",
+      "badge": "كتاب · يتوفّر قريبًا",
+      "description": "دراسة اجتماعية وسيكولوجية في تحولات الأسرة والقيم والهوية. متى يجعلنا المسلسل نتعاطف مع تصرّف كنا نرفضه؟ يتناول الكتاب تصوير الزواج الثاني، وأدوار الرجل والمرأة داخل الأسرة، وتمجيد البلطجة. ويحلّل كيف يمكن لتكرار هذه الصور والتعاطف مع الشخصيات أن يؤثّرا في أحكامنا خارج الشاشة."
+    },
+    "en": {
+      "title": "The Negative Impact of Drama on Muslim Society",
+      "badge": "Book · Coming soon",
+      "description": "A social and psychological study of changes in family life, values, and identity. When does a TV series lead us to sympathize with behavior we once rejected? The book examines portrayals of second marriages, family roles, and the glorification of bullying, and asks how repetition and empathy with characters can shape judgments off-screen."
+    }
+  },
+  {
+    "slug": "the-peak-of-love",
+    "cover": "/covers/upcoming/the-peak-of-love.webp?v=6082592393d2",
+    "ar": {
+      "title": "قمة العشق",
+      "badge": "كتاب في سيكولوجية الحب · يتوفّر قريبًا",
+      "description": "كيف يمكن لرسالة واحدة ممن تحب أن تغيّر مزاج يومك؟ يتتبّع «قمة العشق» الرحلة من الانجذاب إلى التعلّق والعشق، ويستكشف أثر الحب على النوم والتركيز والقرارات. ويقدّم ميثاقًا للفتاة وآخر للشاب لبناء علاقة يحافظ فيها كل طرف على هويته ويحترم حدود الآخر."
+    },
+    "en": {
+      "title": "The Peak of Love",
+      "badge": "Psychology book · Coming soon",
+      "description": "How can one message from someone you love change your mood for the day? The Peak of Love follows the journey from attraction to attachment and passion, examining how love affects sleep, focus, and decisions. It offers guidelines for young women and young men to build a relationship in which each person keeps their identity and respects the other’s boundaries."
+    }
+  },
+  {
+    "slug": "night-confessions",
+    "cover": "/covers/upcoming/night-confessions.webp?v=584fa6572784",
+    "ar": {
+      "title": "اعترافات ليلية",
+      "badge": "مجموعة قصصية · 18+ · يتوفّر قريبًا",
+      "description": "يجمع «اعترافات ليلية» قصصًا جنسية مستقلة في صورة مقالات سردية. لكل حكاية شخصياتها واعترافها الخاص، وتدور المجموعة حول الرغبة والحميمية وما يصعب البوح به."
+    },
+    "en": {
+      "title": "Night Confessions",
+      "badge": "Story collection · 18+ · Coming soon",
+      "description": "Night Confessions collects standalone stories for adults in the form of narrative articles. Each story has its own characters and confession, exploring desire, intimacy, and what can be difficult to say aloud."
+    }
+  },
+  {
+    "slug": "risque-flashes",
+    "cover": "/covers/upcoming/risque-flashes.webp?v=e6e4386ca317",
+    "ar": {
+      "title": "ومضات ماجنة",
+      "badge": "مجموعة قصصية · 18+ · يتوفّر قريبًا",
+      "description": "يجمع «ومضات ماجنة» مقالات سردية ومقتطفات من قصص جنسية مستقلة للكبار. يلتقط كل نص لحظة مختلفة من الرغبة والحميمية، ويمكن قراءته بمفرده."
+    },
+    "en": {
+      "title": "Risqué Flashes",
+      "badge": "Story collection · 18+ · Coming soon",
+      "description": "Risqué Flashes brings together narrative articles and short excerpts from independent stories for adults. Each piece captures a different moment of desire and intimacy and can be read on its own."
+    }
   }
 ]
