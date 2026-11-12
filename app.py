@@ -1567,7 +1567,7 @@ class Handler(BaseHTTPRequestHandler):
                 # The client displays the exact USD amount PayPal will collect;
                 # the order endpoint recalculates it independently.
                 usd=localization.pricing_for_country(PRICES,'SA',at=pricing_at)
-                config['paypalPricing']={key:usd[key] for key in ('currency','prices','bookPolicies','offers')}
+                config['paypalPricing']={key:usd[key] for key in ('currency','prices','bookPolicies','offers','bookPromotion') if key in usd}
             config['receiptEmailEnabled']=order_receipts.enabled()
             config['bookEmailEnabled']=book_emails.enabled()
             config['catalogRevision']=book_promotion.revision(store_catalog.revision(), pricing_at)

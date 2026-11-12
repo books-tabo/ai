@@ -151,7 +151,7 @@ def pricing_breakdown(ids, price_config):
         fixed_total = sum((price for book_id, price in fixed.items() if book_id not in used), Decimal(0))
         return regular(len(ordinary - used)) + fixed_total
     baseline = remainder(set())
-    best, applied, covered = baseline, [], 0
+    best, applied, covered = baseline, [], set()
     eligible = [(key,offer) for key,offer in current_offers().items()
                 if offer_price(key,offer,currency) is not None and set(offer['books']) <= set(ids)]
     for mask in range(1, 1 << len(eligible)):
@@ -166,9 +166,15 @@ def pricing_breakdown(ids, price_config):
         else:
             cost += remainder(used)
             # Prefer the fuller advertised pack when totals tie (overlapping fixed-price packs).
-            if cost < best or (cost == best and applied and len(used) > covered):
-                best, applied, covered = cost, selected, len(used)
-    return {'total':best,'offerIds':applied,'offerSavings':baseline-best}
+            if cost < best or (cost == best and applied and len(used) > len(covered)):
+                best, applied, covered = cost, selected, used
+    offer_savings = baseline - best
+    # Select the existing packs first. The individual discount applies to the remainder.
+    promotion = price_config.get('bookPromotion', {})
+    promoted = promotion.get('bookId')
+    if promotion.get('currency') == currency and promoted in fixed and promoted not in covered:
+        best -= fixed[promoted] - Decimal(str(promotion['price']))
+    return {'total':best,'offerIds':applied,'offerSavings':offer_savings}
 
 
 def total_for_items(ids, price_config):

@@ -31,7 +31,7 @@ for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD'
     assert.equal(vm.runInContext('bookPolicy(BOOKS[19]).previewEnabled', context), false);
 }
 
-function product(bookId, currency) {
+function product(bookId, currency, promotion) {
     const detail = rendered('book.html','/books/'+bookId);
     const detailScript = detail.slice(detail.indexOf('const BOOKS='), detail.indexOf('async function submitRating('));
     const nodes = new Map();
@@ -40,11 +40,11 @@ function product(bookId, currency) {
         return nodes.get(id);
     };
     const c = vm.createContext({location: {pathname: '/books/' + bookId, search: ''}, URLSearchParams,
-        localStorage: {getItem: () => null}, navigator: {language: 'ar'},
+        localStorage: {getItem: () => null}, navigator: {language: 'ar'}, performance: {now: () => 0},
         window:{}, document: {documentElement: {}, getElementById: node, querySelectorAll: () => []}});
     vm.runInContext(detailScript, c);
-    c.productConfig = {currency, prices: {'1': currency === 'EGP' ? 199 : 9.99}, compareAtPrice: currency === 'EGP' ? 299 : 14.99, countries: []};
-    vm.runInContext('config=productConfig;pricingLoaded=true;render()', c);
+    c.productConfig = {currency, prices: {'1': currency === 'EGP' ? 199 : 9.99}, compareAtPrice: currency === 'EGP' ? 299 : 14.99, countries: [], bookPromotion: promotion};
+    vm.runInContext('config=productConfig;promotionDeadline=config.bookPromotion?.expiresInMs||0;pricingLoaded=true;render()', c);
     return nodes;
 }
 for (const currency of ['EGP', 'USD']) {
@@ -91,4 +91,17 @@ for (const currency of ['EGP', 'USD']) {
     assert.equal(ordinary.get('previewLink').href, '/previews/book19');
     assert.equal(ordinary.get('previousPrice').hidden, false);
 }
-console.log('Catalog pricing: 19 bundle sizes for EGP/USD/KWD, fixed-price books, product/mobile prices and preview visibility passed.');
+const promotion = {bookId: 'book21', currency: 'USD', price: 10, regularPrice: 19.99, percent: 50, expiresInMs: 604800000};
+const discounted = product('book21', 'USD', promotion);
+assert.equal(discounted.get('price').textContent, '$10.00');
+assert.equal(discounted.get('previousPrice').textContent, '$19.99');
+assert.equal(discounted.get('mobileBuyPrice').textContent, '$10.00');
+assert.equal(discounted.get('bookPromotionDetail').hidden, false);
+assert.match(discounted.get('bookPromotionPercent').textContent, /٥٠/);
+assert.match(discounted.get('bookPromotionCountdown').textContent, /7 أيام/);
+const kuwait = product('book21', 'KWD', promotion);
+assert.match(kuwait.get('price').textContent, /6\.200/);
+assert.match(kuwait.get('bookPromotionTerms').textContent, /\$10\.00/);
+assert.equal(product('book20', 'USD', promotion).get('bookPromotionDetail').hidden, true);
+assert.equal(product('book21', 'USD').get('bookPromotionDetail').hidden, true);
+console.log('Catalog pricing: book prices, preview rules and the targeted USD sale display passed.');
