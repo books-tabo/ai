@@ -1,0 +1,18 @@
+{
+  "batch": "tabo-editorial-20261030-02",
+  "keyword_research": "Editorial intent mapping against batch one and the 84-topic plan. Keyword phrases are qualitative proposals; no measured search volumes, rankings or indexing guarantees. Primary-source review used University of Edinburgh Reflection Toolkit, CCI Western Australia assertiveness resources and SBA market-research/startup-cost guidance. Original exercises and hypothetical examples are not attributed to the books.",
+  "articles": [
+    {"slug":"ambition-to-practice-project","description":"حوّل طموحك المهني إلى مشروع تدريب له مستخدم ومخرج ومعايير مراجعة واضحة، ثم اختر الخطوة التالية من عملك الفعلي بدل الاكتفاء بهدف واسع."},
+    {"slug":"learn-from-professional-setback","description":"راجع إخفاقًا مهنيًا عبر فصل الوقائع عن التفسير، وتحديد ما تستطيع التأثير فيه، واختيار تعديل قابل للفحص دون لوم شامل أو تبرير لكل شيء."},
+    {"slug":"strengths-with-evidence","description":"اكتشف نقاط قوتك العملية من مهام أنجزتها وملاحظات محددة، وافصل دورك عن نتيجة الفريق واختبر حدود القدرة قبل استخدامها في وصفك المهني."},
+    {"slug":"practice-through-boring-work","description":"افحص سبب الملل أثناء التدريب: تكرار بلا هدف، أم غموض في المهمة، أم توقيت غير مناسب؟ عدّل الممارسة وراجع أثرها قبل تغيير المسار."},
+    {"slug":"choices-versus-social-expectations","description":"ميّز رغبتك الشخصية عن توقعات الآخرين بفحص أسباب القرار، وفصل النصيحة والضغط والالتزام، وتجربة تفاصيل البديل قبل الحكم عليه."},
+    {"slug":"responsible-disagreement","description":"كيف ترفض فكرة أو طلبًا بوضوح واحترام؟ حدد موضوع الحوار وما تستطيع فعله، واسمع الاعتراض ثم اتفق على خطوة عملية دون اشتراط موافقة الجميع."},
+    {"slug":"cost-of-changing-direction","description":"قارن كلفة البقاء وكلفة تغيير المسار، وحدد المعلومات المجهولة والتجربة التي تحتاجها قبل الالتزام، مع مراعاة مسؤولياتك وظروفك الفعلية."},
+    {"slug":"review-inherited-rules","description":"تمرين لمراجعة القناعات الموروثة: التقط قاعدة تؤثر في قرارك، وافحص متى تفيد وحدود تطبيقها، ثم جرّب صياغة أدق في موقف قابل للمراجعة."},
+    {"slug":"skill-to-defined-service","description":"حوّل مهارتك إلى خدمة ذات مستخدم ومخرج ونطاق واضح، وجهز نموذجًا صادقًا واختبر ملاءمة العرض دون اختراع عملاء أو وعود بالنتائج."},
+    {"slug":"customer-problem-before-product","description":"افحص مشكلة العميل قبل بناء المنتج بأسئلة عن تجربة حدثت والبديل الحالي، ثم اختبر فرضية محددة دون اعتبار المجاملات دليلًا على وجود سوق."},
+    {"slug":"service-costs-before-pricing","description":"افهم تكلفة الخدمة قبل تسعيرها: حدد النطاق والوقت والمصروفات المباشرة والمشتركة، واختبر افتراضاتك بمثال حسابي مبسط دون وعود ربح."},
+    {"slug":"first-offer-feedback","description":"اختبر عرض خدمتك الأول بأسئلة تكشف فهم المخرج والحاجة والعوائق، وميز التشجيع عن الاتفاق الفعلي ثم عدّل عنصرًا تعرف سبب تغييره."}
+  ]
+}
