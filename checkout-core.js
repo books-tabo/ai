@@ -33,12 +33,6 @@ function formatMoney(value){
             }).format(amount);
             return currentLanguage==="ar"?`${digits} جنيه`:`EGP ${digits}`;
         }
-        if(storeConfig.currency==="KWD"){
-            const digits=new Intl.NumberFormat("en-US",{
-                minimumFractionDigits:3,maximumFractionDigits:3
-            }).format(amount);
-            return currentLanguage==="ar"?`${digits} د.ك`:`KWD ${digits}`;
-        }
         return new Intl.NumberFormat("en-US",{
             style:"currency",currency:storeConfig.currency,maximumFractionDigits:2
         }).format(amount);
@@ -67,7 +61,7 @@ function bookPrice(book){
 function calculatePricing(){
     const books=cart.map(item=>BOOKS.find(book=>book.id===item.id)).filter(Boolean);
     const ordinary=books.filter(book=>bookPolicy(book).bundleEligible);
-    const scale=storeConfig.currency==='KWD'?1000:100;
+    const scale=100;
     const minor=value=>Math.round(Number(value||0)*scale);
     const fixedMinor=books.filter(book=>!bookPolicy(book).bundleEligible).reduce((total,book)=>total+minor(bookPolicy(book).price),0);
     const basicMinor=ordinary.length?minor(PRICING_LADDER[ordinary.length]??ordinary.length*Number(PRICING_LADDER[1]||0)):0;
@@ -104,8 +98,7 @@ function renderCart(){
     const foreignSummary=needsEgpQuote();
     document.getElementById("cartFinalRow").classList.toggle("usd-summary",foreignSummary);
     document.getElementById("finalPriceLabel").textContent=foreignSummary?
-        (storeConfig.currency==="KWD"?(currentLanguage==="ar"?"الإجمالي بالدينار الكويتي":"Total in KWD"):
-          (currentLanguage==="ar"?"الإجمالي بالدولار":"Total in USD")):t("final");
+        (currentLanguage==="ar"?"الإجمالي بالدولار":"Total in USD"):t("final");
     document.getElementById("checkoutBtn").textContent=foreignSummary?`${t("checkout")} — ${formatMoney(pricing.final)}`:t("checkout");
 
 
@@ -268,10 +261,10 @@ function checkoutStatus(message){
 let checkoutQuote=null, checkoutQuoteKey="", checkoutQuotePending="", checkoutQuoteRequest=0, checkoutInFlight=false;
 
 function needsEgpQuote(){
-    return storeConfig.paymentProvider==='kashier' && ['USD','KWD'].includes(storeConfig.currency) && cart.length>0;
+    return storeConfig.paymentProvider==='kashier' && storeConfig.currency==='USD' && cart.length>0;
 }
 function quoteCartKey(){
-    return JSON.stringify([storeConfig.country,storeConfig.currency,calculatePricing().final,cart.map(x=>x.id).sort()]);
+    return JSON.stringify([storeConfig.country,storeConfig.currency,storeConfig.catalogRevision,calculatePricing().final,cart.map(x=>x.id).sort()]);
 }
 function currentCheckoutQuote(){
     return checkoutQuote && checkoutQuoteKey===quoteCartKey() && checkoutQuote.expiresAt*1000>Date.now()+5000;
@@ -324,35 +317,17 @@ async function refreshCheckoutQuote(force=false){
 }
 /* EGP quote end */
 
-/* PayPal always charges USD, including when Kuwait storefront prices are KWD. */
 function paypalUsdTotal(){
-    if(storeConfig.currency==='USD')return calculatePricing().final;
-    if(storeConfig.currency!=='KWD'||!storeConfig.paypalPricing||typeof TaboOfferPricing==='undefined')return null;
-    const config=storeConfig.paypalPricing;
-    if(config.currency!=='USD'||!config.prices||!config.bookPolicies||!Array.isArray(config.offers))return null;
-    try{
-        const amount=TaboOfferPricing.best(cart.map(item=>item.id),config).totalMinor/100;
-        return Number.isFinite(amount)&&amount>0?amount:null;
-    }catch(_){return null;}
+    return storeConfig.currency==='USD'?calculatePricing().final:null;
 }
 
 function renderPayPalChoice(){
     const button=document.getElementById('paypalCheckoutBtn'),note=document.getElementById('paypalCheckoutNote');
     if(!button||!note)return;
-    const kwd=storeConfig.currency==='KWD';
-    const usdAmount=paypalUsdTotal();
-    const available=storeConfig.paypalAvailable===true&&['USD','KWD'].includes(storeConfig.currency)&&cart.length>0&&usdAmount!==null;
+    const available=storeConfig.paypalAvailable===true&&storeConfig.currency==='USD'&&cart.length>0;
     button.hidden=note.hidden=!available;button.disabled=checkoutInFlight||!available;
-    if(kwd&&available){
-        const usd=usdAmount.toFixed(2);
-        button.textContent=currentLanguage==='en'?`Pay with PayPal — USD ${usd}`:`الدفع عبر PayPal — ${usd} دولار`;
-        note.textContent=currentLanguage==='en'?
-            `KWD is the displayed store price. PayPal will charge USD ${usd} using the store's international USD prices, not a live KWD conversion. Your bank or PayPal may apply exchange rates or fees.`:
-            `السعر المعروض بالدينار الكويتي. سيحصّل PayPal مبلغ ${usd} دولار أمريكي وفق أسعار المتجر الدولية بالدولار، وليس تحويلًا لحظيًا من الدينار. قد يطبق البنك أو PayPal رسومًا أو سعر صرف.`;
-    }else{
-        button.textContent=currentLanguage==='en'?'Pay with PayPal in USD':'الدفع عبر PayPal بالدولار';
-        note.textContent=currentLanguage==='en'?'PayPal: the displayed total is charged in US dollars.':'PayPal: سيتم تحصيل الإجمالي المعروض بالدولار الأمريكي.';
-    }
+    button.textContent=currentLanguage==='en'?'Pay with PayPal in USD':'الدفع عبر PayPal بالدولار';
+    note.textContent=currentLanguage==='en'?'PayPal charges the displayed USD total.':'يحصّل PayPal الإجمالي المعروض بالدولار الأمريكي.';
 }
 
 async function checkoutWithPaymentLink(){
@@ -360,7 +335,7 @@ async function checkoutWithPaymentLink(){
     if(checkoutInFlight)return;
     const useQuote=selected!=='paypal'&&needsEgpQuote();
     const paypalAmount=selected==='paypal'?paypalUsdTotal():null;
-    if(selected==='paypal'?storeConfig.paypalAvailable!==true||!['USD','KWD'].includes(storeConfig.currency)||paypalAmount===null:!window.TABO_CHECKOUT_READY){
+    if(selected==='paypal'?storeConfig.paypalAvailable!==true||paypalAmount===null:!window.TABO_CHECKOUT_READY){
         alert(storeConfig.checkoutSupported?t('preview'):t('currencyPending'));
         return;
     }
@@ -400,7 +375,7 @@ async function checkoutWithPaymentLink(){
             if(data.code==='INVALID_CUSTOMER'&&data.fields)error.fieldErrors=data.fields;
             throw error;
         }
-        if(selected==='paypal'&&storeConfig.currency==='KWD'&&
+        if(selected==='paypal'&&
                 (data.order.currency!=='USD'||Math.round(Number(data.order.total)*100)!==Math.round(paypalAmount*100))){
             if(typeof loadStoreConfig==='function')await loadStoreConfig();
             throw new Error(currentLanguage==='en'?

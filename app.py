@@ -187,8 +187,8 @@ def kashier_currencies():
 def payment_currency_supported(currency):
     currency=str(currency or '').upper()
     if payment_provider()=='kashier':
-        # USD and KWD are display currencies; the verified Kashier charge is EGP.
-        return ('EGP' if currency in ('USD','KWD') else currency) in kashier_currencies()
+        # USD display prices are converted to the verified Kashier charge currency.
+        return currency in ('USD', 'EGP') and 'EGP' in kashier_currencies()
     if payment_provider()=='paymob':
         return bool(paymob_mode() and currency in confirmed_currencies('PAYMOB') and localization.payment_method_for(currency))
     return False
@@ -225,6 +225,11 @@ def checkout_readiness():
 def checkout_ready():
     """Never accept payment unless originals and durable order storage are ready."""
     return all(checkout_readiness().values())
+
+def checkout_catalog_revision(country, at):
+    # Bind carts to the current currency policy and the currency shown to the buyer.
+    revision = book_promotion.revision(store_catalog.revision(), at)
+    return f"{revision}:egp-usd:{localization.COUNTRIES[country]['currency']}"
 
 def paypal_ready(currency):
     checks=checkout_readiness()
@@ -639,9 +644,7 @@ class Handler(BaseHTTPRequestHandler):
         return self.client_id()
 
     def pricing_country(self, requested=None):
-        selected=localization.normalize_country(requested)
-        if selected!='EG': return selected
-        return localization.pricing_country(selected,localization.country_from_ip(self.client_id()))
+        return localization.pricing_country(requested, localization.country_from_ip(self.client_id()))
 
     def enforce_rate_limit(self, route, method):
         lookup=POST_LIMITS if method=='POST' else GET_LIMITS
@@ -959,10 +962,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond(200,{'ok':True,'rating':rating,'stats':stats},headers)
             if route in ('/api/orders','/api/checkout-quote'):
                 pricing_at = time.time()
+                country = self.pricing_country(data.get('country'))
                 requested_revision = data.get('catalogRevision')
-                has_promotion_revision = isinstance(requested_revision, str) and ':promotion:' in requested_revision
-                if (store_catalog.enabled() or book_promotion.CAMPAIGN or has_promotion_revision) and (
-                        requested_revision != book_promotion.revision(store_catalog.revision(), pricing_at)):
+                if (requested_revision is not None or store_catalog.enabled() or book_promotion.CAMPAIGN
+                        or os.environ.get('TABO_CHECKOUT_ENABLED') == '1') and (
+                        requested_revision != checkout_catalog_revision(country, pricing_at)):
                     return self.respond(409,{'ok':False,'code':'CATALOG_REFRESH_REQUIRED','error':'تغيرت الأسعار أو العروض. حدّث السلة وراجع الإجمالي قبل الدفع.'})
                 selected=data.get('paymentProvider') or payment_provider()
                 if selected not in (payment_provider(),'paypal'):
@@ -976,25 +980,16 @@ class Handler(BaseHTTPRequestHandler):
                 ids=[x.get('id') if isinstance(x,dict) else None for x in items]
                 if any(i not in BOOKS for i in ids) or len(set(ids))!=len(ids):
                     return self.respond(400,{'ok':False,'error':'الكتب غير صالحة أو مكررة.'})
-                country=self.pricing_country(data.get('country'))
                 price_config=localization.pricing_for_country(PRICES,country,at=pricing_at)
                 total=catalog.total_for_items(ids,price_config)
                 currency=price_config['currency']
-                paypal_kwd=using_paypal and currency=='KWD'
-                if paypal_kwd:
-                    # KWD is a display currency only: PayPal charges the same
-                    # server-authoritative USD prices offered outside Egypt.
-                    kwd_display_total=total
-                    usd_config=localization.pricing_for_country(PRICES,'SA',at=pricing_at)
-                    total=catalog.total_for_items(ids,usd_config)
-                    currency='USD'
                 if not (paypal_ready(currency) if using_paypal else payment_currency_supported(currency)):
                     return self.respond(503,{'ok':False,'error':'الدفع بهذه العملة غير متاح حاليًا.'})
-                conversion=selected=='kashier' and currency in ('USD','KWD')
+                conversion=selected=='kashier' and currency=='USD'
                 if route=='/api/checkout-quote':
                     if not conversion:
                         return self.respond(200,{'ok':True,'quote':None})
-                    quote_data=checkout_pricing.issue(ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''),display_currency=currency)
+                    quote_data=checkout_pricing.issue(ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
                     return self.respond(200,{'ok':True,'quote':quote_data})
                 paymob_method_id=(localization.payment_method_for(currency)
                                   if selected=='paymob' else None)
@@ -1002,13 +997,9 @@ class Handler(BaseHTTPRequestHandler):
                 if field_errors:
                     return self.respond(400,{'ok':False,'code':'INVALID_CUSTOMER','fields':field_errors,
                                              'error':'راجع بيانات التواصل الموضحة قبل الدفع.'})
-                pricing_quote=({'displayCurrency':'KWD',
-                                'displayTotal':f'{Decimal(str(kwd_display_total)):.3f}',
-                                'chargeCurrency':'USD',
-                                'chargeTotal':f'{Decimal(str(total)):.2f}'}
-                               if paypal_kwd and route=='/api/orders' else None)
+                pricing_quote=None
                 if conversion:
-                    pricing_quote=checkout_pricing.verify(data.get('quoteToken'),ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''),display_currency=currency)
+                    pricing_quote=checkout_pricing.verify(data.get('quoteToken'),ids,country,total,payment_mode(),os.environ.get('TABO_SESSION_BINDING_KEY',''))
                     total=float(Decimal(pricing_quote['chargeTotal']))
                     currency='EGP'
                 checkout_secret=secrets.token_urlsafe(32)
@@ -1562,15 +1553,10 @@ class Handler(BaseHTTPRequestHandler):
             config=localization.pricing_for_country(PRICES,country,at=pricing_at)
             config['checkoutEnabled']=checkout_ready()
             config['checkoutSupported']=payment_currency_supported(config['currency'])
-            config['paypalAvailable']=config['currency'] in ('USD','KWD') and paypal_ready('USD')
-            if config['paypalAvailable'] and config['currency']=='KWD':
-                # The client displays the exact USD amount PayPal will collect;
-                # the order endpoint recalculates it independently.
-                usd=localization.pricing_for_country(PRICES,'SA',at=pricing_at)
-                config['paypalPricing']={key:usd[key] for key in ('currency','prices','bookPolicies','offers','bookPromotion') if key in usd}
+            config['paypalAvailable']=config['currency']=='USD' and paypal_ready('USD')
             config['receiptEmailEnabled']=order_receipts.enabled()
             config['bookEmailEnabled']=book_emails.enabled()
-            config['catalogRevision']=book_promotion.revision(store_catalog.revision(), pricing_at)
+            config['catalogRevision']=checkout_catalog_revision(country, pricing_at)
             config['recoveryEmailEnabled']=checkout_recovery.enabled() and store_catalog.reminders_enabled()
             config['paymentProvider']=payment_provider()
             config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']

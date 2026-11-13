@@ -99,22 +99,18 @@ function boot(){
         assert.equal(redirects[0],'https://payments.kashier.io/session/synthetic');
     }
     {
-        const {c,nodes}=boot();
+        const {c,nodes,quote}=boot();
         c.storeConfig.country='KW';
-        c.storeConfig.currency='KWD';
-        c.calculatePricing=()=>({final:3.1,count:1});
-        c.fetch=async()=>({ok:true,json:async()=>({ok:true,quote:{
-          displayCurrency:'KWD',displayTotal:'3.1',
-          chargeCurrency:'EGP',chargeTotal:'527.00',
-          expiresAt:Math.floor(Date.now()/1000)+300,token:'synthetic-kwd-quote'
-        }})});
+        c.fetch=async()=>({ok:true,json:async()=>({ok:true,quote:{...quote(),displayCurrency:'KWD'}})});
         assert.equal(c.needsEgpQuote(),true);
+        assert.equal(await c.refreshCheckoutQuote(),false);
+        c.fetch=async()=>({ok:true,json:async()=>({ok:true,quote:quote()})});
         assert.equal(await c.refreshCheckoutQuote(),true);
-        assert.match(nodes.chargeCurrencyNote.textContent,/527.00 جنيه/);
-        c.storeConfig.currency='USD';
+        assert.match(nodes.chargeCurrencyNote.textContent,/541.16 جنيه/);
+        c.storeConfig.catalogRevision='updated-prices';
         assert.equal(Boolean(c.currentCheckoutQuote()),false);
     }
-    console.log('5 checkout quote groups passed, including KWD-to-EGP binding.');
+    console.log('5 checkout quote groups passed, including USD-to-EGP quotes in Kuwait.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
 require('./test_catalog_pricing.cjs');

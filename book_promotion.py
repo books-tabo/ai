@@ -40,10 +40,10 @@ def load_campaign(path):
 
     book_id, currency, value = (data[field] for field in ('bookId', 'currency', 'price'))
     if (not isinstance(book_id, str) or book_id not in catalog.BOOKS or
-            currency not in ('USD', 'EGP', 'KWD') or type(value) not in (int, float)):
+            currency not in ('USD', 'EGP') or type(value) not in (int, float)):
         raise ValueError('Invalid individual book promotion.')
     price = Decimal(str(value))
-    unit = Decimal('0.001' if currency == 'KWD' else '0.01')
+    unit = Decimal('0.01')
     if not price.is_finite() or not unit <= price <= 100_000 or price != price.quantize(unit):
         raise ValueError('Invalid individual book promotion price.')
     return {'bookId': book_id, 'currency': currency, 'price': float(price), 'start': start, 'end': end}
@@ -78,6 +78,8 @@ def apply(config, at):
     remaining = max(1, int((campaign['end'] - at) * 1000))
     if 'bookId' in campaign:
         book_id, currency, price = (campaign[field] for field in ('bookId', 'currency', 'price'))
+        if config['currency'] != currency:
+            return config
         regular = catalog.current_fixed_prices().get(book_id, {}).get(currency)
         if regular is None or price >= regular:
             return config
@@ -89,7 +91,7 @@ def apply(config, at):
             'expiresInMs': remaining,
         }}
 
-    unit = Decimal('0.001' if config['currency'] == 'KWD' else '0.01')
+    unit = Decimal('0.01')
     multiplier = Decimal(100 - campaign['percent']) / 100
 
     def discount(price):

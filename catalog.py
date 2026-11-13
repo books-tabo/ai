@@ -1,5 +1,5 @@
 """Authoritative book catalog, preview policy and independent-price checkout."""
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 import json
 import store_catalog
 from pathlib import Path
@@ -50,37 +50,13 @@ PRICES = {1: 199,
  19: 1999}
 
 # Fixed-price books never contribute to the ordinary bundle count.
-FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 19.99, 'KWD': 6.200},
-                'book21': {'EGP': 500, 'USD': 19.99, 'KWD': 6.200},
-                'book22': {'EGP': 500, 'USD': 19.99, 'KWD': 6.200},
-                'book23': {'EGP': 500, 'USD': 19.99, 'KWD': 6.200},
-                'book24': {'EGP': 500, 'USD': 19.99, 'KWD': 6.200}}
+FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 19.99},
+                'book21': {'EGP': 500, 'USD': 19.99},
+                'book22': {'EGP': 500, 'USD': 19.99},
+                'book23': {'EGP': 500, 'USD': 19.99},
+                'book24': {'EGP': 500, 'USD': 19.99}}
 PREVIEW_DISABLED = frozenset({'book20', 'book21', 'book22', 'book23', 'book24'})
 
-# Explicitly approved KWD offer prices, with the newest marriage pack rounded
-# to the same 50-fils grid (USD 39 -> KWD 12.100 at the proposal exchange rate).
-KWD_OFFER_PRICES = {
-    'change-starter': 4.650,
-    'money-and-wealth': 6.200,
-    'self-growth': 7.150,
-    'sigma-couple': 10.900,
-    'sigma-trilogy': 15.250,
-    'marriage-awareness': 12.100,
-}
-
-
-def kwd_from_custom_usd(value):
-    """Fallback only for newly owner-customized independent book prices."""
-    usd = Decimal(str(value))
-    kwd = ((usd * Decimal('0.310823') / Decimal('0.05')).quantize(
-        Decimal('1'), rounding=ROUND_HALF_UP) * Decimal('0.05'))
-    return float(kwd.quantize(Decimal('0.001')))
-
-
-def offer_price(offer_id, offer, currency):
-    if currency == 'KWD':
-        return KWD_OFFER_PRICES.get(offer_id) if 'USD' in offer['prices'] else None
-    return offer['prices'].get(currency)
 OFFERS = json.loads((Path(__file__).resolve().parent / 'content/offers.json').read_text())
 for _offer in OFFERS.values():
     _fixed_bundle = _offer.get('fixedPriceBundle', False)
@@ -110,12 +86,7 @@ def public_policies(currency, ordinary_price):
     def price(book_id):
         if book_id not in fixed:
             return ordinary_price
-        prices = fixed[book_id]
-        if currency in prices:
-            return prices[currency]
-        if currency == 'KWD' and 'USD' in prices:
-            return kwd_from_custom_usd(prices['USD'])
-        raise ValueError('Independent book price is missing')
+        return fixed[book_id][currency]
     return {book_id: {
         'price': price(book_id),
         'bundleEligible': book_id not in fixed,
@@ -124,9 +95,9 @@ def public_policies(currency, ordinary_price):
 
 
 def public_offers(currency):
-    return [{'id':key,'books':offer['books'],'price':offer_price(key,offer,currency),
+    return [{'id':key,'books':offer['books'],'price':offer['prices'][currency],
              'title':offer['title']} for key,offer in current_offers().items()
-            if offer_price(key,offer,currency) is not None]
+            if currency in offer['prices']]
 
 
 def pricing_breakdown(ids, price_config):
@@ -153,7 +124,7 @@ def pricing_breakdown(ids, price_config):
     baseline = remainder(set())
     best, applied, covered = baseline, [], set()
     eligible = [(key,offer) for key,offer in current_offers().items()
-                if offer_price(key,offer,currency) is not None and set(offer['books']) <= set(ids)]
+                if currency in offer['prices'] and set(offer['books']) <= set(ids)]
     for mask in range(1, 1 << len(eligible)):
         used, selected, cost = set(), [], Decimal(0)
         for i,(key,offer) in enumerate(eligible):
@@ -162,7 +133,7 @@ def pricing_breakdown(ids, price_config):
                 if used & books:
                     break
                 used |= books; selected.append(key)
-                cost += Decimal(str(offer_price(key,offer,currency)))
+                cost += Decimal(str(offer['prices'][currency]))
         else:
             cost += remainder(used)
             # Prefer the fuller advertised pack when totals tie (overlapping fixed-price packs).
@@ -178,6 +149,5 @@ def pricing_breakdown(ids, price_config):
 
 
 def total_for_items(ids, price_config):
-    unit = Decimal('0.001' if price_config['currency'] == 'KWD' else '0.01')
-    total = pricing_breakdown(ids,price_config)['total'].quantize(unit)
+    total = pricing_breakdown(ids,price_config)['total'].quantize(Decimal('0.01'))
     return int(total) if total == total.to_integral_value() else float(total)

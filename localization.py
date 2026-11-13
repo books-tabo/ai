@@ -1,4 +1,4 @@
-"""Country detection and fixed EGP/USD/KWD pricing helpers for TABO BOOKS."""
+"""Country detection and EGP/USD pricing for TABO BOOKS."""
 import book_promotion
 import catalog
 import ipaddress
@@ -16,7 +16,7 @@ COUNTRIES = {
     'EG': {'ar': 'مصر', 'en': 'Egypt', 'currency': 'EGP'},
     'SA': {'ar': 'السعودية', 'en': 'Saudi Arabia', 'currency': 'USD'},
     'AE': {'ar': 'الإمارات', 'en': 'United Arab Emirates', 'currency': 'USD'},
-    'KW': {'ar': 'الكويت', 'en': 'Kuwait', 'currency': 'KWD'},
+    'KW': {'ar': 'الكويت', 'en': 'Kuwait', 'currency': 'USD'},
     'QA': {'ar': 'قطر', 'en': 'Qatar', 'currency': 'USD'},
     'BH': {'ar': 'البحرين', 'en': 'Bahrain', 'currency': 'USD'},
     'OM': {'ar': 'عُمان', 'en': 'Oman', 'currency': 'USD'},
@@ -59,30 +59,6 @@ USD_PRICES = {
     '17': 94.99,
     '18': 99.99,
     '19': 104.99,
-}
-
-# Approved Kuwait prices in dinars; displayed with three decimal places (fils).
-# These are explicit retail prices, not a fluctuating FX conversion.
-KWD_PRICES = {
-    '1': 3.100,
-    '2': 5.600,
-    '3': 7.750,
-    '4': 9.300,
-    '5': 10.900,
-    '6': 12.450,
-    '7': 14.000,
-    '8': 15.550,
-    '9': 17.100,
-    '10': 18.650,
-    '11': 20.200,
-    '12': 21.750,
-    '13': 23.300,
-    '14': 24.850,
-    '15': 26.400,
-    '16': 27.950,
-    '17': 29.500,
-    '18': 31.100,
-    '19': 32.650,
 }
 
 _GEO_CACHE = {}
@@ -131,14 +107,14 @@ def country_from_ip(value):
 
 
 def pricing_country(requested, detected):
-    """Egypt pricing is allowed only when the server detects an Egyptian IP."""
-    selected = normalize_country(requested)
+    """Egyptian visitors use EGP even with a saved international selection."""
     detected_code = str(detected or '').upper().strip()
-    if selected != 'EG' or detected_code == 'EG':
+    if detected_code == 'EG':
+        return 'EG'
+    selected = normalize_country(requested)
+    if selected != 'EG':
         return selected
-    if detected_code in COUNTRIES and detected_code != 'EG':
-        return detected_code
-    return 'SA'
+    return detected_code if detected_code in COUNTRIES else 'SA'
 
 
 def pricing_for_country(base_prices, country, *, at=None):
@@ -146,12 +122,8 @@ def pricing_for_country(base_prices, country, *, at=None):
     meta = COUNTRIES[code]
     egypt = code == 'EG'
     currency = meta['currency']
-    prices = ({str(count): amount for count, amount in base_prices.items()}
-              if egypt else KWD_PRICES.copy() if currency == 'KWD' else USD_PRICES.copy())
-    # The owner dashboard currently edits EGP and USD only. KWD uses the
-    # approved Kuwait price ladder independently of those existing values.
-    if currency != 'KWD':
-        prices=catalog.store_catalog.document().get('prices',{}).get(currency,prices)
+    prices = ({str(count): amount for count, amount in base_prices.items()} if egypt else USD_PRICES.copy())
+    prices = catalog.store_catalog.document().get('prices', {}).get(currency, prices)
     config = {
         'country': code,
         'currency': currency,
@@ -159,7 +131,7 @@ def pricing_for_country(base_prices, country, *, at=None):
         'prices': prices,
         'bookPolicies': catalog.public_policies(currency, prices['1']),
         'offers': catalog.public_offers(currency),
-        'compareAtPrice': 299 if egypt else 4.650 if currency == 'KWD' else 14.99,
+        'compareAtPrice': 299 if egypt else 14.99,
         'rateSource': 'fixed',
         'countries': [
             {'code': item_code, 'nameAr': item['ar'], 'nameEn': item['en'],

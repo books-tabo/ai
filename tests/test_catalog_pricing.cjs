@@ -8,10 +8,9 @@ const booksSource = html.match(/const BOOKS = (\[[^\n]*\]);/)[1];
 const source = fs.readFileSync('checkout-core.js','utf8').split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
 const egp = Object.fromEntries(Array.from({length: 19}, (_, i) => [String(i + 1), 199 + i * 100]));
 const usd = {1: 9.99, 2: 17.99, 3: 24.99, ...Object.fromEntries(Array.from({length: 16}, (_, i) => [String(i + 4), Number((29.99 + i * 5).toFixed(2))]))};
-const kwd = {1:3.100,2:5.600,3:7.750,4:9.300,5:10.900,6:12.450,7:14.000,8:15.550,9:17.100,10:18.650,11:20.200,12:21.750,13:23.300,14:24.850,15:26.400,16:27.950,17:29.500,18:31.100,19:32.650};
 const context = vm.createContext({storeConfig: {}, PRICING_LADDER: {}, currentLanguage: 'ar', cart: []});
 vm.runInContext('const BOOKS=' + booksSource + '; BOOKS.forEach((book,i)=>book.id="book"+(i+1));\n' + source, context);
-for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD', usd, 19.99, 14.99], ['KWD', kwd, 6.2, 4.65]]) {
+for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD', usd, 19.99, 14.99]]) {
     context.storeConfig = {currency, prices: ladder, compareAtPrice: compare};
     context.PRICING_LADDER = ladder;
     for (let count = 0; count <= 19; count++) {
@@ -33,6 +32,7 @@ for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD'
 
 function product(bookId, currency, promotion) {
     const detail = rendered('book.html','/books/'+bookId);
+    assert(detail.indexOf('id="bookPromotionDetail"') < detail.indexOf('class="cover-wrap"'));
     const detailScript = detail.slice(detail.indexOf('const BOOKS='), detail.indexOf('async function submitRating('));
     const nodes = new Map();
     const node = id => {
@@ -97,11 +97,15 @@ assert.equal(discounted.get('price').textContent, '$10.00');
 assert.equal(discounted.get('previousPrice').textContent, '$19.99');
 assert.equal(discounted.get('mobileBuyPrice').textContent, '$10.00');
 assert.equal(discounted.get('bookPromotionDetail').hidden, false);
-assert.match(discounted.get('bookPromotionPercent').textContent, /٥٠/);
-assert.match(discounted.get('bookPromotionCountdown').textContent, /7 أيام/);
-const kuwait = product('book21', 'KWD', promotion);
-assert.match(kuwait.get('price').textContent, /6\.200/);
-assert.match(kuwait.get('bookPromotionTerms').textContent, /\$10\.00/);
+assert.equal(discounted.get('bookPromotion').hidden, true);
+assert.match(discounted.get('bookPromotionHeadline').textContent, /٥٠/);
+assert.equal(discounted.get('bookPromotionPrice').textContent, '$10.00');
+assert.equal(discounted.get('bookPromotionRegular').textContent, '$19.99');
+assert.equal(discounted.get('bookPromotionDays').textContent, '7 أيام');
+assert.equal(discounted.get('bookPromotionCountdown').textContent, '00:00:00');
+const egypt = product('book21', 'EGP', promotion);
+assert.equal(egypt.get('price').textContent, '500 جنيه');
+assert.equal(egypt.get('bookPromotionDetail').hidden, true);
 assert.equal(product('book20', 'USD', promotion).get('bookPromotionDetail').hidden, true);
 assert.equal(product('book21', 'USD').get('bookPromotionDetail').hidden, true);
 console.log('Catalog pricing: book prices, preview rules and the targeted USD sale display passed.');
