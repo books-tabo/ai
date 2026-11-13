@@ -162,11 +162,9 @@ def offer_card(offer_id, language='ar', home=False, *, sigma_detail=False, show_
     offer = catalog.current_offers()[offer_id]
     ar = language == 'ar'
     action = ('<button type="button" data-add-offer="'+offer_id+'"' if home else '<a data-offer-buy href="/?offer='+offer_id+'&amp;cart=1"') + ' class="offer-button" data-offer-button-label>' + ('أضف الباقة للسلة' if ar else 'Add pack to cart') + ('</button>' if home else '</a>')
-    amounts = dict(offer['prices'])
-    if offer_id in catalog.KWD_OFFER_PRICES and 'USD' in amounts:
-        amounts['KWD'] = catalog.KWD_OFFER_PRICES[offer_id]
-    prices = ' / '.join((str(value)+' جنيه' if currency=='EGP' and ar else 'EGP '+str(value) if currency=='EGP' else f'{value:.3f} د.ك' if currency=='KWD' and ar else f'KWD {value:.3f}' if currency=='KWD' else '$'+str(value)) for currency,value in amounts.items())
-    availability = ('هذا العرض متاح خارج مصر بالدولار أو الدينار الكويتي. داخل مصر يظل سعر كل كتاب 500 جنيه.' if ar else 'This offer is available outside Egypt in USD or KWD. In Egypt each book remains EGP 500.') if set(offer['prices'])=={'USD'} else ''
+    prices = ' / '.join(f'${value}' if currency == 'USD' else (f'{value} جنيه' if ar else f'EGP {value}')
+                        for currency, value in offer['prices'].items())
+    availability = ('هذا العرض متاح خارج مصر بالدولار. داخل مصر يظل سعر كل كتاب 500 جنيه.' if ar else 'This offer is available outside Egypt in USD. In Egypt each book remains EGP 500.') if set(offer['prices'])=={'USD'} else ''
     availability_note = '<p data-offer-availability>' + availability + '</p>' if show_availability else ''
     pricing = '<div class="offer-price" data-offer-price>'+prices+'</div><p class="offer-original" data-offer-original hidden></p>'+availability_note+action
     if sigma_detail:

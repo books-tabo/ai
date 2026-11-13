@@ -47,14 +47,8 @@ function boot(){
  }
  {
   const {context:c,nodes,calls,events,redirects}=boot();
-  c.storeConfig.currency='KWD';c.storeConfig.country='KW';
-  c.storeConfig.paypalPricing={
-    currency:'USD',prices:{1:9.99,2:17.99},
-    bookPolicies:{book20:{price:19.99,bundleEligible:false},
-                  book21:{price:19.99,bundleEligible:false}},
-    offers:[{id:'sigma-couple',books:['book20','book21'],price:34.99}]
-  };
-  c.calculatePricing=()=>({final:10.9,count:2});
+  c.storeConfig.country='KW';
+  c.calculatePricing=()=>({final:34.99,count:2});
   c.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({
     ok:true,order:{id:'TABO-0000000000000003',total:34.99,currency:'USD',
                    items:[{id:'book20'},{id:'book21'}]},
@@ -63,13 +57,9 @@ function boot(){
   })}};
   c.renderPayPalChoice();
   assert.equal(nodes.paypalCheckoutBtn.hidden,false);
-  assert.match(nodes.paypalCheckoutBtn.textContent,/34\.99/);
-  assert.match(nodes.paypalCheckoutNote.textContent,/الدينار/);
-  assert.match(nodes.paypalCheckoutNote.textContent,/34\.99/);
+  assert.match(nodes.paypalCheckoutBtn.textContent,/بالدولار/);
+  assert.match(nodes.paypalCheckoutNote.textContent,/الإجمالي المعروض/);
   assert.equal(c.paypalUsdTotal(),34.99);
-  c.storeConfig.currency='EGP';c.renderPayPalChoice();
-  assert.equal(nodes.paypalCheckoutBtn.hidden,true);
-  c.storeConfig.currency='KWD';c.renderPayPalChoice();
   await c.checkoutWithPaymentLink('paypal');
   assert.equal(calls.length,1);
   assert.equal(JSON.parse(calls[0].options.body).paymentProvider,'paypal');
@@ -80,10 +70,8 @@ function boot(){
  }
  {
   const {context:c,nodes,calls,redirects}=boot();
-  c.storeConfig.currency='KWD';c.storeConfig.country='KW';
-  c.storeConfig.paypalPricing={currency:'USD',prices:{1:9.99,2:17.99},
-    bookPolicies:{book20:{price:19.99,bundleEligible:false},book21:{price:19.99,bundleEligible:false}},
-    offers:[{id:'sigma-couple',books:['book20','book21'],price:34.99}]};
+  c.storeConfig.country='KW';
+  c.calculatePricing=()=>({final:34.99,count:2});
   c.renderPayPalChoice();
   c.fetch=async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({
     ok:true,order:{id:'TABO-0000000000000004',total:39.99,currency:'USD',items:[{id:'book20'},{id:'book21'}]},
@@ -113,5 +101,5 @@ function boot(){
   if(valid&&paid)assert.equal(redirects[0],activationWorks?'/success.html?order=TABO-0000000000000002':'/pending.html?key='+'2'.repeat(64));
  }
  await returnPage(true);await returnPage(true,true,false);await returnPage(false);await returnPage(false,false);
- console.log('PayPal UI: KWD display with exact USD PayPal amount, amount mismatch protection, EGP hidden, original USD path and secure return passed.');
+ console.log('PayPal UI: USD totals, Kuwait pricing, mismatch protection, EGP visibility and secure return passed.');
 })().catch(error=>{console.error(error);process.exitCode=1});

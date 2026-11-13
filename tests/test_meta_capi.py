@@ -50,11 +50,12 @@ class CAPITests(unittest.TestCase):
 
     def test_browser_cannot_forge_purchase_checkout_price_or_private_source_url(self):
         data={'event_name':'ViewContent','event_id':'a'*64,'path':'/books/book21',
-              'content_ids':['book21'],'value':6.2,'currency':'KWD','email':'do-not-copy@synthetic.invalid'}
-        with patch.object(capi.store,'request') as request:
+              'content_ids':['book21'],'value':19.99,'currency':'USD','email':'do-not-copy@synthetic.invalid'}
+        with patch.object(app.book_promotion,'CAMPAIGN',None), patch.object(capi.store,'request') as request:
             self.assertTrue(capi.browser_event(data,MATCH,'KW'))
             payload=request.call_args.args[2]
-            self.assertEqual(payload['payload']['custom_data']['value'],6.2)
+            self.assertEqual(payload['payload']['custom_data']['value'],19.99)
+            self.assertEqual(payload['payload']['custom_data']['currency'],'USD')
             self.assertNotIn('do-not-copy',json.dumps(payload))
             self.assertEqual(payload['pixel_id'], CONFIG['TABO_META_CAPI_PIXEL_ID'])
             capi.browser_event({**data,'value':0.01},MATCH,'KW')

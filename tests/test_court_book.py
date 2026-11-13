@@ -27,8 +27,8 @@ class CourtBookTests(HTTPCase):
         self.assertEqual(seo.BOOKS['book22']['pageCount'], 419)
         self.assertEqual(seo.BOOKS['book22']['size'], 12519883)
         self.assertEqual(seo.categories_for('book22')[0][0], 'marriage-family')
-        self.assertEqual(catalog.FIXED_PRICES['book20'], {'EGP': 500, 'USD': 19.99, 'KWD': 6.2})
-        self.assertEqual(catalog.FIXED_PRICES['book21'], {'EGP': 500, 'USD': 19.99, 'KWD': 6.2})
+        self.assertEqual(catalog.FIXED_PRICES['book20'], {'EGP': 500, 'USD': 19.99})
+        self.assertEqual(catalog.FIXED_PRICES['book21'], {'EGP': 500, 'USD': 19.99})
         with self.assertRaises(ValueError):
             store_catalog.validate({'independentPrices': {'book22': {'EGP': 1, 'USD': 1}}})
 

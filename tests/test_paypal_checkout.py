@@ -183,7 +183,7 @@ class PayPalHTTPTests(HTTPCase):
         self.assertEqual(saved[0]['currency'],'USD');self.assertEqual(saved[0]['paymentMethod'],'PayPal')
         self.assertEqual(saved[0]['paymentMode'],'test');self.assertIsNone(saved[0]['pricingQuote']);quote.assert_not_called()
 
-    def test_kuwait_paypal_remains_available_with_kwd_display_and_usd_charge(self):
+    def test_kuwait_paypal_displays_and_charges_the_same_usd_pack_price(self):
         saved=[]
         with patch.object(app, 'paypal_ready', side_effect=lambda currency: currency=='USD'), \
              patch.object(app.store, 'insert', side_effect=lambda value:saved.append(value.copy())), \
@@ -193,11 +193,11 @@ class PayPalHTTPTests(HTTPCase):
              patch.object(app.checkout_pricing, 'issue') as signed_quote:
             with self.opener.open(self.base+'/api/store-config?country=KW') as response:
                 config=json.load(response)
-            self.assertEqual(config['currency'],'KWD')
+            self.assertEqual(config['currency'],'USD')
             self.assertTrue(config['paypalAvailable'])
-            self.assertEqual(config['paypalPricing']['currency'],'USD')
-            self.assertEqual(config['paypalPricing']['bookPolicies']['book20']['price'],19.99)
-            self.assertIn('sigma-couple',[offer['id'] for offer in config['paypalPricing']['offers']])
+            self.assertNotIn('paypalPricing', config)
+            self.assertEqual(config['bookPolicies']['book20']['price'],19.99)
+            self.assertIn('sigma-couple',[offer['id'] for offer in config['offers']])
             # HTTPCase uses a synthetic non-Egyptian client IP; pin the
             # trusted server geolocation for the Egyptian pricing assertion.
             with patch.object(app.Handler,'pricing_country',return_value='EG'):
@@ -205,7 +205,7 @@ class PayPalHTTPTests(HTTPCase):
                     egypt=json.load(response)
             self.assertFalse(egypt['paypalAvailable'])
 
-            request={'paymentProvider':'paypal','country':'KW',
+            request={'paymentProvider':'paypal','country':'KW','catalogRevision':config['catalogRevision'],
                 'items':[{'id':'book20','price':0.01},{'id':'book21','price':0.01}],
                 'customer':{'name':'Synthetic buyer','email':'fixture@example.invalid',
                             'phone':'+96598726788'},
@@ -215,11 +215,9 @@ class PayPalHTTPTests(HTTPCase):
         self.assertEqual((result['order']['currency'],result['order']['total']),('USD',34.99))
         self.assertEqual(saved[0]['country'],'KW')
         self.assertEqual(saved[0]['paymentMethod'],'PayPal')
-        self.assertEqual(saved[0]['pricingQuote'],{
-            'displayCurrency':'KWD','displayTotal':'10.900',
-            'chargeCurrency':'USD','chargeTotal':'34.99'})
+        self.assertIsNone(saved[0]['pricingQuote'])
         self.assertEqual(app.payment_price_summary(saved[0]),{
-            'displayCurrency':'KWD','displayTotal':'10.900',
+            'displayCurrency':'USD','displayTotal':'34.99',
             'chargeCurrency':'USD','chargeTotal':'34.99'})
         signed_quote.assert_not_called()
 

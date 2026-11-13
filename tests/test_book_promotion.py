@@ -21,7 +21,7 @@ class PromotionPricingTests(unittest.TestCase):
         examples = {
             'EG': (199, 159.20, 500, 400),
             'SA': (9.99, 7.99, 19.99, 15.99),
-            'KW': (3.100, 2.480, 6.200, 4.960),
+            'KW': (9.99, 7.99, 19.99, 15.99),
         }
         with patch.object(book_promotion, 'CAMPAIGN', SALE):
             for country, (regular, sale, fixed_regular, fixed_sale) in examples.items():
@@ -44,9 +44,9 @@ class PromotionPricingTests(unittest.TestCase):
             active = localization.pricing_for_country(catalog.PRICES, 'SA', at=1000)
             self.assertEqual(catalog.total_for_items(['book20', 'book21'], active), 31.98)
         with patch.object(book_promotion, 'CAMPAIGN', {**SALE, 'percent': 15}):
-            kwd = localization.pricing_for_country(catalog.PRICES, 'KW', at=1000)
-            self.assertEqual(kwd['bookPolicies']['book1']['price'], 2.635)
-            self.assertEqual(catalog.total_for_items(['book1'], kwd), 2.635)
+            kuwait = localization.pricing_for_country(catalog.PRICES, 'KW', at=1000)
+            self.assertEqual(kuwait['bookPolicies']['book1']['price'], 8.49)
+            self.assertEqual(catalog.total_for_items(['book1'], kuwait), 8.49)
 
     def test_individual_usd_sale_preserves_prices_and_pack_selection(self):
         with patch.object(book_promotion, 'CAMPAIGN', INDIVIDUAL_SALE):
@@ -54,20 +54,21 @@ class PromotionPricingTests(unittest.TestCase):
                 before = localization.pricing_for_country(catalog.PRICES, country, at=999)
                 active = localization.pricing_for_country(catalog.PRICES, country, at=1000)
                 after = localization.pricing_for_country(catalog.PRICES, country, at=INDIVIDUAL_SALE['end'])
+                self.assertEqual(before, after)
+                if country == 'EG':
+                    self.assertEqual(before, active)
+                    self.assertEqual(catalog.total_for_items(['book21'], active), 500)
+                    continue
                 promotion = active.pop('bookPromotion')
                 self.assertEqual(promotion, {'bookId': 'book21', 'currency': 'USD', 'price': 10,
                                              'regularPrice': 19.99, 'percent': 50, 'expiresInMs': 604800000})
                 self.assertEqual(before, active)
-                self.assertEqual(before, after)
                 active['bookPromotion'] = promotion
                 for ids in (['book20'], ['book20', 'book21'], ['book20', 'book21', 'book22', 'book23'],
                             list(catalog.BOOKS)):
                     self.assertEqual(catalog.pricing_breakdown(ids, active), catalog.pricing_breakdown(ids, before))
-                if country == 'SA':
-                    self.assertEqual(catalog.total_for_items(['book21'], active), 10)
-                    self.assertEqual(catalog.total_for_items(['book21', 'book1'], active), 19.99)
-                else:
-                    self.assertEqual(catalog.total_for_items(['book21'], active), before['bookPolicies']['book21']['price'])
+                self.assertEqual(catalog.total_for_items(['book21'], active), 10)
+                self.assertEqual(catalog.total_for_items(['book21', 'book1'], active), 19.99)
 
 
 class PromotionHTTPTests(HTTPCase):
@@ -80,18 +81,18 @@ class PromotionHTTPTests(HTTPCase):
              patch.object(app.store, 'insert') as insert:
             with self.opener.open(self.base + '/api/store-config?country=KW') as response:
                 kuwait = json.load(response)
-            self.assertEqual(kuwait['paypalPricing']['bookPromotion']['price'], 10)
-            with self.opener.open(self.base + '/api/store-config?country=SA') as response:
-                config = json.load(response)
+            self.assertEqual(kuwait['bookPromotion']['price'], 10)
+            self.assertEqual(kuwait['currency'], 'USD')
+            self.assertTrue(kuwait['paypalAvailable'])
             for ids, expected in ((['book21'], '10.00'), (['book20', 'book21'], '34.99'),
                                   (['book20', 'book21', 'book22', 'book23'], '49.00')):
                 status, result, _ = self.post('/api/checkout-quote', {
-                    'country': 'SA', 'items': [{'id': item} for item in ids],
-                    'catalogRevision': config['catalogRevision'],
+                    'country': 'KW', 'items': [{'id': item} for item in ids],
+                    'catalogRevision': kuwait['catalogRevision'],
                 })
                 self.assertEqual((status, Decimal(result['quote']['displayTotal'])), (200, Decimal(expected)))
             clock.return_value = INDIVIDUAL_SALE['end']
-            status, result, _ = self.post('/api/checkout-quote', {'catalogRevision': config['catalogRevision']})
+            status, result, _ = self.post('/api/checkout-quote', {'catalogRevision': kuwait['catalogRevision']})
             self.assertEqual((status, result['code']), (409, 'CATALOG_REFRESH_REQUIRED'))
             insert.assert_not_called()
 
@@ -100,7 +101,7 @@ class PromotionHTTPTests(HTTPCase):
             with patch.object(app.time, 'time', return_value=1000):
                 with self.opener.open(self.base + '/api/store-config?country=KW') as response:
                     config = json.load(response)
-                self.assertEqual(config['bookPolicies']['book21']['price'], 4.960)
+                self.assertEqual(config['bookPolicies']['book21']['price'], 15.99)
                 self.assertIn(':promotion:', config['catalogRevision'])
             with patch.object(app.time, 'time', return_value=2000), patch.object(app.store, 'insert') as insert:
                 for route in ('/api/orders', '/api/checkout-quote'):
@@ -110,4 +111,4 @@ class PromotionHTTPTests(HTTPCase):
                 with self.opener.open(self.base + '/api/store-config?country=KW') as response:
                     current = json.load(response)
                 self.assertNotIn('bookPromotion', current)
-                self.assertEqual(current['bookPolicies']['book21']['price'], 6.200)
+                self.assertEqual(current['bookPolicies']['book21']['price'], 19.99)
