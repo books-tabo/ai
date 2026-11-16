@@ -1,0 +1,23 @@
+{
+  "batch": "tabo-editorial-20261116-05",
+  "partial_reviewed_batch": true,
+  "keyword_research": "Reviewed four distinct intents; original hypothetical examples, primary Edinburgh reflection source, no fabricated book quotes or search metrics. Partial batch; other 40 outstanding topics remain pending.",
+  "articles": [
+    {
+      "slug": "personal-principles-for-decisions",
+      "description": "اكتب مبادئ شخصية قابلة للاستخدام عند تعارض الخيارات، وحدد الاستثناءات وطريقة المراجعة عبر مثال عملي بعيدًا عن الشعارات العامة."
+    },
+    {
+      "slug": "trust-built-by-consistency",
+      "description": "راجع وعودك بطريقة عملية: حدّد ما التزمت به، وموعده، وكيف تبلغ الطرف الآخر بالتغيير، مع مثال يفرق بين النية الجيدة والسلوك القابل للملاحظة."
+    },
+    {
+      "slug": "knowledge-to-useful-contribution",
+      "description": "حوّل ما تتعلمه إلى مساهمة يستفيد منها شخص محدد، عبر تحديد السؤال والمخرج وحدود المعرفة وتجربة الاستخدام وجمع ملاحظات قابلة للتنفيذ."
+    },
+    {
+      "slug": "redefine-success-with-your-values",
+      "description": "راجع تعريفك للنجاح عندما تتغير ظروفك، وافصل المقاييس الموروثة عن أولوياتك الحالية باستخدام بطاقة قرار وتجربة محدودة قابلة للمراجعة."
+    }
+  ]
+}
