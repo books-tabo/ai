@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         python: ['3.12', '3.14.3']
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       TABO_CHECKOUT_ENABLED: '0'
     steps:
