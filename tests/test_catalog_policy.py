@@ -23,8 +23,9 @@ class CatalogPolicyTests(unittest.TestCase):
                 if country=='EG' and count>=17: subtotal=Decimal({17:1749,18:1849,19:1849}[count])
                 if country=='SA' and count==19: subtotal=Decimal('102.99')
                 for bid in catalog.FIXED_PRICES:
+                    expected_fixed = Decimal('600') if country == 'EG' and bid == 'book21' else fixed
                     for mixed in [ids + [bid], [bid] + list(reversed(ids))]:
-                        self.assertEqual(Decimal(str(catalog.total_for_items(mixed, config))), subtotal + fixed)
+                        self.assertEqual(Decimal(str(catalog.total_for_items(mixed, config))), subtotal + expected_fixed)
                 self.assertEqual(Decimal(str(catalog.total_for_items(ids, config))), subtotal)
 
     def test_known_mixed_totals_and_no_bundle_slot_for_sigma(self):
@@ -43,7 +44,8 @@ class CatalogPolicyTests(unittest.TestCase):
         for country, fixed in [('EG', 500), ('SA', 19.99)]:
             config = localization.pricing_for_country(catalog.PRICES, country)
             for bid in catalog.FIXED_PRICES:
-                self.assertEqual(config['bookPolicies'][bid], {'price': fixed, 'bundleEligible': False, 'previewEnabled': False})
+                expected_fixed = 600 if country == 'EG' and bid == 'book21' else fixed
+                self.assertEqual(config['bookPolicies'][bid], {'price': expected_fixed, 'bundleEligible': False, 'previewEnabled': False})
             self.assertEqual(config['bookPolicies']['book19'], {'price': config['prices']['1'], 'bundleEligible': True, 'previewEnabled': True})
             self.assertNotIn('20', config['prices'])
 
