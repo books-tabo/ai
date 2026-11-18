@@ -13,11 +13,11 @@ from urllib.error import HTTPError
 
 class CuratedPricingTests(unittest.TestCase):
     def test_sigma_pair_is_an_exact_usd_exception_to_independent_prices(self):
-        cases=[(['book20'],500,19.99),(['book21'],500,19.99),
-               (['book20','book21'],1000,34.99),
-               (['book20','book21','book1'],1199,44.98),
-               (['book21','book1','book2'],799,37.98),
-               (['book20','book21','book18','book14','book6'],1300,49.99)]
+        cases=[(['book20'],500,19.99),(['book21'],600,19.99),
+               (['book20','book21'],1100,34.99),
+               (['book20','book21','book1'],1299,44.98),
+               (['book21','book1','book2'],899,37.98),
+               (['book20','book21','book18','book14','book6'],1400,49.99)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('SA',usd)]:
                 config=localization.pricing_for_country(catalog.PRICES,country)
@@ -31,7 +31,7 @@ class CuratedPricingTests(unittest.TestCase):
 
     def test_four_book_pack_is_automatic_and_named_in_either_offer_order(self):
         ids=['book20','book21','book22','book23']
-        for country,total,saving in [('EG',1250,'750'),('SA',49,'30.96')]:
+        for country,total,saving in [('EG',1250,'850'),('SA',49,'30.96')]:
             config=localization.pricing_for_country(catalog.PRICES,country)
             for offers in [catalog.OFFERS,dict(reversed(list(catalog.OFFERS.items())))]:
                 with patch.object(catalog,'current_offers',return_value=offers):
@@ -47,7 +47,8 @@ class CuratedPricingTests(unittest.TestCase):
         for removed in books:
             remaining = [book_id for book_id in books if book_id != removed]
             usd = '59.97' if removed in ('book20', 'book21') else '54.98'
-            for country, total in [('EG', '1500'), ('SA', usd)]:
+            egp = '1500' if removed == 'book21' else '1600'
+            for country, total in [('EG', egp), ('SA', usd)]:
                 config = localization.pricing_for_country(catalog.PRICES, country)
                 result = catalog.pricing_breakdown(remaining, config)
                 self.assertEqual(result['total'], Decimal(total))

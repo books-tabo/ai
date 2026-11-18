@@ -164,7 +164,7 @@ def offer_card(offer_id, language='ar', home=False, *, sigma_detail=False, show_
     action = ('<button type="button" data-add-offer="'+offer_id+'"' if home else '<a data-offer-buy href="/?offer='+offer_id+'&amp;cart=1"') + ' class="offer-button" data-offer-button-label>' + ('أضف الباقة للسلة' if ar else 'Add pack to cart') + ('</button>' if home else '</a>')
     prices = ' / '.join(f'${value}' if currency == 'USD' else (f'{value} جنيه' if ar else f'EGP {value}')
                         for currency, value in offer['prices'].items())
-    availability = ('هذا العرض متاح خارج مصر بالدولار. داخل مصر يظل سعر كل كتاب 500 جنيه.' if ar else 'This offer is available outside Egypt in USD. In Egypt each book remains EGP 500.') if set(offer['prices'])=={'USD'} else ''
+    availability = ('هذا العرض متاح خارج مصر بالدولار. داخل مصر يمكنك شراء كل كتاب بسعره المعروض.' if ar else 'This offer is available outside Egypt in USD. In Egypt you can buy each book at its displayed price.') if set(offer['prices'])=={'USD'} else ''
     availability_note = '<p data-offer-availability>' + availability + '</p>' if show_availability else ''
     pricing = '<div class="offer-price" data-offer-price>'+prices+'</div><p class="offer-original" data-offer-original hidden></p>'+availability_note+action
     if sigma_detail:

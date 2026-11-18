@@ -1,5 +1,7 @@
 """Verify scheduled discounts against actual checkout totals in isolation."""
 import json
+from pathlib import Path
+import tempfile
 import unittest
 from decimal import Decimal
 from unittest.mock import patch
@@ -14,6 +16,8 @@ from support import HTTPCase
 SALE = {'percent': 20, 'start': 1000, 'end': 2000}
 INDIVIDUAL_SALE = {'bookId': 'book21', 'currency': 'USD', 'price': 10,
                    'start': 1000, 'end': 1000 + 7 * 86400}
+EGYPT_SALE = {'bookId': 'book21', 'currency': 'EGP', 'price': 299,
+              'start': 1500, 'end': 1500 + 7 * 86400}
 
 
 class PromotionPricingTests(unittest.TestCase):
@@ -34,6 +38,8 @@ class PromotionPricingTests(unittest.TestCase):
                     self.assertEqual(active['bookPromotion']['percent'], 20)
                     for book_id, policy in active['bookPolicies'].items():
                         expected = (regular, sale) if policy['bundleEligible'] else (fixed_regular, fixed_sale)
+                        if country == 'EG' and book_id == 'book21':
+                            expected = (600, 480)
                         self.assertEqual((policy['regularPrice'], policy['price']), expected)
                         self.assertEqual(catalog.total_for_items([book_id], active), policy['price'])
 
@@ -57,7 +63,7 @@ class PromotionPricingTests(unittest.TestCase):
                 self.assertEqual(before, after)
                 if country == 'EG':
                     self.assertEqual(before, active)
-                    self.assertEqual(catalog.total_for_items(['book21'], active), 500)
+                    self.assertEqual(catalog.total_for_items(['book21'], active), 600)
                     continue
                 promotion = active.pop('bookPromotion')
                 self.assertEqual(promotion, {'bookId': 'book21', 'currency': 'USD', 'price': 10,
@@ -70,8 +76,95 @@ class PromotionPricingTests(unittest.TestCase):
                 self.assertEqual(catalog.total_for_items(['book21'], active), 10)
                 self.assertEqual(catalog.total_for_items(['book21', 'book1'], active), 19.99)
 
+    def test_egypt_offer_has_its_own_week_and_keeps_usd_prices_and_pack_totals(self):
+        with patch.object(book_promotion, 'CAMPAIGN', (INDIVIDUAL_SALE, EGYPT_SALE)):
+            before = localization.pricing_for_country(catalog.PRICES, 'EG', at=1499)
+            self.assertNotIn('bookPromotion', before)
+            active = localization.pricing_for_country(catalog.PRICES, 'EG', at=1500)
+            self.assertEqual(active['bookPromotion'], {'bookId':'book21', 'currency':'EGP',
+                'price':299, 'regularPrice':600, 'percent':50, 'expiresInMs':604800000})
+            self.assertEqual(catalog.total_for_items(['book21'], active), 299)
+            self.assertEqual(catalog.total_for_items(['book21', 'book1'], active), 498)
+            self.assertEqual(catalog.total_for_items(['book20', 'book21'], active), 799)
+            self.assertEqual(active['bookPolicies'], before['bookPolicies'])
+            self.assertEqual(active['prices'], before['prices'])
+            self.assertEqual(active['offers'], before['offers'])
+            for offer in catalog.OFFERS.values():
+                if 'EGP' in offer['prices']:
+                    self.assertEqual(catalog.total_for_items(offer['books'], active),
+                                     catalog.total_for_items(offer['books'], before))
+            for book_id in catalog.BOOKS:
+                if book_id != 'book21':
+                    self.assertEqual(catalog.total_for_items([book_id], active),
+                                     catalog.total_for_items([book_id], before))
+            usd_at_start = book_promotion.revision(0, 1500, 'USD')
+            self.assertEqual(usd_at_start, book_promotion.revision(0, 1499, 'USD'))
+            usd_ends = INDIVIDUAL_SALE['end']
+            self.assertEqual(catalog.total_for_items(['book21'], localization.pricing_for_country(
+                catalog.PRICES, 'KW', at=usd_ends - 1)), 10)
+            self.assertEqual(catalog.total_for_items(['book21'], localization.pricing_for_country(
+                catalog.PRICES, 'KW', at=usd_ends)), 19.99)
+            self.assertEqual(catalog.total_for_items(['book21'], localization.pricing_for_country(
+                catalog.PRICES, 'EG', at=usd_ends)), 299)
+            for at in (EGYPT_SALE['end'] - 1, EGYPT_SALE['end']):
+                current = localization.pricing_for_country(catalog.PRICES, 'EG', at=at)
+                self.assertEqual(catalog.total_for_items(['book21'], current),
+                                 299 if at < EGYPT_SALE['end'] else 600)
+
+    def test_checked_in_campaigns_preserve_the_usd_schedule_and_offer_one_week_in_egypt(self):
+        path = Path(book_promotion.__file__).with_name('content') / 'book-promotion.json'
+        campaigns = book_promotion.load_campaign(path)
+        self.assertEqual({c['currency'] for c in campaigns}, {'EGP', 'USD'})
+        egypt = next(c for c in campaigns if c['currency'] == 'EGP')
+        self.assertEqual(egypt['bookId'], 'book21')
+        self.assertEqual(egypt['price'], 299)
+        self.assertEqual(egypt['end'] - egypt['start'], 7 * 86400)
+        usd = next(c for c in campaigns if c['currency'] == 'USD')
+        self.assertEqual(usd, {'bookId':'book21','currency':'USD','price':10,
+            'start':1794528060.0,'end':1795132860.0})
+        data = json.loads(path.read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            duplicate = Path(directory) / 'campaigns.json'
+            duplicate.write_text(json.dumps([data[0], data[0]]))
+            with self.assertRaises(ValueError):
+                book_promotion.load_campaign(duplicate)
+
 
 class PromotionHTTPTests(HTTPCase):
+    def test_egypt_checkout_uses_299_and_expiry_requires_price_review(self):
+        self.install()
+        with patch.object(book_promotion, 'CAMPAIGN', (INDIVIDUAL_SALE, EGYPT_SALE)), \
+             patch.object(app.time, 'time', return_value=1500) as clock, \
+             patch.object(app.Handler, 'client_id', return_value='41.32.1.1'), \
+             patch.object(app, 'checkout_ready', return_value=True), \
+             patch.object(app, 'payment_checkout', return_value=('https://payments.kashier.io/session/synthetic', 'synthetic')) as gateway, \
+             patch.object(app.store, 'insert') as insert:
+            with self.opener.open(self.base + '/api/store-config?country=KW') as response:
+                config = json.load(response)
+            self.assertEqual(config['currency'], 'EGP')
+            self.assertEqual(config['bookPromotion']['price'], 299)
+            self.assertEqual(config['bookPromotion']['regularPrice'], 600)
+            customer = {'name':'Synthetic Buyer','email':'fixture@example.invalid','phone':'01000000000'}
+            cart = {'country':'KW','items':[{'id':'book21','price':1}], 'customer':customer,
+                    'catalogRevision':config['catalogRevision'], 'total':1}
+            with patch.object(app.store, 'patch', return_value={'status':'PENDING'}):
+                status, result, _ = self.post('/api/orders', cart)
+            self.assertEqual(status, 201)
+            self.assertEqual((result['order']['currency'], result['order']['total']), ('EGP', 299))
+            self.assertEqual(insert.call_args.args[0]['total'], 299)
+            self.assertEqual(gateway.call_args.args[0]['total'], 299)
+            gateway.reset_mock()
+            insert.reset_mock()
+            clock.return_value = EGYPT_SALE['end']
+            status, result, _ = self.post('/api/orders', cart)
+            self.assertEqual((status, result['code']), (409, 'CATALOG_REFRESH_REQUIRED'))
+            gateway.assert_not_called()
+            insert.assert_not_called()
+            with self.opener.open(self.base + '/api/store-config?country=EG') as response:
+                current = json.load(response)
+            self.assertNotIn('bookPromotion', current)
+            self.assertEqual(current['bookPolicies']['book21']['price'], 600)
+
     def test_individual_usd_quote_and_existing_packs_during_the_week(self):
         with patch.object(book_promotion, 'CAMPAIGN', INDIVIDUAL_SALE), \
              patch.object(app.time, 'time', return_value=1000) as clock, \

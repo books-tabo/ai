@@ -25,7 +25,7 @@ class CurrencyPricingTests(unittest.TestCase):
         for key in ('prices', 'compareAtPrice', 'bookPolicies', 'offers'):
             self.assertEqual(kuwait[key], international[key])
         self.assertEqual(egypt['prices'], {str(count): price for count, price in catalog.PRICES.items()})
-        self.assertEqual(egypt['bookPolicies']['book21']['price'], 500)
+        self.assertEqual(egypt['bookPolicies']['book21']['price'], 600)
         self.assertEqual(catalog.total_for_items(['book20', 'book21'], kuwait), 34.99)
         self.assertEqual(catalog.total_for_items(['book20', 'book21', 'book22', 'book23'], kuwait), 49)
 
@@ -77,7 +77,7 @@ class CurrencyPricingHTTPTests(HTTPCase):
         with patch.object(app.Handler, 'client_id', return_value='41.32.1.1'):
             egypt = self.config('KW')
             self.assertEqual((egypt['country'], egypt['currency']), ('EG', 'EGP'))
-            self.assertEqual(egypt['bookPolicies']['book21']['price'], 500)
+            self.assertEqual(egypt['bookPolicies']['book21']['price'], 600)
             status, reply, _ = self.post('/api/checkout-quote', {
                 'country': 'KW', 'items': [{'id': 'book21'}], 'catalogRevision': cfg['catalogRevision'],
             })

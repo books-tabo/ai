@@ -84,7 +84,7 @@ for(const [ids,expected] of [[['book21'],10],[['book21','book1'],19.99],
 }
 c.storeConfig=fixture[0].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
 assert.equal(c.addCuratedOffer('sigma-couple'),false);assert.equal(c.cart.length,0);
-c.cart=[{id:'book20'},{id:'book21'}];assert.equal(vm.runInContext('calculatePricing().final',c),1000);
+c.cart=[{id:'book20'},{id:'book21'}];assert.equal(vm.runInContext('calculatePricing().final',c),1100);
 const after=new URLSearchParams(histories.at(-1).split('?')[1]);
 assert.equal(after.get('utm_source'),'facebook');assert.equal(after.get('fbclid'),'synthetic+test');assert.equal(after.has('offer'),false);
 vm.runInContext(fs.readFileSync('offer-ui.js','utf8'),c);
@@ -108,7 +108,7 @@ assert.equal(buy.hidden,false);assert.equal(buy.disabled,false);
 assert.match(elements.get('[data-offer-price]').textContent,/34\.99/);
 assert.match(elements.get('[data-offer-original]').textContent,/39\.98/);
 card.dataset.offerId='sigma-trilogy';
-for(const [config,price,original] of [[fixture[0].config,/1,250[.,]00|1250[.,]00/,/2,000[.,]00|2000[.,]00/],[fixture[1].config,/49[.,]00/,/79[.,]96/]]) {
+for(const [config,price,original] of [[fixture[0].config,/1,250[.,]00|1250[.,]00/,/2,100[.,]00|2100[.,]00/],[fixture[1].config,/49[.,]00/,/79[.,]96/]]) {
  c.TaboOfferUI.render(config,'en');assert.equal(buy.hidden,false);assert.match(elements.get('[data-offer-price]').textContent,price);
  assert.match(elements.get('[data-offer-original]').textContent,original);
 }

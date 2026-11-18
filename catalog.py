@@ -51,7 +51,7 @@ PRICES = {1: 199,
 
 # Fixed-price books never contribute to the ordinary bundle count.
 FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 19.99},
-                'book21': {'EGP': 500, 'USD': 19.99},
+                'book21': {'EGP': 600, 'USD': 19.99},
                 'book22': {'EGP': 500, 'USD': 19.99},
                 'book23': {'EGP': 500, 'USD': 19.99},
                 'book24': {'EGP': 500, 'USD': 19.99}}
