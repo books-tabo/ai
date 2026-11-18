@@ -1,4 +1,4 @@
-"""A scheduled discount on current single-book prices.
+"""Scheduled discounts on current single-book prices, scoped by currency.
 
 Use ISO timestamps with explicit offsets. A promotion can specify a storewide
 percent or a bookId, currency and exact price for an individual book.
@@ -14,6 +14,18 @@ import catalog
 
 def load_campaign(path):
     data = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(data, list):
+        return validate_campaign(data)
+    campaigns = tuple(validate_campaign(item) for item in data)
+    if any(campaign is None for campaign in campaigns):
+        raise ValueError('A promotion list must contain valid campaigns.')
+    currencies = [campaign.get('currency') for campaign in campaigns]
+    if len(set(currencies)) != len(currencies) or (len(currencies) > 1 and None in currencies):
+        raise ValueError('Only one scheduled promotion may apply to each currency.')
+    return campaigns
+
+
+def validate_campaign(data):
     if data is None:
         return None
     period = {'startsAt', 'endsAt'}
@@ -54,14 +66,15 @@ if os.environ.get('TABO_CHECKOUT_ENABLED') != '1' or os.environ.get('TABO_SITE_E
     CAMPAIGN = None
 
 
-def active(at):
-    if CAMPAIGN and CAMPAIGN['start'] <= at < CAMPAIGN['end']:
-        return CAMPAIGN
-    return None
+def active(at, currency=None):
+    campaigns = (CAMPAIGN,) if isinstance(CAMPAIGN, dict) else CAMPAIGN or ()
+    return next((campaign for campaign in campaigns
+                 if campaign['start'] <= at < campaign['end'] and
+                 ('currency' not in campaign or currency is None or campaign['currency'] == currency)), None)
 
 
-def revision(base_revision, at):
-    campaign = active(at)
+def revision(base_revision, at, currency=None):
+    campaign = active(at, currency)
     if campaign is None:
         return base_revision
     period = f"{base_revision}:promotion:{campaign['start']}:{campaign['end']}"
@@ -71,7 +84,7 @@ def revision(base_revision, at):
 
 
 def apply(config, at):
-    campaign = active(at)
+    campaign = active(at, config['currency'])
     if campaign is None:
         return config
 

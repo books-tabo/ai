@@ -92,7 +92,7 @@ async function pendingCase(status,ready,activationFails=false){
  }
  {
   const {c,nodes,calls}=await boot();await c.loadStoreConfig('EG');
-  assert.equal(nodes.paypalCheckoutBtn.hidden,true);assert.match(nodes.cartFinal.textContent,/1,000|1000/);
+  assert.equal(nodes.paypalCheckoutBtn.hidden,true);assert.match(nodes.cartFinal.textContent,/1,100|1100/);
   nodes.checkoutEmail.value='';await nodes.checkoutBtn.events.click();assert(!calls.some(call=>call.url==='/api/orders'));
   nodes.languageToggle.events.click();assert.equal(c.document.documentElement.lang,'en');
  }

@@ -1,7 +1,16 @@
-{
-  "bookId": "book21",
-  "currency": "USD",
-  "price": 10,
-  "startsAt": "2026-11-13T03:01:00+03:00",
-  "endsAt": "2026-11-20T03:01:00+03:00"
-}
+[
+  {
+    "bookId": "book21",
+    "currency": "USD",
+    "price": 10,
+    "startsAt": "2026-11-13T03:01:00+03:00",
+    "endsAt": "2026-11-20T03:01:00+03:00"
+  },
+  {
+    "bookId": "book21",
+    "currency": "EGP",
+    "price": 299,
+    "startsAt": "2026-11-18T16:48:00+03:00",
+    "endsAt": "2026-11-25T16:48:00+03:00"
+  }
+]

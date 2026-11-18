@@ -172,7 +172,7 @@ class QuoteHTTPTests(HTTPCase):
         self.insert.assert_not_called()
 
     def test_sigma_egypt_orders_ignore_client_prices_and_bundle_position(self):
-        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],500),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1000),(['book23'],500),(['book24'],500),(['book24','book23','book22'],1000),(['book20','book21','book22'],1500),(['book20','book21','book22','book23'],1250),(list(app.BOOKS),3599)]
+        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],600),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1100),(['book23'],500),(['book24'],500),(['book24','book23','book22'],1000),(['book20','book21','book22'],1600),(['book20','book21','book22','book23'],1250),(list(app.BOOKS),3599)]
         with patch.object(app.Handler,'pricing_country',return_value='EG'), patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')):
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
