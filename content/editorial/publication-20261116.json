@@ -1,0 +1,120 @@
+{
+  "date_utc": "2026-11-16",
+  "published_at_utc": "2026-11-16T05:41:03.664214+00:00",
+  "articles_published": 4,
+  "book_id": "book15",
+  "word_count": 1911,
+  "plan_completed": 44,
+  "plan_total": 84,
+  "plan_remaining": 40,
+  "total_blog_posts": 51,
+  "resources_separate_from_plan": 3,
+  "legacy_articles": 4,
+  "scope": "دفعة جزئية: نُشرت أربعة موضوعات مراجعة؛ بقية الموضوعات لم تُنتج في هذه الجولة ولا تعد مجتازة للمراجعة",
+  "source_pr": "https://github.com/books-tabo/ai/pull/119",
+  "http_qa": [
+    {
+      "url": "https://tabobooks.com/blog/personal-principles-for-decisions",
+      "status": 200,
+      "canonical": [
+        "https://tabobooks.com/blog/personal-principles-for-decisions"
+      ],
+      "description_match": true,
+      "blogposting": true,
+      "indexable": true,
+      "book_link": true,
+      "complementary_links": 3,
+      "bad_hrefs": []
+    },
+    {
+      "url": "https://tabobooks.com/blog/trust-built-by-consistency",
+      "status": 200,
+      "canonical": [
+        "https://tabobooks.com/blog/trust-built-by-consistency"
+      ],
+      "description_match": true,
+      "blogposting": true,
+      "indexable": true,
+      "book_link": true,
+      "complementary_links": 3,
+      "bad_hrefs": []
+    },
+    {
+      "url": "https://tabobooks.com/blog/knowledge-to-useful-contribution",
+      "status": 200,
+      "canonical": [
+        "https://tabobooks.com/blog/knowledge-to-useful-contribution"
+      ],
+      "description_match": true,
+      "blogposting": true,
+      "indexable": true,
+      "book_link": true,
+      "complementary_links": 3,
+      "bad_hrefs": []
+    },
+    {
+      "url": "https://tabobooks.com/blog/redefine-success-with-your-values",
+      "status": 200,
+      "canonical": [
+        "https://tabobooks.com/blog/redefine-success-with-your-values"
+      ],
+      "description_match": true,
+      "blogposting": true,
+      "indexable": true,
+      "book_link": true,
+      "complementary_links": 3,
+      "bad_hrefs": []
+    }
+  ],
+  "navigation_qa": [
+    {
+      "path": "/blog",
+      "status": 200,
+      "new_slugs_found": [
+        "personal-principles-for-decisions",
+        "trust-built-by-consistency",
+        "knowledge-to-useful-contribution",
+        "redefine-success-with-your-values"
+      ],
+      "robots": null
+    },
+    {
+      "path": "/blog/sitemap.xml",
+      "status": 200,
+      "new_slugs_found": [
+        "personal-principles-for-decisions",
+        "trust-built-by-consistency",
+        "knowledge-to-useful-contribution",
+        "redefine-success-with-your-values"
+      ],
+      "robots": null
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "new_slugs_found": [],
+      "robots": "User-agent: *\nAllow: /\nSitemap: https://tabobooks.com/sitemap.xml\nSitemap: https://tabobooks.com/blog/sitemap.xml\n"
+    },
+    {
+      "path": "/books/book15",
+      "status": 200,
+      "new_slugs_found": [],
+      "robots": null
+    },
+    {
+      "path": "/blog/learning-project-worksheet",
+      "status": 200,
+      "new_slugs_found": [],
+      "robots": null
+    }
+  ],
+  "database_integrity": {
+    "mode": "insert_only",
+    "previous_rows": 47,
+    "previous_rows_unchanged": true,
+    "before_fingerprint": "97f0ae4ac3c5c19ebec057032905b4f9",
+    "after_previous_rows_fingerprint": "97f0ae4ac3c5c19ebec057032905b4f9",
+    "collision_guard_passed": true
+  },
+  "indexing_or_ranking_claimed": false
+}
