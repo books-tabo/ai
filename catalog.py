@@ -27,7 +27,8 @@ BOOKS = {'book1': ('هرمون', 'cover-edition-20261109/book1.pdf'),
  'book21': ('السيجما: أنوثة طاغية', 'cover-edition-20261109/book21.pdf'),
  'book22': ('محكمة الحب والجنس', 'cover-edition-20261109/book22.pdf'),
  'book23': ('هرمونات أنثى', 'cover-edition-20261109/book23.pdf'),
- 'book24': ('تحت المجهر', 'cover-edition-20261109/book24.pdf')}
+ 'book24': ('تحت المجهر', 'cover-edition-20261109/book24.pdf'),
+ 'book25': ('رسائل الياسمين — الجزء الأول', 'book25.pdf')}
 
 PRICES = {1: 199,
  2: 299,
@@ -54,7 +55,8 @@ FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 19.99},
                 'book21': {'EGP': 600, 'USD': 19.99},
                 'book22': {'EGP': 500, 'USD': 19.99},
                 'book23': {'EGP': 500, 'USD': 19.99},
-                'book24': {'EGP': 500, 'USD': 19.99}}
+                'book24': {'EGP': 500, 'USD': 19.99},
+                'book25': {'EGP': 250, 'USD': 9.99}}
 PREVIEW_DISABLED = frozenset({'book20', 'book21', 'book22', 'book23', 'book24'})
 
 OFFERS = json.loads((Path(__file__).resolve().parent / 'content/offers.json').read_text())

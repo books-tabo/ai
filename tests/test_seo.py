@@ -188,7 +188,7 @@ class PublicHTMLTests(HTTPCase):
 
     def test_private_and_preview_policy_is_not_exposed_as_public_content(self):
         with patch.object(app.store,'original') as original:
-            for path in ['/book20.pdf','/originals/book20.pdf','/book21.pdf','/originals/book21.pdf','/book22.pdf','/originals/book22.pdf','/book23.pdf','/originals/book23.pdf','/book24.pdf','/originals/book24.pdf','/content/books.json','/covers/../app.py']:
+            for path in ['/book20.pdf','/originals/book20.pdf','/book21.pdf','/originals/book21.pdf','/book22.pdf','/originals/book22.pdf','/book23.pdf','/originals/book23.pdf','/book24.pdf','/originals/book24.pdf','/book25.pdf','/originals/book25.pdf','/content/books.json','/covers/../app.py']:
                 self.assertEqual(self.get(path)[0],404,path)
             for book_id in ('book20','book21','book22','book23','book24'):
                 self.assertNotIn('href="/previews/'+book_id+'"',self.get('/books/'+book_id)[2])
@@ -230,3 +230,16 @@ class CatalogMetadataTests(unittest.TestCase):
         self.assertEqual(seo.CATEGORIES['marriage-family']['books'],['book20','book21','book22','book23','book24'])
         for bid in ('book20','book21','book22','book23','book24'):
             self.assertEqual(seo.categories_for(bid)[0][0],'marriage-family')
+
+
+class JasmineBookMetadataTests(unittest.TestCase):
+    def test_published_volume_matches_the_supplied_pdf_and_leaves_upcoming(self):
+        book = seo.BOOKS['book25']
+        self.assertEqual(book['name'], 'رسائل الياسمين — الجزء الأول')
+        self.assertEqual((book['pageCount'], book['size']), (354, 5848018))
+        self.assertEqual(len(book['chapters']), 42)
+        self.assertEqual(catalog.FIXED_PRICES['book25'], {'EGP': 250, 'USD': 9.99})
+        self.assertEqual(seo.categories_for('book25')[0][0], 'literature')
+        self.assertTrue(catalog.preview_enabled('book25'))
+        self.assertFalse(any(item['slug'] == 'letters-to-yasmine' for item in seo.UPCOMING))
+        self.assertNotIn('102', book['about'])

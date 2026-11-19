@@ -1669,5 +1669,132 @@
     ],
     "imageWidth": 720,
     "imageHeight": 1080
+  },
+  "book25": {
+    "name": "رسائل الياسمين — الجزء الأول",
+    "enName": "Letters of Jasmine — Volume One",
+    "image": "/covers/book25.webp?v=0003693942ea",
+    "size": 5848018,
+    "fixedPrices": {
+      "EGP": 250,
+      "USD": 9.99
+    },
+    "bundleEligible": false,
+    "previewEnabled": true,
+    "short": "اثنتان وأربعون رسالة وجدانية، من براءة الطفولة إلى حيرة الحب الصامت؛ أوراق قلب يكبر مع ياسمين، ويقول للورق ما يعجز عن قوله لها.",
+    "enShort": "Forty-two literary letters tracing childhood memories, quiet longing and the uncertainty of unspoken love for Jasmine.",
+    "about": "«رسائل الياسمين — الجزء الأول» للمؤلف TABO NOOR كتاب في أدب الرسائل والنثر الوجداني، تتصل رسائله بخيط عاطفي واحد: قلب يستعيد معرفته بياسمين منذ الطفولة، ويراقب كيف تتغير الصداقة واللغة والمشاعر مع مرور الأعوام.\n\nتضم هذه النسخة 42 رسالة وخاتمة شعرية في 354 صفحة. تبدأ بمقعد المدرسة والوردة والضحكة والغياب الأول، ثم تقترب من أسئلة القلب والغيرة والرسائل التي لم تُرسل، وصولًا إلى وصف الحبيبة وحيرة القرب والبعد. كتابة عن الحب من طرف واحد، وذاكرة التفاصيل الصغيرة، واحترام أن مشاعر الآخرين لا يلزم أن تشبه مشاعرنا.",
+    "enAbout": "Letters of Jasmine — Volume One by TABO NOOR is a collection of literary letters and emotional prose. A shared thread follows a heart remembering Jasmine from childhood and noticing how friendship, language and feelings change over the years.\n\nThis edition contains 42 letters and a closing poem across 354 pages. School memories, a flower, a laugh and early absence give way to questions of love, jealousy, unsent letters and the uncertainty of closeness and distance. It explores one-sided love, small details and respect for feelings that may not be reciprocated.",
+    "adds": "يمنح محبّي الأدب الوجداني مساحة للتأمل في الحب والحنين والذاكرة، من خلال رسائل يمكن قراءتها على مهل، منفردة أو متتابعة.",
+    "enAdds": "Offers readers of emotional prose a reflective space for love, longing and memory, through letters to read slowly, individually or in sequence.",
+    "idea": "قد يحمل القلب حكاية كاملة، بينما لا تجد الكلمات طريقها إلا إلى الورق.",
+    "enIdea": "A heart can hold an entire story while its words find their way only onto paper.",
+    "audience": {
+      "ar": "لمحبّي أدب الرسائل والنثر الوجداني والكتابة الرومانسية وتأملات الحب والحنين.",
+      "en": "For readers of literary letters, emotional prose and romantic reflections on love and longing."
+    },
+    "primaryCategory": "literature",
+    "topics": {
+      "ar": [
+        "ذكريات الطفولة وبدايات التعلّق",
+        "الصداقة وأسئلة الحب الصامت",
+        "الغيرة والغياب والرسائل التي لم تُرسل",
+        "وصف الحبيبة وذاكرة التفاصيل",
+        "الحب من طرف واحد واحترام اختلاف المشاعر"
+      ],
+      "en": [
+        "Childhood memories and early attachment",
+        "Friendship and unspoken love",
+        "Jealousy, absence and unsent letters",
+        "Portraits of the beloved and remembered details",
+        "One-sided love and respecting different feelings"
+      ]
+    },
+    "related": [],
+    "faq": {
+      "ar": [
+        [
+          "ما نوع كتاب رسائل الياسمين؟",
+          "كتاب رسائل أدبية ونثر وجداني للمؤلف TABO NOOR، تتصل رسائله بذكريات ياسمين والحب الصامت."
+        ],
+        [
+          "ماذا تضم هذه النسخة؟",
+          "الجزء الأول، ويضم 42 رسالة وخاتمة شعرية في ملف PDF من 354 صفحة."
+        ],
+        [
+          "هل يمكن قراءة عينة قبل الشراء؟",
+          "نعم، تتوفر معاينة محدودة داخل المتصفح على هيئة صور للصفحات، دون رابط تحميل ملف المعاينة."
+        ],
+        [
+          "كيف أحصل على الكتاب؟",
+          "بعد تأكيد الدفع تتاح نسخة PDF المختومة باسم المشتري عبر روابط التحميل المحمية، وفق سياسة المتجر التي تتيح التنزيل مرتين."
+        ]
+      ],
+      "en": [
+        [
+          "What kind of book is Letters of Jasmine?",
+          "A collection of literary letters and emotional prose by TABO NOOR, linked through memories of Jasmine and unspoken love."
+        ],
+        [
+          "What does this edition include?",
+          "Volume One contains 42 letters and a closing poem in a 354-page PDF."
+        ],
+        [
+          "Can I read a sample?",
+          "Yes. A limited browser preview displays page images without offering the sample PDF as a download."
+        ],
+        [
+          "How do I receive it?",
+          "After payment confirmation, the personalized stamped PDF is available through protected delivery, with the store’s two-download limit."
+        ]
+      ]
+    },
+    "pageCount": 354,
+    "chapters": [
+      "إلى فتاة اسمها ياسمين",
+      "حين رأيتك",
+      "عن عينيك",
+      "مقعد بجوار النافذة",
+      "لماذا أبحث عنكِ؟",
+      "ضحكتكِ التي أفسدت حزني",
+      "أشياء صغيرة لا يعرفها الكبار",
+      "وردة من دفتر المدرسة",
+      "حديث لم يكتمل",
+      "حين غبتِ عن المدرسة",
+      "كبرنا قليلًا يا ياسمين",
+      "حين أزهرت الياسمينة",
+      "حين تغيّر صوتكِ",
+      "أسئلة لا أجرؤ على طرحها",
+      "عن قلبي",
+      "بين الصداقة وشيء آخر",
+      "حين أصبحتِ بعيدة",
+      "لماذا يؤلمني صمتكِ؟",
+      "غيرة لا أفهمها",
+      "رسالة لم أستطع إرسالها",
+      "عن اسمكِ حين ينطقه الآخرون",
+      "أحب حديثكِ عن أحلامكِ",
+      "بعض المسافات لا تقاس بالأمتار",
+      "أهذا هو الحب؟",
+      "أخشى أن تقرئي قلبي",
+      "حين رأيتكِ حزينة",
+      "لو كنت شاعرًا",
+      "كبرنا يا ياسمين",
+      "ياسمين… بطعم القهوة",
+      "القبلة الأولى",
+      "أما بعد، يا ياسمين",
+      "امرأة تسكن ذاكرتي",
+      "في وصف عينيكِ",
+      "إلى التي تشبه الربيع",
+      "عن صوتكِ وما يفعل بي",
+      "أحبكِ كما لا تشرح الكتب",
+      "حين يغيب وجهكِ",
+      "أيتها البعيدة القريبة",
+      "لو اجتمع الشعراء",
+      "أحب فيكِ ما لا ترينه",
+      "حين يضيق العالم",
+      "رسائلكِ"
+    ],
+    "imageWidth": 720,
+    "imageHeight": 1080
   }
 }

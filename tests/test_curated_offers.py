@@ -98,7 +98,7 @@ class CuratedPricingTests(unittest.TestCase):
                (['book1','book2','book3'],399,24.99),
                (starter+['book20'],800,34.99),(money+['book20'],850,39.99),
                (growth+['book20'],900,42.99),
-               (list(catalog.BOOKS),3599,171.98)]
+               (list(catalog.BOOKS),3849,181.97)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('SA',usd)]:
                 with self.subTest(country=country,ids=ids):
