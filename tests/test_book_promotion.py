@@ -40,6 +40,8 @@ class PromotionPricingTests(unittest.TestCase):
                         expected = (regular, sale) if policy['bundleEligible'] else (fixed_regular, fixed_sale)
                         if country == 'EG' and book_id == 'book21':
                             expected = (600, 480)
+                        if book_id == 'book25':
+                            expected = (250, 200) if country == 'EG' else (9.99, 7.99)
                         self.assertEqual((policy['regularPrice'], policy['price']), expected)
                         self.assertEqual(catalog.total_for_items([book_id], active), policy['price'])
 

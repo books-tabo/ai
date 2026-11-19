@@ -530,20 +530,6 @@
     }
   },
   {
-    "slug": "letters-to-yasmine",
-    "cover": "/covers/upcoming/letters-to-yasmine.webp?v=804039bc048c",
-    "ar": {
-      "title": "رسائل الياسمين",
-      "badge": "كتاب · يتوفر قريبًا",
-      "description": "في رسائل وجدانية مستقلة، يستعيد شاب ذكريات البراءة وبدايات تعلّقه بياسمين. وتتغيّر نبرة الرسائل مع الوقت، من الشوق والانتظار إلى الفراق، ثم محاولة التصالح مع ما بقي في الذاكرة."
-    },
-    "en": {
-      "title": "Letters to Yasmine",
-      "badge": "Book · Coming soon",
-      "description": "In a series of self-contained letters, a young man revisits memories of innocence and the beginnings of his attachment to Yasmine. Their tone moves from longing and waiting to parting and an attempt to come to terms with what remains in memory."
-    }
-  },
-  {
     "slug": "uthman-ibn-affan-theory",
     "cover": "/covers/upcoming/uthman-ibn-affan-theory.webp?v=e835c8aa1d0e",
     "ar": {

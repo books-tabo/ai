@@ -86,6 +86,13 @@ for (const currency of ['EGP', 'USD']) {
     assert.equal(microscope.has('downloads'), false);
     assert.match(microscope.get('price').textContent, currency === 'EGP' ? /500/ : /19\.99/);
     assert.equal(microscope.get('price').textContent, microscope.get('mobileBuyPrice').textContent);
+    const jasmine = product('book25', currency);
+    assert.equal(jasmine.get('previewLink').hidden, false);
+    assert.equal(jasmine.get('previewLink').href, '/previews/book25');
+    assert.equal(jasmine.get('previousPrice').hidden, true);
+    assert.match(jasmine.get('price').textContent, currency === 'EGP' ? /250/ : /9\.99/);
+    assert.equal(jasmine.get('price').textContent, jasmine.get('mobileBuyPrice').textContent);
+    assert.equal(jasmine.get('bookPromotionDetail').hidden, true);
     const ordinary = product('book19', currency);
     assert.equal(ordinary.get('previewLink').hidden, false);
     assert.equal(ordinary.get('previewLink').href, '/previews/book19');

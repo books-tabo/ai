@@ -94,5 +94,16 @@
       "ar": "قراءات للبالغين عن التفاهم والتواصل والصحة والحميمية داخل الزواج. يضم القسم كتابَي السيجما و«محكمة الحب والجنس» و«هرمونات أنثى» و«تحت المجهر»، مع الاهتمام بالمعرفة والرضا والاحترام المتبادل، دون أن تحل القراءة محل الاستشارة المتخصصة.",
       "en": "Adult reading on understanding, communication, health and intimacy within marriage. This collection includes the two Sigma books, The Court of Love & Sex, Female Hormones and Under the Microscope, emphasizing knowledge, consent and mutual respect without replacing professional advice."
     }
+  },
+  "literature": {
+    "ar": "كتب الأدب والرسائل",
+    "en": "Literature & Letters",
+    "books": [
+      "book25"
+    ],
+    "description": {
+      "ar": "رسائل أدبية ونثر وجداني عن الحب والحنين والذاكرة، تبدأ مع الجزء الأول من «رسائل الياسمين» للمؤلف تابو نور.",
+      "en": "Literary letters and emotional prose on love, longing and memory, beginning with Letters of Jasmine — Volume One by TABO NOOR."
+    }
   }
 }
