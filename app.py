@@ -693,7 +693,7 @@ class Handler(BaseHTTPRequestHandler):
             source=source.replace('href="/admin-dashboard.css"','href="/admin-dashboard.css?v='+version+'"')
         if filename == 'checkout-recovery.html':
             source=source.replace('__RECOVERY_DATA__',seo.safe_json(self._recovery_data))
-        if filename == 'checkout.html':
+        if filename in ('checkout.html','sigma-quiz.html'):
             books=[{'id':bid,'name':book['name'],'enName':book['enName'],
                     **{key:book[key] for key in ('fixedPrices','bundleEligible','previewEnabled') if key in book}}
                    for bid,book in seo.current_books().items()]
@@ -1316,10 +1316,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         route=urlparse(self.path).path
-        uses_catalog=(route in ('/','/index.html','/checkout','/checkout.html','/api/store-config','/offers','/categories','/authors') or route.startswith(('/books/','/offers/','/categories/','/authors/','/catalog-covers/')))
+        uses_catalog=(route in ('/','/index.html','/checkout','/checkout.html','/sigma-test','/api/store-config','/offers','/categories','/authors') or route.startswith(('/books/','/offers/','/categories/','/authors/','/catalog-covers/')))
         try:
             if uses_catalog:
-                public_read=not (route.startswith(('/api/','/catalog-covers/')) or route in ('/checkout','/checkout.html'))
+                public_read=not (route.startswith(('/api/','/catalog-covers/')) or route in ('/checkout','/checkout.html','/sigma-test'))
                 with store_catalog.context(public_read=public_read):return self._do_GET()
             return self._do_GET()
         except Exception:
@@ -1525,6 +1525,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=='/paypal-return.html': return self.html('paypal-return.html')
         if route=='/order-help': return self.html('order-help.html')
         if route=='/order-help.js': return self.asset('order-help.js','text/javascript; charset=utf-8')
+        if route=='/sigma-test': return self.html('sigma-quiz.html',{'X-Robots-Tag':'noindex, nofollow, noarchive'})
         if route=='/checkout': return self.html('checkout.html')
         if route=='/pending.html': return self.html('pending.html')
         if route=='/success.html': return self.html('success.html')
