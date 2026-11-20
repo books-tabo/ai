@@ -1,0 +1,142 @@
+{
+  "book1": {
+    "origin": "https://i.ibb.co/jPh93m1j/image.png",
+    "originalBytes": 489603,
+    "optimizedBytes": 35082,
+    "width": 427,
+    "height": 640
+  },
+  "book2": {
+    "origin": "https://i.ibb.co/WCNrS7p/image.png",
+    "originalBytes": 582567,
+    "optimizedBytes": 52538,
+    "width": 427,
+    "height": 640
+  },
+  "book3": {
+    "origin": "https://i.ibb.co/JRMHj8Wh/image.png",
+    "originalBytes": 545995,
+    "optimizedBytes": 49750,
+    "width": 427,
+    "height": 640
+  },
+  "book4": {
+    "origin": "https://i.ibb.co/xKXNjHH1/image.png",
+    "originalBytes": 623359,
+    "optimizedBytes": 60450,
+    "width": 427,
+    "height": 640
+  },
+  "book5": {
+    "origin": "https://i.ibb.co/6cLgHxqY/image.png",
+    "originalBytes": 507170,
+    "optimizedBytes": 43686,
+    "width": 427,
+    "height": 640
+  },
+  "book6": {
+    "origin": "https://i.ibb.co/JF0G8Jwq/image.png",
+    "originalBytes": 564060,
+    "optimizedBytes": 48078,
+    "width": 427,
+    "height": 640
+  },
+  "book7": {
+    "origin": "/book7-cover.jpg",
+    "originalBytes": 169540,
+    "optimizedBytes": 73114,
+    "width": 720,
+    "height": 1018
+  },
+  "book8": {
+    "origin": "/book8-cover.jpg",
+    "originalBytes": 501488,
+    "optimizedBytes": 167668,
+    "width": 720,
+    "height": 1080
+  },
+  "book9": {
+    "origin": "/book9-cover.jpg",
+    "originalBytes": 342003,
+    "optimizedBytes": 86526,
+    "width": 720,
+    "height": 1077
+  },
+  "book10": {
+    "origin": "/book10-cover.jpg",
+    "originalBytes": 300268,
+    "optimizedBytes": 72366,
+    "width": 720,
+    "height": 1078
+  },
+  "book11": {
+    "origin": "/book11-cover.jpg",
+    "originalBytes": 159662,
+    "optimizedBytes": 52448,
+    "width": 720,
+    "height": 1015
+  },
+  "book12": {
+    "origin": "/book12-cover.jpg",
+    "originalBytes": 171093,
+    "optimizedBytes": 46756,
+    "width": 720,
+    "height": 1018
+  },
+  "book13": {
+    "origin": "/book13-cover.jpg",
+    "originalBytes": 244271,
+    "optimizedBytes": 81188,
+    "width": 720,
+    "height": 1018
+  },
+  "book14": {
+    "origin": "/book14-cover.jpg",
+    "originalBytes": 281926,
+    "optimizedBytes": 66148,
+    "width": 720,
+    "height": 1080
+  },
+  "book15": {
+    "origin": "/book15-cover.jpg",
+    "originalBytes": 455882,
+    "optimizedBytes": 115276,
+    "width": 720,
+    "height": 960
+  },
+  "book16": {
+    "origin": "/book16-cover.jpg",
+    "originalBytes": 292981,
+    "optimizedBytes": 111588,
+    "width": 720,
+    "height": 1018
+  },
+  "book17": {
+    "origin": "/book17-cover.jpg",
+    "originalBytes": 456823,
+    "optimizedBytes": 136958,
+    "width": 720,
+    "height": 1080
+  },
+  "book18": {
+    "origin": "/book18-cover.jpg",
+    "originalBytes": 344572,
+    "optimizedBytes": 125648,
+    "width": 720,
+    "height": 1080
+  },
+  "book19": {
+    "origin": "/book19-cover.jpg",
+    "originalBytes": 522832,
+    "optimizedBytes": 114052,
+    "width": 720,
+    "height": 1018
+  },
+  "book20": {
+    "origin": "/book20-cover.jpg",
+    "originalBytes": 455410,
+    "optimizedBytes": 95748,
+    "width": 720,
+    "height": 1018
+  }
+}

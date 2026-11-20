@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TABO BOOKS</title>
+<style>
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body {
+  --cover-tone: 86, 68, 45;
+  --cover-light: 200, 158, 88;
+  --book-outline: rgba(var(--cover-light), .24);
+  --book-wash: rgba(var(--cover-light), .09);
+  margin: 0;
+  font-family: Tahoma, Arial, sans-serif;
+  color: var(--store-text);
+  color-scheme: dark;
+}
+
+/* Cover art palettes for the book detail pages. */
+body[data-book-id="book1"],
+body[data-book-id="book8"] {
+  --cover-tone: 34, 66, 74;
+  --cover-light: 188, 143, 91;
+}
+body[data-book-id="book2"],
+body[data-book-id="book6"],
+body[data-book-id="book15"] {
+  --cover-tone: 33, 57, 89;
+  --cover-light: 188, 149, 100;
+}
+body[data-book-id="book3"] {
+  --cover-tone: 125, 52, 40;
+  --cover-light: 207, 173, 122;
+}
+body[data-book-id="book4"],
+body[data-book-id="book11"] {
+  --cover-tone: 132, 93, 40;
+  --cover-light: 219, 174, 76;
+}
+body[data-book-id="book5"],
+body[data-book-id="book10"],
+body[data-book-id="book21"] {
+  --cover-tone: 104, 38, 51;
+  --cover-light: 171, 95, 78;
+}
+body[data-book-id="book7"],
+body[data-book-id="book12"],
+body[data-book-id="book13"],
+body[data-book-id="book14"],
+body[data-book-id="book16"] {
+  --cover-tone: 94, 72, 55;
+  --cover-light: 193, 151, 104;
+}
+body[data-book-id="book9"],
+body[data-book-id="book17"],
+body[data-book-id="book20"] {
+  --cover-tone: 81, 65, 44;
+  --cover-light: 205, 158, 78;
+}
+body[data-book-id="book18"] {
+  --cover-tone: 122, 77, 38;
+  --cover-light: 218, 154, 77;
+}
+body[data-book-id="book19"] {
+  --cover-tone: 58, 75, 101;
+  --cover-light: 193, 152, 102;
+}
+body[data-book-id="book22"] {
+  --cover-tone: 54, 46, 105;
+  --cover-light: 179, 61, 111;
+}
+body[data-book-id="book23"] {
+  --cover-tone: 89, 53, 84;
+  --cover-light: 169, 108, 98;
+}
+body[data-book-id="book24"] {
+  --cover-tone: 100, 55, 48;
+  --cover-light: 187, 132, 89;
+}
+a{color:inherit}.top{background:#050505;color:#fff;padding:18px 22px}.top-inner{max-width:1120px;margin:auto;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:900;letter-spacing:2px}.back{color:#d5b85d;text-decoration:none}.page{max-width:1120px;margin:34px auto;padding:0 18px}
+.product {
+  display: grid;
+  grid-template-columns: clamp(215px, 26vw, 320px) minmax(0, 1fr);
+  gap: clamp(22px, 4vw, 46px);
+  align-items: start;
+  background: var(--store-panel);
+  border: 1px solid var(--book-outline);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 12px 40px #0000000d;
+}
+.cover-wrap {
+  position: relative;
+  width: 100%;
+  margin-inline: auto;
+  padding: 14px 14px 8px;
+  text-align: center;
+  border: 1px solid var(--book-outline);
+  border-radius: 16px;
+}
+.cover {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 11px;
+  box-shadow: 0 10px 24px #0003;
+}
+.tag {
+  display: inline-block;
+  background: #fffc;
+  border: 1px solid var(--book-outline);
+  color: rgb(var(--cover-tone));
+  border-radius: 7px;
+  padding: 3px 9px;
+  font-weight: 800;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.book-promotion {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 0;
+  inset-inline-start: 14px;
+  transform: translateY(-50%);
+  padding: 6px 9px;
+  border: 1px solid #f2d6ad;
+  border-radius: 10px;
+  background: rgb(var(--cover-tone));
+  color: #fff;
+  text-align: center;
+  line-height: 1.35;
+  box-shadow: 0 4px 12px #0002;
+}
+.book-promotion strong { display: block; font-size: 14px; white-space: nowrap; }
+.book-promotion small { display: block; font-size: 11px; }
+.book-promotion-detail {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 12px 16px;
+  border: 1px solid rgba(var(--cover-light), .65);
+  border-radius: 12px;
+  background: rgb(var(--cover-tone));
+  color: #fff6ea;
+}
+.book-promotion-summary,
+.book-promotion-prices,
+.book-promotion-remaining { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.book-promotion-prices { font-weight: 800; white-space: nowrap; }
+.book-promotion-prices del { color: #f5d6ce; font-size: 13px; font-weight: 400; unicode-bidi: isolate; }
+.book-promotion-remaining { font-size: 14px; }
+.book-promotion-detail time { unicode-bidi: isolate; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.title{font-size:38px;margin:4px 0 8px}.stars{color:#c9a227;letter-spacing:2px;font-size:21px;direction:ltr}.rating-line{display:flex;align-items:center;gap:10px;color:var(--store-muted);margin-bottom:18px}.lead{font-size:17px;color:var(--store-muted);line-height:1.9}.price{font-size:30px;font-weight:900;margin:18px 0 4px}.price,.previous-price{direction:ltr;unicode-bidi:isolate}.previous-price{color:var(--store-muted);font-size:16px;margin-bottom:14px;text-decoration:line-through}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}.stat{background:var(--book-wash);border-radius:12px;padding:14px;text-align:center}.stat b{display:block;font-size:19px;margin-bottom:5px}.stat span{color:var(--store-muted);font-size:12px}.actions{display:flex;gap:10px;flex-wrap:wrap}.button{border:0;border-radius:10px;padding:14px 22px;font:inherit;font-weight:800;cursor:pointer;text-decoration:none}.primary{background:var(--store-accent);color:#111}.secondary{background:#c9a227;color:#111}.sections{max-width:850px;margin:30px auto}.section{background:var(--store-panel);border:1px solid var(--book-outline);border-radius:16px;padding:25px;margin-bottom:16px}.section h2{font-size:23px;margin-top:0}.section p{white-space:pre-line;line-height:2;color:var(--store-muted)}.author{background:#0a0a0a;color:#eee}.author p{color:var(--store-muted)}.quote{border-inline-start:4px solid rgba(var(--cover-light),.48);background:rgba(var(--cover-light),.10)}.site-footer{background:#050505;color:#888;margin-top:50px;padding:30px 18px;text-align:center}.controls{display:flex;justify-content:center;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:20px}.controls select,.controls button{background:#111;color:#eee;border:1px solid #59491c;border-radius:8px;padding:9px 11px;font:inherit}.controls button.active{background:#c9a227;color:#111}.links{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:18px 0}.links a{color:#aaa;text-decoration:none}html[dir=ltr] .product{text-align:left}
+@media (max-width: 760px) {
+  .page { margin-block-start: 18px; padding-inline: 12px; }
+  .product { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 16px; }
+  .cover-wrap { max-width: clamp(182px, 58vw, 230px); padding: 10px 11px 6px; }
+  .book-promotion {
+    inset-block-start: 14px;
+    inset-inline-start: auto;
+    inset-inline-end: calc(100% - 22px);
+    inline-size: 74px;
+    transform: none;
+    padding-inline: 5px;
+  }
+  .book-promotion strong { font-size: 13px; }
+  .book-promotion small { font-size: 10px; }
+  .title { font-size: 30px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stats .stat:last-child { grid-column: 1 / -1; }
+  .actions .button { width: 100%; text-align: center; }
+}
+.stars{display:flex;gap:2px;direction:ltr;color:inherit;letter-spacing:0;font-size:inherit}.stars button{appearance:none;border:0;background:transparent;color:#aaa397;font-size:26px;line-height:1;padding:2px;cursor:pointer}.stars button.active{color:#c9a227;-webkit-text-stroke:1px #715117}.stars button:focus-visible{outline:2px solid var(--store-accent);border-radius:5px}.rating-line{margin-bottom:5px;flex-wrap:wrap}.rating-help{font-size:13px;color:var(--store-muted);margin:0 0 18px}.rating-help.success{color:#79d6a7;font-weight:700}.rating-help.error{color:#ff9a93;font-weight:700}
+
+.preview-link{background:#fff;color:rgb(var(--cover-tone));border:1px solid rgba(var(--cover-tone),.48)}
+.buy-button { background: #146b44; color: #fff; }
+.buy-button:hover:not(:disabled) { background: #105436; }
+.buy-button:focus-visible { outline: 3px solid #146b44; outline-offset: 3px; }
+.mobile-buy-bar{display:none}
+.mobile-price-stack { display: grid; gap: 2px; }
+.mobile-buy-previous { color: var(--store-muted); font-size: 13px; direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+@media(max-width:760px){body{padding-bottom:calc(88px + env(safe-area-inset-bottom))}.mobile-buy-bar{position:fixed;inset-inline:0;bottom:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--store-canvas);border-top:1px solid var(--book-outline);box-shadow:0 -6px 24px #0000000d;padding:12px 18px calc(12px + env(safe-area-inset-bottom))}.mobile-buy-price{font-size:20px;font-weight:900;direction:ltr;unicode-bidi:isolate;white-space:nowrap}.mobile-buy-bar .button{flex:1;max-width:230px;min-height:48px;text-align:center}}
+.reader-comments{margin:24px 0 0}
+.reader-comments #commentsTitle{margin-bottom:16px}
+.reader-comments #commentsList{display:grid;gap:12px}
+.reader-comments #commentsMore{margin-top:12px}
+.reader-comments #commentForm{margin-top:20px;padding-top:16px;border-top:1px solid var(--book-outline)}.reader-comments label{display:block;margin:14px 0 6px;font-weight:700}.reader-comments input:not([type=checkbox]),.reader-comments textarea{width:100%;max-width:100%;padding:12px;border:1px solid #646469;border-radius:8px;font:inherit;background:var(--store-canvas);color:var(--store-text)}.reader-comments textarea{resize:vertical;min-height:120px}.reader-comments .comment-consent{font-weight:400;line-height:1.8}.reader-comments .comment-note{font-size:13px;color:var(--store-muted);line-height:1.8}.reader-comments button:disabled{opacity:.6;cursor:wait}
+.reader-comment{background:rgba(var(--cover-light),.045);border:1px solid var(--book-outline);border-radius:14px;padding:20px;min-width:0;box-shadow:0 3px 12px rgba(34,27,15,.035)}
+.reader-comment header{display:flex;gap:12px;align-items:center}
+.comment-avatar{position:relative;display:block;flex:0 0 44px;width:44px;height:44px;border-radius:50%;background:#182341}
+.comment-avatar::before{content:"";position:absolute;top:9px;left:17px;width:10px;height:10px;border-radius:50%;background:#fff}
+.comment-avatar::after{content:"";position:absolute;top:23px;left:11px;width:22px;height:12px;border:3px solid #fff;border-bottom:0;border-radius:15px 15px 0 0}
+.comment-author{min-width:0;flex:1}
+.reader-comment header strong{display:block;color:var(--store-text);overflow-wrap:anywhere}
+.reader-comment time{color:var(--store-muted);font-size:12px;flex-shrink:0}
+.comment-rating{display:flex;align-items:center;gap:12px;margin-top:10px;direction:ltr;justify-content:flex-end}
+.comment-stars{display:inline-flex;gap:5px;font-size:24px;line-height:1.2}
+.comment-stars .is-filled{color:#c9a227}
+.comment-stars .is-empty{color:#aaa397}
+.comment-rating-value{font-size:16px;font-weight:700;color:var(--store-text)}
+.reader-comments .reader-comment p{margin:14px 0 0;color:var(--store-text);font-size:1.0625rem;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}
+.comment-rating-field{border:0;padding:0;margin:18px 0}
+.comment-rating-field legend{font-weight:700;margin-bottom:6px}
+.comment-rating-options{display:flex;direction:ltr;justify-content:flex-end;gap:4px}
+.reader-comments label.comment-rating-option{display:block;position:relative;flex:0 1 44px;min-width:36px;width:44px;height:44px;margin:0;cursor:pointer;border-radius:6px}
+.reader-comments .comment-rating-option input{position:absolute;inset:0;width:100%;height:100%;padding:0;margin:0;opacity:0;cursor:pointer}
+.comment-rating-option span{display:block;text-align:center;font-size:34px;line-height:44px;color:#aaa397;pointer-events:none}
+.comment-rating-option.is-selected span{color:#c9a227}
+.comment-rating-option:has(input:focus-visible){outline:2px solid var(--store-accent);outline-offset:2px}
+html[dir="ltr"] .comment-rating,html[dir="ltr"] .comment-rating-options{justify-content:flex-start}
+@media(max-width:420px){.reader-comment{padding:16px}.reader-comment header{gap:9px}.reader-comment time{font-size:11px}}
+.comment-verified{font-size:12px;background:#292315;padding:4px 8px;border-radius:6px;color:var(--store-accent)}#commentStatus{line-height:1.8}#commentEmail{direction:ltr;text-align:start}
+.book-sharing{margin-top:22px;padding-top:16px;border-top:1px solid var(--book-outline)}.book-sharing p{margin:0 0 10px;color:var(--store-muted);font-size:14px}.share-actions{display:flex;gap:8px;flex-wrap:wrap}.share-actions .button{font-size:14px;padding:11px 14px;min-height:44px}.share-whatsapp{background:#168647;color:#fff}.share-copy{background:#292315;color:var(--store-accent)}.book-share-url{width:100%;padding:10px;margin-top:10px;direction:ltr;border:1px solid #646469;border-radius:7px;background:var(--store-canvas);color:var(--store-text)}#bookShareStatus{margin-top:10px;min-height:1.3em}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner"><a class="brand" href="/">TABO BOOKS</a><a class="back" id="backLink" href="/">العودة للمتجر</a></div></header>
+<main class="page"><article class="product">
+  <section class="book-promotion-detail" id="bookPromotionDetail" aria-labelledby="bookPromotionHeadline" hidden>
+    <div class="book-promotion-summary">
+      <strong id="bookPromotionHeadline"></strong>
+      <span class="book-promotion-prices"><bdi id="bookPromotionPrice"></bdi><del id="bookPromotionRegular" dir="ltr"></del></span>
+    </div>
+    <div class="book-promotion-remaining">
+      <span id="bookPromotionEnds"></span><span id="bookPromotionDays" hidden></span><time id="bookPromotionCountdown" dir="ltr" role="timer"></time>
+    </div>
+  </section>
+  <div class="cover-wrap">
+    <img class="cover" id="cover" alt=""><span class="tag">PDF</span>
+    <div class="book-promotion" id="bookPromotion" hidden>
+      <strong id="bookPromotionPercent"></strong>
+      <small id="bookPromotionLabel"></small>
+    </div>
+  </div>
+  <div><h1 class="title" id="title"></h1><div class="rating-line" id="rate"><span class="stars" id="stars" role="group" aria-label="قيّم الكتاب"><button type="button" data-rating="1">★</button><button type="button" data-rating="2">★</button><button type="button" data-rating="3">★</button><button type="button" data-rating="4">★</button><button type="button" data-rating="5">★</button></span><span id="ratingText"></span></div><p class="rating-help" id="ratingHelp"></p><p class="lead" id="short"></p><div class="price" id="price"></div><div class="previous-price" id="previousPrice"></div>
+  <div class="stats"><div class="stat"><b id="pages">—</b><span id="pagesLabel">عدد الصفحات</span></div><div class="stat"><b id="size">—</b><span id="sizeLabel">حجم الملف</span></div><div class="stat"><b id="reviews">0</b><span id="reviewsLabel">التقييمات</span></div></div>
+  <div class="actions"><button class="button primary buy-button" id="addBtn">أضف للسلة</button><a class="button secondary" id="cartLink" href="/checkout">عرض السلة</a><a class="button preview-link" id="previewLink" hidden target="_blank" rel="noopener">اقرأ عينة مجانية</a></div><section class="book-sharing" aria-labelledby="bookShareHeading"><p id="bookShareHeading">شارك الكتاب</p><div class="share-actions"><a class="button share-whatsapp" id="shareWhatsApp" target="_blank" rel="noopener noreferrer">مشاركة عبر واتساب</a><button type="button" class="button share-copy" id="copyBookLink">نسخ رابط الكتاب</button></div><input class="book-share-url" id="bookShareURL" readonly hidden aria-label="رابط الكتاب"><p id="bookShareStatus" role="status" aria-live="polite"></p></section></div>
+</article>
+
+<section class="section reader-comments" id="bookComments" aria-labelledby="commentsTitle">
+<h2 id="commentsTitle">تعليقات القرّاء</h2>
+<div id="commentsList" aria-live="polite"><p id="commentsLoading">جارٍ تحميل التعليقات…</p></div>
+<button type="button" class="button secondary" id="commentsMore" hidden>عرض المزيد</button>
+<form id="commentForm" method="post" action="/api/book-comments">
+<p class="comment-note" id="commentsPolicy">شارك رأيك الحقيقي في الكتاب. يُنشر التعليق فور إرساله، وقد تُزال التعليقات المسيئة أو المزعجة.</p>
+<label for="commentName" id="commentNameLabel">الاسم المعروض (اختياري)</label><input id="commentName" name="display_name" maxlength="80" autocomplete="nickname">
+<label for="commentEmail" id="commentEmailLabel">البريد الإلكتروني</label><input id="commentEmail" name="email" type="email" maxlength="254" autocomplete="email" required aria-describedby="commentPrivacy">
+<p class="comment-note" id="commentPrivacy">بريدك لن يظهر للزوار. لا تضع بياناتك الشخصية داخل التعليق.</p>
+<fieldset class="comment-rating-field" id="commentRating">
+<legend id="commentRatingLabel">تقييمك للكتاب</legend>
+<div class="comment-rating-options">
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="1" aria-label="1 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="2" aria-label="2 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="3" aria-label="3 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="4" aria-label="4 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+<label class="comment-rating-option"><input type="radio" name="commentRating" value="5" aria-label="5 من ٥ نجوم" required><span aria-hidden="true">★</span></label>
+</div>
+</fieldset>
+<label for="commentBody" id="commentBodyLabel">تعليقك عن الكتاب</label><textarea id="commentBody" name="body" minlength="5" maxlength="2000" required></textarea>
+<div hidden aria-hidden="true"><label for="commentWebsite">Website</label><input id="commentWebsite" name="website" tabindex="-1" autocomplete="off"></div>
+<label class="comment-consent"><input id="commentConsent" type="checkbox" required> <span id="commentConsentText">أوافق على نشر اسمي المعروض وتقييمي وتعليقي فورًا وفق سياسة الخصوصية.</span> <a href="/privacy" id="commentPrivacyLink">سياسة الخصوصية</a></label>
+<label class="comment-consent"><input id="commentUpdates" type="checkbox"> <span id="commentUpdatesText">أرغب في تلقي عروض تابو بوكس وأخبار إصدارات الكتب عبر البريد الإلكتروني (اختياري).</span></label>
+<button type="submit" class="button primary" id="commentSubmit" disabled>نشر التعليق</button>
+<p id="commentStatus" role="status" aria-live="polite"></p>
+</form></section>
+<div class="sections"><section class="section"><h2 id="aboutTitle">نبذة عن الكتاب</h2><p id="about"></p></section><section class="section"><h2 id="addsTitle">ماذا يضيف لك؟</h2><p id="adds"></p></section><section class="section quote"><p id="idea"></p></section><section class="section author"><h2 id="authorTitle">عن المؤلف</h2><p id="author"></p></section></div></main>
+<div class="mobile-buy-bar" id="mobileBuyBar" aria-label="شراء الكتاب">
+  <div class="mobile-price-stack">
+    <del class="mobile-buy-previous" id="mobilePreviousPrice" hidden></del>
+    <span class="mobile-buy-price" id="mobileBuyPrice"></span>
+  </div>
+  <button type="button" class="button primary buy-button" id="mobileBuyBtn">شراء الكتاب</button>
+</div>
+<footer class="site-footer"><div class="controls"><label id="countryLabel" for="country">الدولة</label><select id="country"></select><button id="languageToggle">اللغة</button></div><nav class="links"><a href="/offers" data-offers-label>عروض الباقات</a><a href="/categories" data-seo-label="categories">أقسام الكتب</a><a href="/authors" id="footerAuthors">المؤلفين</a><a href="/about" id="aboutLink">من نحن</a><a href="/order-help" id="orderHelpLink">مساعدة بخصوص طلبي</a><a href="/contact" id="contactLink">تواصل معنا</a><a href="/privacy" id="privacyLink">سياسة الخصوصية</a><a href="/refund" id="refundLink">الاسترداد والإلغاء</a><a href="/delivery" id="deliveryLink">التوصيل والتسليم</a></nav><div>© 2026 TABO BOOKS</div><details style="font-size:11px;text-align:center;margin-top:12px"><summary style="cursor:pointer;color:#888">مصادر الموقع / Credits</summary><a href="https://db-ip.com" rel="noopener noreferrer" style="color:#888">IP Geolocation by DB-IP</a></details>
+</footer>
+<script>
+</script>
+<script src="/book-sharing.js"></script>
+<script>
+const BOOKS={}; /* SSR_BOOKS */
+const id=""; /* SSR_BOOK_ID */
+const book=BOOKS[id];
+let lang=localStorage.getItem("taboLanguage")||"ar",config={country:"EG",currency:"EGP",prices:{"1":199},compareAtPrice:299,countries:[]},stats={rating:null,reviews:0,pageCount:null},pricingLoaded=false,viewContentTracked=false,myRating=Number(localStorage.getItem(`taboRating_${id}`))||0,ratingBusy=false,ratingState="";
+const C={ar:{back:"العودة للمتجر",about:"نبذة عن الكتاب",adds:"ماذا يضيف لك؟",authorTitle:"عن المؤلف",author:"تابو نور كاتب ومؤلف يهتم بموضوعات الوعي وتطوير الذات والمال والطموح وفهم الإنسان لنفسه والعالم من حوله.",pages:"عدد الصفحات",size:"حجم الملف",reviews:"التقييمات",add:"أضف للسلة",added:"تمت الإضافة",cart:"عرض السلة",new:"جديد — لا توجد تقييمات بعد",rate:"اضغط على النجوم لتقييم الكتاب",rated:"تم حفظ تقييمك بنجاح",ratingError:"تعذر حفظ التقييم. حاول مرة أخرى.",yourRating:"تقييمك",country:"الدولة",language:"اللغة",aboutLink:"من نحن",contact:"تواصل معنا",privacy:"سياسة الخصوصية",refund:"الاسترداد والإلغاء",delivery:"التوصيل والتسليم",unknown:"غير معلن"},en:{back:"Back to store",about:"About the book",adds:"What will it add?",authorTitle:"About the author",author:"TABO NOOR writes about awareness, personal growth, money, ambition, and understanding ourselves and the world around us.",pages:"Pages",size:"File size",reviews:"Reviews",add:"Add to cart",added:"Added",cart:"View cart",new:"New — no reviews yet",rate:"Tap a star to rate this book",rated:"Your rating was saved",ratingError:"Could not save your rating. Please try again.",yourRating:"Your rating",country:"Country",language:"Language",aboutLink:"About us",contact:"Contact us",privacy:"Privacy policy",refund:"Refunds & cancellation",delivery:"Digital delivery",unknown:"Not listed"}};
+function browserCountry(){const saved=localStorage.getItem("taboCountry");if(saved)return saved;const r=(navigator.language||"").split("-")[1];return r||"EG"}function money(v){const amount=Number(v)||0;try{if(config.currency==="EGP"){const digits=new Intl.NumberFormat("en-US",{minimumFractionDigits:Number.isInteger(amount)?0:2,maximumFractionDigits:2}).format(amount);return lang==="ar"?`${digits} جنيه`:`EGP ${digits}`}return new Intl.NumberFormat("en-US",{style:"currency",currency:config.currency,maximumFractionDigits:2}).format(amount)}catch(e){return `${v} ${config.currency}`}}function fileSize(n){return `${(n/1048576).toFixed(1)} MB`}function cart(){try{return JSON.parse(localStorage.getItem("taboBooksCart"))||[]}catch(e){return[]}}function isAdded(){return cart().some(x=>x.id===id)}
+function bookPolicy(){return {...{price:book.fixedPrices?.[config.currency]??config.prices["1"]??199,bundleEligible:book.bundleEligible!==false,previewEnabled:book.previewEnabled!==false},...(config.bookPolicies?.[id]||{})}}
+function bookPrice(){
+  const promotion = config.bookPromotion;
+  return Number(promotion?.bookId === id && promotion.currency === config.currency ? promotion.price : bookPolicy().price);
+}
+let promotionTimer, promotionTicker, promotionDeadline = 0, pricingRequest = 0;
+function renderPromotionCountdown() {
+  if (!promotionDeadline) return;
+  const seconds = Math.max(0, Math.ceil((promotionDeadline - performance.now()) / 1000));
+  const days = Math.floor(seconds / 86400);
+  const clock = [Math.floor(seconds / 3600) % 24, Math.floor(seconds / 60) % 60, seconds % 60]
+    .map(part => String(part).padStart(2, '0')).join(':');
+  const dayCount = document.getElementById('bookPromotionDays');
+  dayCount.hidden = days === 0;
+  dayCount.textContent = lang === 'ar' ? (['', 'يوم', 'يومين'][days] ?? `${days} أيام`) : `${days}d`;
+  const time = document.getElementById('bookPromotionCountdown');
+  time.textContent = clock;
+  time.dateTime = `PT${seconds}S`;
+}
+function renderPrices() {
+  const policy = bookPolicy();
+  const price = bookPrice();
+  const campaign = pricingLoaded ? config.bookPromotion : null;
+  const targeted = campaign?.bookId === id;
+  const regular = Number(targeted ? campaign.regularPrice : policy.regularPrice);
+  const onSale = Boolean(campaign && (!campaign.bookId || (targeted && campaign.currency === config.currency)) && regular > price);
+  const compareAt = Number(config.compareAtPrice || 299);
+  document.getElementById('price').textContent = pricingLoaded ? money(price) : (lang === 'ar' ? 'جارٍ تحميل السعر…' : 'Loading price…');
+  const previous = document.getElementById('previousPrice');
+  previous.textContent = money(onSale ? regular : compareAt);
+  previous.hidden = !pricingLoaded || !(onSale || (policy.bundleEligible && compareAt > price));
+  document.getElementById('mobileBuyPrice').textContent = pricingLoaded ? money(price) : '—';
+  const mobilePrevious = document.getElementById('mobilePreviousPrice');
+  mobilePrevious.hidden = !onSale;
+  mobilePrevious.textContent = onSale ? money(regular) : '';
+  document.getElementById('bookPromotion').hidden = !onSale || targeted;
+  document.getElementById('bookPromotionDetail').hidden = !onSale || !targeted;
+  if (!onSale) return;
+  const percent = new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en-US', {style:'percent'}).format(campaign.percent / 100);
+  if (targeted) {
+    document.getElementById('bookPromotionHeadline').textContent = lang === 'ar' ? `عرض توفير · خصم ${percent}` : `Book offer · ${percent} off`;
+    document.getElementById('bookPromotionPrice').textContent = money(price);
+    document.getElementById('bookPromotionRegular').textContent = money(regular);
+    document.getElementById('bookPromotionEnds').textContent = lang === 'ar' ? 'ينتهي العرض خلال' : 'Offer ends in';
+    renderPromotionCountdown();
+  } else {
+    document.getElementById('bookPromotionPercent').textContent = lang === 'ar' ? 'خصم ' + percent : percent + ' off';
+    document.getElementById('bookPromotionLabel').textContent = lang === 'ar' ? 'لفترة محدودة' : 'For a limited time';
+  }
+}
+function render(){document.getElementById("orderHelpLink").textContent=lang==="ar"?"مساعدة بخصوص طلبي":"Help with my order";document.getElementById("footerAuthors").textContent=lang==="ar"?"المؤلفين":"Authors";const c=C[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.title=`${lang==="ar"?book.name:book.enName} | TABO BOOKS`;document.getElementById("cover").src=book.image;document.getElementById("cover").alt=lang==="ar"?book.name:book.enName;document.getElementById("title").textContent=lang==="ar"?book.name:book.enName;document.getElementById("short").textContent=lang==="ar"?book.short:book.enShort;document.getElementById("about").textContent=lang==="ar"?book.about:book.enAbout;document.getElementById("adds").textContent=lang==="ar"?book.adds:book.enAdds;document.getElementById("idea").textContent=lang==="ar"?book.idea:book.enIdea;document.getElementById("author").textContent=c.author;renderPrices();document.getElementById("pages").textContent=stats.pageCount||book.pageCount||c.unknown;document.getElementById("size").textContent=fileSize(book.size);document.getElementById("reviews").textContent=stats.reviews||0;const value=Number(stats.rating)||0,filled=myRating||Math.round(value);document.querySelectorAll("#stars button").forEach(button=>{const star=Number(button.dataset.rating);button.classList.toggle("active",star<=filled);button.disabled=ratingBusy;button.setAttribute("aria-label",`${star} / 5`)});document.getElementById("stars").setAttribute("aria-label",c.rate);document.getElementById("ratingText").textContent=stats.reviews?`${value.toFixed(1)} (${stats.reviews})`:c.new;const help=document.getElementById("ratingHelp");help.textContent=ratingState==="success"?`${c.rated} — ${c.yourRating}: ${myRating}/5`:ratingState==="error"?c.ratingError:myRating?`${c.yourRating}: ${myRating}/5 — ${c.rate}`:c.rate;help.className=`rating-help ${ratingState}`;for(const [key,text] of [["backLink",c.back],["aboutTitle",c.about],["addsTitle",c.adds],["authorTitle",c.authorTitle],["pagesLabel",c.pages],["sizeLabel",c.size],["reviewsLabel",c.reviews],["cartLink",c.cart],["countryLabel",c.country],["aboutLink",c.aboutLink],["contactLink",c.contact],["privacyLink",c.privacy],["refundLink",c.refund],["deliveryLink",c.delivery]])document.getElementById(key).textContent=text;document.getElementById("addBtn").textContent=isAdded()?c.added:c.add;document.getElementById("previewLink").hidden=!bookPolicy().previewEnabled;if(bookPolicy().previewEnabled){document.getElementById("previewLink").href=`/previews/${id}`}else{document.getElementById("previewLink").removeAttribute("href")};document.getElementById("previewLink").textContent=lang==="ar"?"اقرأ عينة مجانية":"Read a free sample";document.getElementById("addBtn").disabled=!pricingLoaded;document.getElementById("mobileBuyBtn").disabled=!pricingLoaded;document.getElementById("mobileBuyBtn").textContent=lang==="ar"?"شراء الكتاب":"Buy this book";document.getElementById("mobileBuyBar").setAttribute("aria-label",lang==="ar"?"شراء الكتاب":"Buy this book");document.getElementById("languageToggle").textContent=c.language;const select=document.getElementById("country");if(config.countries.length){select.innerHTML=config.countries.map(x=>`<option value="${x.code}">${lang==="ar"?x.nameAr:x.nameEn}</option>`).join("");select.value=config.country}window.TaboSEO?.render(lang);window.TaboBookSharing?.render({id,title:lang==="ar"?book.name:book.enName,language:lang})}
+async function submitRating(rating){if(ratingBusy)return;ratingBusy=true;ratingState="";render();try{const response=await fetch("/api/ratings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({book_id:id,rating})});const result=await response.json();if(!response.ok||!result.ok)throw new Error("rating failed");myRating=rating;localStorage.setItem(`taboRating_${id}`,String(rating));stats={...stats,...result.stats};ratingState="success"}catch(error){ratingState="error"}finally{ratingBusy=false;render()}}
+async function load(country=browserCountry()){
+ const request = ++pricingRequest;
+ if (promotionTimer) clearTimeout(promotionTimer);
+ if (promotionTicker) clearInterval(promotionTicker);
+ promotionDeadline = 0;
+ pricingLoaded = false;
+ render();
+ try {
+   const response = await fetch(`/api/store-config?country=${encodeURIComponent(country)}`, {cache:'no-store'});
+   if (response.ok) {
+     const next = await response.json();
+     if (request !== pricingRequest) return;
+     config = next;
+     localStorage.setItem('taboCountry', config.country);
+     pricingLoaded = true;
+   }
+ } catch (_) {}
+ if (request !== pricingRequest) return;
+ const campaign = config.bookPromotion;
+ const remaining = pricingLoaded && (!campaign?.bookId || campaign.bookId === id) ? campaign?.expiresInMs : 0;
+ if (Number.isFinite(remaining) && remaining > 0) promotionDeadline = performance.now() + remaining;
+ render();
+ if (promotionDeadline) {
+   promotionTimer = setTimeout(() => load(config.country), Math.min(remaining, 2_147_483_647));
+   if (campaign.bookId) promotionTicker = setInterval(renderPromotionCountdown, 1000);
+ }
+ if(pricingLoaded&&!viewContentTracked){viewContentTracked=true;window.TaboTracking?.track("ViewContent",{content_ids:[id],value:bookPrice(),currency:config.currency});window.TaboAnalytics?.track('ViewContent',{content_ids:[id],value:bookPrice(),currency:config.currency});}
+}
+async function loadStats(){try{const r=await fetch("/api/book-stats",{cache:"no-store"});if(r.ok){const all=await r.json();stats=all[id]||stats;render();}}catch(e){}}
+document.getElementById("stars").onclick=e=>{const button=e.target.closest("button[data-rating]");if(button)submitRating(Number(button.dataset.rating))};document.getElementById("addBtn").onclick=()=>{if(!pricingLoaded)return;const items=cart();if(!items.some(x=>x.id===id)){items.push({type:"book",id});localStorage.setItem("taboBooksCart",JSON.stringify(items));window.TaboTracking?.track("AddToCart",{content_ids:[id],value:bookPrice(),currency:config.currency});window.TaboAnalytics?.track('AddToCart',{content_ids:[id],value:bookPrice(),currency:config.currency})}render()};document.getElementById("cartLink").href="/checkout"+location.search;document.getElementById("mobileBuyBtn").onclick=()=>{document.getElementById("addBtn").click();location.href="/checkout"+location.search};document.getElementById("country").onchange=e=>load(e.target.value);document.getElementById("languageToggle").onclick=()=>{lang=lang==="ar"?"en":"ar";localStorage.setItem("taboLanguage",lang);render()};render();load();loadStats();
+</script>
+<script src="/book-comments.js?v=3" defer></script>
+</body></html>
+

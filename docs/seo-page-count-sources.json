@@ -1,0 +1,27 @@
+{
+  "source": "https://tabobooks.com/api/book-stats",
+  "checkedAt": "2026-10-23T04:48:55.830136+00:00",
+  "scope": "Read-only public aggregate pageCount fields only; no customer data or paid PDF downloads. Book19 and book20 also independently matched the current reference PDFs. The remaining counts are verified against current public store metadata, not independent PDF inspection.",
+  "pageCounts": {
+    "book1": 440,
+    "book2": 304,
+    "book3": 276,
+    "book4": 434,
+    "book5": 362,
+    "book6": 379,
+    "book7": 377,
+    "book8": 678,
+    "book9": 329,
+    "book10": 326,
+    "book11": 208,
+    "book12": 532,
+    "book13": 222,
+    "book14": 411,
+    "book15": 187,
+    "book16": 580,
+    "book17": 225,
+    "book18": 443,
+    "book19": 309,
+    "book20": 245
+  }
+}
