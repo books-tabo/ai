@@ -214,7 +214,10 @@ function renderCart(){
         const difference=Math.round((nextPrice-pricing.final)*100)/100;
         nextMessage=t("addAnother").replace("{difference}",formatMoney(difference)).replace("{next}",formatMoney(nextPrice));
     }
-    if((storeConfig.offers||[]).length)nextMessage=currentLanguage==="ar"?"يُحسب أقل إجمالي مستحق تلقائيًا. حذف كتاب قد يغيّر الباقة المتاحة.":"The lowest eligible total is calculated automatically. Removing a book may change pack eligibility.";
+    if(storeConfig.quantityDiscountPerAdditionalBook){
+        const saving=formatMoney(storeConfig.quantityDiscountPerAdditionalBook);
+        nextMessage=currentLanguage==="ar"?`خصم ${saving} من الإجمالي لكل كتاب بعد الأول. تُطبق وفورات الباقات تلقائيًا.`:`Save ${saving} from the total for every book after the first. Pack savings apply automatically.`;
+    } else if((storeConfig.offers||[]).length)nextMessage=currentLanguage==="ar"?"يُحسب أقل إجمالي مستحق تلقائيًا. حذف كتاب قد يغيّر الباقة المتاحة.":"The lowest eligible total is calculated automatically. Removing a book may change pack eligibility.";
     document.getElementById("cartNextMessage").textContent=nextMessage;
     document.getElementById("cartOriginal").parentElement.hidden=pricing.discount===0;
 

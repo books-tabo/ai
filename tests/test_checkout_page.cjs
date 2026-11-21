@@ -25,12 +25,12 @@ async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}]),reminder
   }
   if(url==='/api/checkout-quote'){
    const quartet=JSON.parse(options.body).items.some(x=>x.id==='book23');
-   return {ok:true,json:async()=>({ok:true,quote:{displayCurrency:'USD',displayTotal:quartet?'49.00':'34.99',chargeCurrency:'EGP',chargeTotal:quartet?'2749.68':'1963.50',expiresAt:Date.now()/1000+300,token:'synthetic-quote'}})};
+   return {ok:true,json:async()=>({ok:true,quote:{displayCurrency:'USD',displayTotal:quartet?'13.99':'7.99',chargeCurrency:'EGP',chargeTotal:quartet?'699.50':'399.50',expiresAt:Date.now()/1000+300,token:'synthetic-quote'}})};
   }
 
   if(url==='/api/orders'){
    const paypal=JSON.parse(options.body).paymentProvider==='paypal';
-   return {ok:true,json:async()=>({ok:true,order:{id:'TABO-0000000000000001',items:[{id:'book20'},{id:'book21'}],total:paypal?34.99:1963.50,currency:paypal?'USD':'EGP'},payment_url:paypal?'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567':'https://payments.kashier.io/session/synthetic',tracking_url:'/pending.html?key='+'a'.repeat(64)})};
+   return {ok:true,json:async()=>({ok:true,order:{id:'TABO-0000000000000001',items:[{id:'book20'},{id:'book21'}],total:paypal?7.99:399.50,currency:paypal?'USD':'EGP'},payment_url:paypal?'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567':'https://payments.kashier.io/session/synthetic',tracking_url:'/pending.html?key='+'a'.repeat(64)})};
   }
   throw Error('Unexpected synthetic request');
  };
@@ -83,7 +83,7 @@ async function pendingCase(status,ready,activationFails=false){
  for(const method of ['card','paypal']){
   const {nodes,calls,redirects,events,session}=await boot();
   assert.equal(nodes.checkoutContent.hidden,false);assert.equal(nodes.emptyCart.hidden,true);
-  assert.match(nodes.cartFinal.textContent,/34[.,]99/);assert.equal(nodes.paypalCheckoutBtn.hidden,false);
+  assert.match(nodes.cartFinal.textContent,/7[.,]99/);assert.equal(nodes.paypalCheckoutBtn.hidden,false);
   assert.equal(calls.filter(call=>call.url==='/api/orders').length,0);
   await nodes[method==='card'?'checkoutBtn':'paypalCheckoutBtn'].events.click();
   assert.deepEqual(redirects,[method==='card'?'https://payments.kashier.io/session/synthetic':'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567']);
@@ -92,17 +92,17 @@ async function pendingCase(status,ready,activationFails=false){
  }
  {
   const {c,nodes,calls}=await boot();await c.loadStoreConfig('EG');
-  assert.equal(nodes.paypalCheckoutBtn.hidden,true);assert.match(nodes.cartFinal.textContent,/1,100|1100/);
+  assert.equal(nodes.paypalCheckoutBtn.hidden,true);assert.match(nodes.cartFinal.textContent,/279[.,]99/);
   nodes.checkoutEmail.value='';await nodes.checkoutBtn.events.click();assert(!calls.some(call=>call.url==='/api/orders'));
   nodes.languageToggle.events.click();assert.equal(c.document.documentElement.lang,'en');
  }
  {
   const {c,nodes,calls}=await boot(JSON.stringify(['book20','book21','book22','book23'].map(id=>({id}))));
-  assert.match(nodes.cartFinal.textContent,/49[.,]00/);
+  assert.match(nodes.cartFinal.textContent,/13[.,]99/);
   assert.match(nodes.cartOfferSummary.textContent,/السيجما/);
   const quoted=JSON.parse(calls.find(x=>x.url==='/api/checkout-quote').options.body);
   assert.deepEqual(quoted.items.map(x=>x.id),['book20','book21','book22','book23']);
-  await c.loadStoreConfig('EG');assert.match(nodes.cartFinal.textContent,/1,250|1250/);
+  await c.loadStoreConfig('EG');assert.match(nodes.cartFinal.textContent,/539[.,]99/);
   assert.match(nodes.cartOfferSummary.textContent,/السيجما/);
   assert.equal(nodes.paypalCheckoutBtn.hidden,true);
   assert(!calls.some(x=>x.url==='/api/orders'));

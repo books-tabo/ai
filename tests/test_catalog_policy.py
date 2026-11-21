@@ -12,42 +12,34 @@ from support import HTTPCase
 
 
 class CatalogPolicyTests(unittest.TestCase):
-    def test_fixed_price_is_added_after_every_ordinary_bundle_in_both_currencies(self):
-        ordinary = [book_id for book_id in catalog.BOOKS if book_id not in catalog.FIXED_PRICES]
-        self.assertEqual(len(ordinary), 19)
-        for country, fixed in [('EG', Decimal('500')), ('SA', Decimal('19.99'))]:
-            config = localization.pricing_for_country(catalog.PRICES, country)
-            for count in range(20):
-                ids = ordinary[:count]
-                subtotal = Decimal(str(config['prices'][str(count)])) if count else Decimal(0)
-                if country=='EG' and count>=17: subtotal=Decimal({17:1749,18:1849,19:1849}[count])
-                if country=='SA' and count==19: subtotal=Decimal('102.99')
-                for bid in catalog.FIXED_PRICES:
-                    expected_fixed = Decimal(str(catalog.FIXED_PRICES[bid][config['currency']]))
-                    for mixed in [ids + [bid], [bid] + list(reversed(ids))]:
-                        self.assertEqual(Decimal(str(catalog.total_for_items(mixed, config))), subtotal + expected_fixed)
-                self.assertEqual(Decimal(str(catalog.total_for_items(ids, config))), subtotal)
+    def test_every_book_has_the_same_price_and_quantity_eligibility(self):
+        self.assertEqual(len(catalog.BOOKS), 25)
+        self.assertEqual(catalog.FIXED_PRICES, {})
+        for country, price in [('EG',149.99),('SA',4.99),('KW',4.99)]:
+            config = localization.pricing_for_country(catalog.PRICES,country,at=0)
+            self.assertEqual(len(config['prices']),len(catalog.BOOKS))
+            self.assertEqual(config['compareAtPrice'],price)
+            self.assertNotIn('bookPromotion',config)
+            for bid in catalog.BOOKS:
+                self.assertEqual(config['bookPolicies'][bid], {'price':price,'bundleEligible':True,'previewEnabled':catalog.preview_enabled(bid)})
+                self.assertEqual(catalog.total_for_items([bid],config),price)
 
-    def test_known_mixed_totals_and_no_bundle_slot_for_sigma(self):
-        for country, expected in [('EG', [500, 699, 799, 3849]), ('SA', [19.99, 29.98, 37.98, 181.97])]:
-            config = localization.pricing_for_country(catalog.PRICES, country)
-            selections = [['book20'], ['book20', 'book1'], ['book1', 'book20', 'book2'], list(catalog.BOOKS)]
-            self.assertEqual([catalog.total_for_items(ids, config) for ids in selections], expected)
+    def test_quantity_totals_and_marginal_saving_cover_all_25_books(self):
+        for country,unit in [('EG',Decimal('149.99')),('SA',Decimal('4.99'))]:
+            config = localization.pricing_for_country(catalog.PRICES,country,at=0)
+            self.assertEqual([config['prices'][str(n)] for n in (1,2,3)],
+                             [149.99,298.98,447.97] if country=='EG' else [4.99,8.98,12.97])
+            for count in range(1,26):
+                total=Decimal(str(config['prices'][str(count)]))
+                self.assertEqual(total,unit*count-(count-1))
+                if count>1:self.assertEqual(total-Decimal(str(config['prices'][str(count-1)])),unit-1)
+            # This selection contains no curated pack, including former special titles.
+            self.assertEqual(catalog.total_for_items(['book1','book20','book22'],config),447.97 if country=='EG' else 12.97)
 
     def test_invalid_or_duplicate_books_are_not_priced(self):
-        config = localization.pricing_for_country(catalog.PRICES, 'EG')
-        for ids in [['book20', 'book20'], ['book999'], ['book1', 'book999']]:
-            with self.assertRaises(ValueError):
-                catalog.total_for_items(ids, config)
-
-    def test_public_policy_keeps_all_ordinary_books_unchanged(self):
-        for country, fixed in [('EG', 500), ('SA', 19.99)]:
-            config = localization.pricing_for_country(catalog.PRICES, country)
-            for bid in catalog.FIXED_PRICES:
-                expected_fixed = catalog.FIXED_PRICES[bid][config['currency']]
-                self.assertEqual(config['bookPolicies'][bid], {'price': expected_fixed, 'bundleEligible': False, 'previewEnabled': catalog.preview_enabled(bid)})
-            self.assertEqual(config['bookPolicies']['book19'], {'price': config['prices']['1'], 'bundleEligible': True, 'previewEnabled': True})
-            self.assertNotIn('20', config['prices'])
+        config = localization.pricing_for_country(catalog.PRICES,'EG')
+        for ids in [['book20','book20'],['book999'],['book1','book999']]:
+            with self.assertRaises(ValueError):catalog.total_for_items(ids,config)
 
 
 class NoSigmaPreviewHTTPTests(HTTPCase):

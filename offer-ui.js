@@ -25,7 +25,7 @@ var TaboOfferUI = (() => {
       const price = card.querySelector('[data-offer-price]');
       if (price) price.textContent = active ? money(active.price,config.currency,ar) : Object.entries(offer.prices).map(([currency,value]) => money(value,currency,ar)).join(' / ');
       const original = card.querySelector('[data-offer-original]');
-      const originalPrice = offer.fixedPriceBundle ? offer.books.reduce((total,id) => total + Number(config.bookPolicies?.[id]?.price || 0),0) : config.prices?.[offer.books.length];
+      const originalPrice = config.prices?.[offer.books.length];
       if (original) { original.hidden = !active || !(originalPrice > active.price); original.textContent = active ? (ar ? 'بدلًا من ' : 'Regular total ')+money(originalPrice,config.currency,ar) : ''; }
       const availability = card.querySelector('[data-offer-availability]');
       if (availability) availability.textContent = (!active && config.currency==='EGP' && Object.keys(offer.prices).length===1 && offer.prices.USD) ? (ar ? 'هذه الباقة متاحة خارج مصر بالدولار. داخل مصر يمكنك شراء كل كتاب بسعره المعروض.' : 'This offer is available outside Egypt in USD. In Egypt you can buy each book at its displayed price.') : '';

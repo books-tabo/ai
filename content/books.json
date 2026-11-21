@@ -57,7 +57,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 440
+    "pageCount": 440,
+    "bundleEligible": true
   },
   "book2": {
     "name": "نحو القمة",
@@ -117,7 +118,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 304
+    "pageCount": 304,
+    "bundleEligible": true
   },
   "book3": {
     "name": "تمرد",
@@ -177,7 +179,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 276
+    "pageCount": 276,
+    "bundleEligible": true
   },
   "book4": {
     "name": "كيف تصنع المليون الأول",
@@ -237,7 +240,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 434
+    "pageCount": 434,
+    "bundleEligible": true
   },
   "book5": {
     "name": "شهوات",
@@ -297,7 +301,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 362
+    "pageCount": 362,
+    "bundleEligible": true
   },
   "book6": {
     "name": "دليل السمو",
@@ -357,7 +362,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 379
+    "pageCount": 379,
+    "bundleEligible": true
   },
   "book7": {
     "name": "إلى كل بنت",
@@ -417,7 +423,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 377
+    "pageCount": 377,
+    "bundleEligible": true
   },
   "book8": {
     "name": "أصنام",
@@ -477,7 +484,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 678
+    "pageCount": 678,
+    "bundleEligible": true
   },
   "book9": {
     "name": "تأثير الكوبرا",
@@ -537,7 +545,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 329
+    "pageCount": 329,
+    "bundleEligible": true
   },
   "book10": {
     "name": "دليل التحرر من العادة السرية",
@@ -597,7 +606,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 326
+    "pageCount": 326,
+    "bundleEligible": true
   },
   "book11": {
     "name": "الأفعى والمنشار",
@@ -657,7 +667,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 208
+    "pageCount": 208,
+    "bundleEligible": true
   },
   "book12": {
     "name": "جسد",
@@ -717,7 +728,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 532
+    "pageCount": 532,
+    "bundleEligible": true
   },
   "book13": {
     "name": "بنت تخطت الثلاثين",
@@ -777,7 +789,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 222
+    "pageCount": 222,
+    "bundleEligible": true
   },
   "book14": {
     "name": "أنت",
@@ -837,7 +850,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 411
+    "pageCount": 411,
+    "bundleEligible": true
   },
   "book15": {
     "name": "شفرة الحياة",
@@ -897,7 +911,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 187
+    "pageCount": 187,
+    "bundleEligible": true
   },
   "book16": {
     "name": "شفرة قلب الأنثى",
@@ -957,7 +972,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 580
+    "pageCount": 580,
+    "bundleEligible": true
   },
   "book17": {
     "name": "عجلة الفئران",
@@ -1017,7 +1033,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 225
+    "pageCount": 225,
+    "bundleEligible": true
   },
   "book18": {
     "name": "كيف تغير حياتك",
@@ -1077,7 +1094,8 @@
     },
     "imageWidth": 720,
     "imageHeight": 1080,
-    "pageCount": 443
+    "pageCount": 443,
+    "bundleEligible": true
   },
   "book19": {
     "name": "بدون شهادة جامعية",
@@ -1159,18 +1177,15 @@
       "اكتب شهادتك بنفسك"
     ],
     "imageWidth": 720,
-    "imageHeight": 1080
+    "imageHeight": 1080,
+    "bundleEligible": true
   },
   "book20": {
     "name": "السيجما: الذكر الملكي",
     "enName": "Sigma: The Royal Male",
     "image": "/covers/book20.webp?v=f50ee63ce604",
     "size": 7842514,
-    "fixedPrices": {
-      "EGP": 500,
-      "USD": 19.99
-    },
-    "bundleEligible": false,
+    "bundleEligible": true,
     "previewEnabled": false,
     "short": "الفحولة التي لا تحتاج إلى إثبات: كتاب تثقيفي للزوجين البالغين عن الصحة الجنسية للرجل، وقلق الأداء، والرغبة والتوافق الحميم.",
     "enShort": "Strength without the need to prove it: an educational book for adult couples about men's sexual health, performance anxiety, desire and intimacy.",
@@ -1254,11 +1269,7 @@
     "enName": "Sigma: Captivating Femininity",
     "image": "/covers/book21.webp?v=82ce89a3d53a",
     "size": 10274072,
-    "fixedPrices": {
-      "EGP": 600,
-      "USD": 19.99
-    },
-    "bundleEligible": false,
+    "bundleEligible": true,
     "previewEnabled": false,
     "short": "سيكولوجيا الرغبة وفنون الحميمية الزوجية: كتاب تثقيفي للنساء البالغات عن فهم الجسد والرغبة والتواصل والرضا المتبادل داخل الزواج.",
     "enShort": "An educational book for adult women about the body, desire, communication and mutual well-being within marriage.",
@@ -1310,7 +1321,7 @@
         ],
         [
           "ما عرض كتابَي السيجما؟",
-          "عند التسعير بالدولار، يحصل الكتابان «السيجما: أنوثة طاغية» و«السيجما: الذكر الملكي» معًا على سعر خاص قدره 34.99 دولار. لا يتغير سعر الكتاب منفردًا."
+          "باقة السيجما للزوجين تجمع الكتابين بسعر 279.99 جنيه في مصر أو 7.99 دولار خارج مصر، وتُطبق تلقائيًا عند إضافتهما للسلة."
         ]
       ],
       "en": [
@@ -1328,7 +1339,7 @@
         ],
         [
           "What is the Sigma pair offer?",
-          "When priced in USD, Sigma: Captivating Femininity and Sigma: The Royal Male cost $34.99 together."
+          "The Sigma for Couples pack includes both books for EGP 279.99 in Egypt or USD 7.99 elsewhere and applies automatically in the cart."
         ]
       ]
     },
@@ -1358,11 +1369,7 @@
     "enName": "The Court of Love & Sex",
     "image": "/covers/book22.webp?v=e034f54576eb",
     "size": 12519883,
-    "fixedPrices": {
-      "EGP": 500,
-      "USD": 19.99
-    },
-    "bundleEligible": false,
+    "bundleEligible": true,
     "previewEnabled": false,
     "short": "أسرار الرغبة والمتعة من خلف الأبواب المغلقة: قراءة تثقيفية للزوجين البالغين عن الجسد والحب والتواصل والحميمية الزوجية.",
     "enShort": "An educational exploration of the body, love, desire, communication and intimacy for adult couples.",
@@ -1462,11 +1469,7 @@
     "enName": "Female Hormones",
     "image": "/covers/book23.webp?v=7315d667f743",
     "size": 10990434,
-    "fixedPrices": {
-      "EGP": 500,
-      "USD": 19.99
-    },
-    "bundleEligible": false,
+    "bundleEligible": true,
     "previewEnabled": false,
     "short": "ما يحدث في جسدها… وما لا يفهمه الآخرون: قراءة في الهرمونات والمشاعر والرغبة والهوية والعلاقات، دون اختزال المرأة في كيمياء جسدها.",
     "enShort": "Explore hormones, emotions, desire, identity and relationships without reducing women to their biology.",
@@ -1571,11 +1574,7 @@
     "enName": "Under the Microscope",
     "image": "/covers/book24.webp?v=a331862a7e7c",
     "size": 11068592,
-    "fixedPrices": {
-      "EGP": 500,
-      "USD": 19.99
-    },
-    "bundleEligible": false,
+    "bundleEligible": true,
     "previewEnabled": false,
     "short": "المسكوت عنه في المجتمع العربي: قراءة نفسية واجتماعية في الصمت حول الجسد والجنس، والتواصل والرغبة والحياة الزوجية.",
     "enShort": "A psychological and social exploration of silence around the body, sexuality, communication, desire and married life in Arab society.",
@@ -1675,11 +1674,7 @@
     "enName": "Letters of Jasmine — Volume One",
     "image": "/covers/book25.webp?v=0003693942ea",
     "size": 5848018,
-    "fixedPrices": {
-      "EGP": 250,
-      "USD": 9.99
-    },
-    "bundleEligible": false,
+    "bundleEligible": true,
     "previewEnabled": true,
     "short": "اثنتان وأربعون رسالة وجدانية، من براءة الطفولة إلى حيرة الحب الصامت؛ أوراق قلب يكبر مع ياسمين، ويقول للورق ما يعجز عن قوله لها.",
     "enShort": "Forty-two literary letters tracing childhood memories, quiet longing and the uncertainty of unspoken love for Jasmine.",

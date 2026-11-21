@@ -238,7 +238,7 @@ class JasmineBookMetadataTests(unittest.TestCase):
         self.assertEqual(book['name'], 'رسائل الياسمين — الجزء الأول')
         self.assertEqual((book['pageCount'], book['size']), (354, 5848018))
         self.assertEqual(len(book['chapters']), 42)
-        self.assertEqual(catalog.FIXED_PRICES['book25'], {'EGP': 250, 'USD': 9.99})
+        self.assertEqual(catalog.UNIT_PRICES, {'EGP': 149.99, 'USD': 4.99})
         self.assertEqual(seo.categories_for('book25')[0][0], 'literature')
         self.assertTrue(catalog.preview_enabled('book25'))
         self.assertFalse(any(item['slug'] == 'letters-to-yasmine' for item in seo.UPCOMING))

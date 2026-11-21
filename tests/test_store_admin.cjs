@@ -23,7 +23,7 @@ class Node{constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[
  nodes.catalogPreview.handlers.click();assert.equal(nodes.catalogPublish.disabled,false);
  await nodes.catalogPublish.handlers.click();assert.equal(state.published.books.book1.name,'<img onerror=attack> synthetic');
  assert.equal(state.published.order[1],'book1');
- nodes.editorBook.value='book20';nodes.editorBook.handlers.change();assert.equal(nodes.independentPrice.disabled,true);assert.equal(nodes.bookPriceUSD.disabled,true);
+ nodes.editorBook.value='book20';nodes.editorBook.handlers.change();assert.equal(nodes.independentPrice.disabled,false);assert.equal(nodes.bookPriceUSD.disabled,true);
  nodes.editorOffer.value='sigma-couple';nodes.editorOffer.handlers.change();assert.equal(nodes.offerPriceUSD.disabled,true);
  nodes.editorOffer.value='sigma-trilogy';nodes.editorOffer.handlers.change();assert.equal(nodes.offerPriceUSD.disabled,true);assert.equal(nodes.offerPriceEGP.disabled,true);assert.equal(nodes.offerBooks.querySelectorAll('input').length,4);assert(nodes.offerBooks.querySelectorAll('input').every(n=>n.disabled));
  c.TaboStoreAdmin.open('recovery');await flush();await flush();assert(nodes.recoveryState.textContent.includes('مفعّلة'));

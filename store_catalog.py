@@ -149,9 +149,9 @@ def validate(value):
             raise ValueError('جدول الأسعار غير صالح.')
         for currency, ladder in value['prices'].items():
             if not isinstance(ladder,dict) or set(ladder)!=set(localization.USD_PRICES):
-                raise ValueError('أدخل أسعار عدد الكتب من 1 إلى 19.')
-            value['prices'][currency] = {str(i):money(ladder[str(i)]) for i in range(1,20)}
-            if any(value['prices'][currency][str(i)]<value['prices'][currency][str(i-1)] for i in range(2,20)):
+                raise ValueError('أدخل إجمالي السعر لكل عدد من الكتب المنشورة.')
+            value['prices'][currency] = {str(i):money(ladder[str(i)]) for i in range(1,len(catalog.BOOKS)+1)}
+            if any(value['prices'][currency][str(i)]<value['prices'][currency][str(i-1)] for i in range(2,len(catalog.BOOKS)+1)):
                 raise ValueError('إجمالي السعر لا ينقص عند إضافة كتاب.')
     if 'offers' in value:
         offers = value['offers']

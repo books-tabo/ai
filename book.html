@@ -284,10 +284,10 @@ html[dir="ltr"] .comment-rating,html[dir="ltr"] .comment-rating-options{justify-
 const BOOKS={}; /* SSR_BOOKS */
 const id=""; /* SSR_BOOK_ID */
 const book=BOOKS[id];
-let lang=localStorage.getItem("taboLanguage")||"ar",config={country:"EG",currency:"EGP",prices:{"1":199},compareAtPrice:299,countries:[]},stats={rating:null,reviews:0,pageCount:null},pricingLoaded=false,viewContentTracked=false,myRating=Number(localStorage.getItem(`taboRating_${id}`))||0,ratingBusy=false,ratingState="";
+let lang=localStorage.getItem("taboLanguage")||"ar",config={country:"EG",currency:"EGP",prices:{"1":149.99},compareAtPrice:149.99,countries:[]},stats={rating:null,reviews:0,pageCount:null},pricingLoaded=false,viewContentTracked=false,myRating=Number(localStorage.getItem(`taboRating_${id}`))||0,ratingBusy=false,ratingState="";
 const C={ar:{back:"العودة للمتجر",about:"نبذة عن الكتاب",adds:"ماذا يضيف لك؟",authorTitle:"عن المؤلف",author:"تابو نور كاتب ومؤلف يهتم بموضوعات الوعي وتطوير الذات والمال والطموح وفهم الإنسان لنفسه والعالم من حوله.",pages:"عدد الصفحات",size:"حجم الملف",reviews:"التقييمات",add:"أضف للسلة",added:"تمت الإضافة",cart:"عرض السلة",new:"جديد — لا توجد تقييمات بعد",rate:"اضغط على النجوم لتقييم الكتاب",rated:"تم حفظ تقييمك بنجاح",ratingError:"تعذر حفظ التقييم. حاول مرة أخرى.",yourRating:"تقييمك",country:"الدولة",language:"اللغة",aboutLink:"من نحن",contact:"تواصل معنا",privacy:"سياسة الخصوصية",refund:"الاسترداد والإلغاء",delivery:"التوصيل والتسليم",unknown:"غير معلن"},en:{back:"Back to store",about:"About the book",adds:"What will it add?",authorTitle:"About the author",author:"TABO NOOR writes about awareness, personal growth, money, ambition, and understanding ourselves and the world around us.",pages:"Pages",size:"File size",reviews:"Reviews",add:"Add to cart",added:"Added",cart:"View cart",new:"New — no reviews yet",rate:"Tap a star to rate this book",rated:"Your rating was saved",ratingError:"Could not save your rating. Please try again.",yourRating:"Your rating",country:"Country",language:"Language",aboutLink:"About us",contact:"Contact us",privacy:"Privacy policy",refund:"Refunds & cancellation",delivery:"Digital delivery",unknown:"Not listed"}};
 function browserCountry(){const saved=localStorage.getItem("taboCountry");if(saved)return saved;const r=(navigator.language||"").split("-")[1];return r||"EG"}function money(v){const amount=Number(v)||0;try{if(config.currency==="EGP"){const digits=new Intl.NumberFormat("en-US",{minimumFractionDigits:Number.isInteger(amount)?0:2,maximumFractionDigits:2}).format(amount);return lang==="ar"?`${digits} جنيه`:`EGP ${digits}`}return new Intl.NumberFormat("en-US",{style:"currency",currency:config.currency,maximumFractionDigits:2}).format(amount)}catch(e){return `${v} ${config.currency}`}}function fileSize(n){return `${(n/1048576).toFixed(1)} MB`}function cart(){try{return JSON.parse(localStorage.getItem("taboBooksCart"))||[]}catch(e){return[]}}function isAdded(){return cart().some(x=>x.id===id)}
-function bookPolicy(){return {...{price:book.fixedPrices?.[config.currency]??config.prices["1"]??199,bundleEligible:book.bundleEligible!==false,previewEnabled:book.previewEnabled!==false},...(config.bookPolicies?.[id]||{})}}
+function bookPolicy(){return {...{price:book.fixedPrices?.[config.currency]??config.prices["1"]??149.99,bundleEligible:book.bundleEligible!==false,previewEnabled:book.previewEnabled!==false},...(config.bookPolicies?.[id]||{})}}
 function bookPrice(){
   const promotion = config.bookPromotion;
   return Number(promotion?.bookId === id && promotion.currency === config.currency ? promotion.price : bookPolicy().price);
@@ -313,7 +313,7 @@ function renderPrices() {
   const targeted = campaign?.bookId === id;
   const regular = Number(targeted ? campaign.regularPrice : policy.regularPrice);
   const onSale = Boolean(campaign && (!campaign.bookId || (targeted && campaign.currency === config.currency)) && regular > price);
-  const compareAt = Number(config.compareAtPrice || 299);
+  const compareAt = Number(config.compareAtPrice || config.prices["1"]);
   document.getElementById('price').textContent = pricingLoaded ? money(price) : (lang === 'ar' ? 'جارٍ تحميل السعر…' : 'Loading price…');
   const previous = document.getElementById('previousPrice');
   previous.textContent = money(onSale ? regular : compareAt);

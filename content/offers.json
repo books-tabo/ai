@@ -1,21 +1,63 @@
 {
   "change-starter": {
-    "title": {"ar": "باقة بداية التغيير", "en": "Start Your Change"},
-    "description": {"ar": "ثلاث قراءات متكاملة للبدء بخطوات عملية، وفهم نفسك، وبناء العادات والانضباط: كيف تغير حياتك، وأنت، ودليل السمو.", "en": "Three connected reads on practical change, self-understanding, habits and discipline: How to Change Your Life, You, and The Guide to Elevation."},
-    "books": ["book18", "book14", "book6"],
-    "prices": {"EGP": 300, "USD": 15}
+    "title": {
+      "ar": "باقة بداية التغيير",
+      "en": "Start Your Change"
+    },
+    "description": {
+      "ar": "ثلاث قراءات متكاملة للبدء بخطوات عملية، وفهم نفسك، وبناء العادات والانضباط: كيف تغير حياتك، وأنت، ودليل السمو.",
+      "en": "Three connected reads on practical change, self-understanding, habits and discipline: How to Change Your Life, You, and The Guide to Elevation."
+    },
+    "books": [
+      "book18",
+      "book14",
+      "book6"
+    ],
+    "prices": {
+      "EGP": 409.99,
+      "USD": 10.99
+    }
   },
   "money-and-wealth": {
-    "title": {"ar": "باقة المال وبناء الثروة", "en": "Money and Wealth"},
-    "description": {"ar": "أربع زوايا لفهم المال والدخل والاستهلاك والحوافز: كيف تصنع المليون الأول، وعجلة الفئران، وتأثير الكوبرا، وأصنام. قراءة للفهم ومراجعة القرارات المالية.", "en": "Four perspectives on money, income, consumption and incentives: How to Make Your First Million, The Rat Race, The Cobra Effect, and Idols. Reading for understanding money and reviewing financial decisions."},
-    "books": ["book4", "book17", "book9", "book8"],
-    "prices": {"EGP": 350, "USD": 20}
+    "title": {
+      "ar": "باقة المال وبناء الثروة",
+      "en": "Money and Wealth"
+    },
+    "description": {
+      "ar": "أربع زوايا لفهم المال والدخل والاستهلاك والحوافز: كيف تصنع المليون الأول، وعجلة الفئران، وتأثير الكوبرا، وأصنام. قراءة للفهم ومراجعة القرارات المالية.",
+      "en": "Four perspectives on money, income, consumption and incentives: How to Make Your First Million, The Rat Race, The Cobra Effect, and Idols. Reading for understanding money and reviewing financial decisions."
+    },
+    "books": [
+      "book4",
+      "book17",
+      "book9",
+      "book8"
+    ],
+    "prices": {
+      "EGP": 539.99,
+      "USD": 13.99
+    }
   },
   "self-growth": {
-    "title": {"ar": "باقة بناء النفس والنجاح", "en": "Self-Growth and Progress"},
-    "description": {"ar": "خمس قراءات تربط التغيير والوعي بالانضباط والطموح والتعلم الذاتي: كيف تغير حياتك، وأنت، ودليل السمو، ونحو القمة، وبدون شهادة جامعية.", "en": "Five connected reads on change, self-awareness, discipline, ambition and self-directed learning: How to Change Your Life, You, The Guide to Elevation, Toward the Summit, and Without a University Degree."},
-    "books": ["book18", "book14", "book6", "book2", "book19"],
-    "prices": {"EGP": 400, "USD": 23}
+    "title": {
+      "ar": "باقة بناء النفس والنجاح",
+      "en": "Self-Growth and Progress"
+    },
+    "description": {
+      "ar": "خمس قراءات تربط التغيير والوعي بالانضباط والطموح والتعلم الذاتي: كيف تغير حياتك، وأنت، ودليل السمو، ونحو القمة، وبدون شهادة جامعية.",
+      "en": "Five connected reads on change, self-awareness, discipline, ambition and self-directed learning: How to Change Your Life, You, The Guide to Elevation, Toward the Summit, and Without a University Degree."
+    },
+    "books": [
+      "book18",
+      "book14",
+      "book6",
+      "book2",
+      "book19"
+    ],
+    "prices": {
+      "EGP": 669.99,
+      "USD": 16.99
+    }
   },
   "sigma-couple": {
     "title": {
@@ -23,15 +65,16 @@
       "en": "Sigma for Couples"
     },
     "description": {
-      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية — قراءتان متكاملتان للبالغين عن فهم الرجل والمرأة والتواصل والحميمية داخل الزواج. الكتابان معًا بسعر 34.99 دولار عند التسعير بالدولار.",
-      "en": "Sigma: The Royal Male and Sigma: Captivating Femininity — two complementary adult reads about understanding men and women, communication and intimacy within marriage. Both books cost $34.99 together when priced in USD."
+      "ar": "السيجما: الذكر الملكي، والسيجما: أنوثة طاغية — قراءتان متكاملتان للبالغين عن فهم الرجل والمرأة والتواصل والحميمية داخل الزواج. أضف الكتابين إلى السلة لتطبيق سعر الباقة تلقائيًا.",
+      "en": "Sigma: The Royal Male and Sigma: Captivating Femininity — two complementary adult reads about understanding men and women, communication and intimacy within marriage. Add both books to your cart to apply the pack price automatically."
     },
     "books": [
       "book20",
       "book21"
     ],
     "prices": {
-      "USD": 34.99
+      "EGP": 279.99,
+      "USD": 7.99
     },
     "fixedPriceBundle": true
   },
@@ -51,8 +94,8 @@
       "book23"
     ],
     "prices": {
-      "EGP": 1250,
-      "USD": 49
+      "EGP": 539.99,
+      "USD": 13.99
     },
     "fixedPriceBundle": true
   },
@@ -71,8 +114,8 @@
       "book22"
     ],
     "prices": {
-      "EGP": 1000,
-      "USD": 39
+      "EGP": 409.99,
+      "USD": 10.99
     },
     "fixedPriceBundle": true
   }
