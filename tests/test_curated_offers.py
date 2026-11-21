@@ -12,101 +12,52 @@ from urllib.error import HTTPError
 
 
 class CuratedPricingTests(unittest.TestCase):
-    def test_sigma_pair_is_an_exact_usd_exception_to_independent_prices(self):
-        cases=[(['book20'],500,19.99),(['book21'],600,19.99),
-               (['book20','book21'],1100,34.99),
-               (['book20','book21','book1'],1299,44.98),
-               (['book21','book1','book2'],899,37.98),
-               (['book20','book21','book18','book14','book6'],1400,49.99)]
+    def test_all_advertised_packs_cost_less_than_the_same_quantity_of_books(self):
+        from itertools import permutations
+        expected={'sigma-couple':(279.99,7.99),'change-starter':(409.99,10.99),
+                  'money-and-wealth':(539.99,13.99),'self-growth':(669.99,16.99),
+                  'sigma-trilogy':(539.99,13.99),'marriage-awareness':(409.99,10.99)}
+        self.assertEqual(set(catalog.OFFERS),set(expected))
+        for oid,offer in catalog.OFFERS.items():
+            self.assertEqual(set(offer['prices']),{'EGP','USD'})
+            for country,total in [('EG',expected[oid][0]),('SA',expected[oid][1])]:
+                config=localization.pricing_for_country(catalog.PRICES,country,at=0)
+                self.assertLess(total,config['prices'][str(len(offer['books']))])
+                for ids in permutations(offer['books']):
+                    result=catalog.pricing_breakdown(list(ids),config)
+                    self.assertEqual(result['total'],Decimal(str(total)))
+                    self.assertEqual(result['offerIds'],[oid])
+
+    def test_disjoint_packs_and_uncovered_books_keep_the_extra_book_discount(self):
+        starter=catalog.OFFERS['change-starter']['books']
+        money=catalog.OFFERS['money-and-wealth']['books']
+        growth=catalog.OFFERS['self-growth']['books']
+        cases=[(starter+money,948.98,23.98),(growth+money,1208.98,29.98),
+               (['book20','book21','book1'],428.98,11.98),
+               (['book20','book21','book22','book23','book1'],688.98,17.98),
+               (['book24','book23','book22','book1'],558.98,14.98),
+               (['book20','book21','book22','book23','book24'],688.98,17.98),
+               (growth[:-1],558.98,14.98),(starter[:-1],298.98,8.98),
+               (list(catalog.BOOKS),3535.85,90.85)]
         for ids,egp,usd in cases:
             for country,expected in [('EG',egp),('SA',usd)]:
-                config=localization.pricing_for_country(catalog.PRICES,country)
-                self.assertEqual(catalog.total_for_items(ids,config),expected)
-                self.assertEqual(catalog.total_for_items(ids[::-1],config),expected)
-        usd=localization.pricing_for_country(catalog.PRICES,'SA')
-        self.assertEqual(catalog.pricing_breakdown(['book20','book21'],usd)['offerSavings'],Decimal('4.99'))
-        self.assertNotIn('sigma-couple',[o['id'] for o in catalog.public_offers('EGP')])
-        for bid,price in [('book20',19.99),('book21',19.99)]:
-            self.assertEqual(usd['bookPolicies'][bid],{'price':price,'bundleEligible':False,'previewEnabled':False})
+                config=localization.pricing_for_country(catalog.PRICES,country,at=0)
+                self.assertEqual(catalog.total_for_items(ids,config),expected,(country,ids))
+                result=catalog.pricing_breakdown(ids,config)
+                used=[]
+                for oid in result['offerIds']:used+=catalog.OFFERS[oid]['books']
+                self.assertEqual(len(used),len(set(used)))
+                self.assertGreater(result['total'],0)
+                self.assertLessEqual(result['total'],Decimal(str(config['prices'][str(len(ids))])))
 
-    def test_four_book_pack_is_automatic_and_named_in_either_offer_order(self):
-        ids=['book20','book21','book22','book23']
-        for country,total,saving in [('EG',1250,'850'),('SA',49,'30.96')]:
-            config=localization.pricing_for_country(catalog.PRICES,country)
-            for offers in [catalog.OFFERS,dict(reversed(list(catalog.OFFERS.items())))]:
-                with patch.object(catalog,'current_offers',return_value=offers):
-                    result=catalog.pricing_breakdown(ids,config)
-                    self.assertEqual(result,{'total':Decimal(str(total)),'offerIds':['sigma-trilogy'],'offerSavings':Decimal(saving)})
-                    for removed in ids:
-                        self.assertNotIn('sigma-trilogy',catalog.pricing_breakdown([b for b in ids if b!=removed],config)['offerIds'])
-            self.assertEqual(catalog.total_for_items(ids+['book1'],config),1449 if country=='EG' else 58.99)
-            self.assertEqual(catalog.total_for_items(ids+catalog.OFFERS['change-starter']['books'],config),1550 if country=='EG' else 64)
-
-    def test_three_book_cart_uses_the_pair_only_when_both_sigma_books_remain(self):
-        books = ['book20', 'book21', 'book22', 'book23']
-        for removed in books:
-            remaining = [book_id for book_id in books if book_id != removed]
-            usd = '59.97' if removed in ('book20', 'book21') else '54.98'
-            egp = '1500' if removed == 'book21' else '1600'
-            for country, total in [('EG', egp), ('SA', usd)]:
-                config = localization.pricing_for_country(catalog.PRICES, country)
-                result = catalog.pricing_breakdown(remaining, config)
-                self.assertEqual(result['total'], Decimal(total))
-                self.assertNotIn('sigma-trilogy', result['offerIds'])
-
-    def test_marriage_awareness_pack_requires_all_three_books_and_cannot_stack_overlaps(self):
-        from itertools import combinations
-        ids = ['book24', 'book23', 'book22']
-        self.assertEqual(catalog.OFFERS['marriage-awareness']['books'], ids)
-        for country, unit, pack in [('EG', Decimal('500'), Decimal('1000')),
-                                    ('SA', Decimal('19.99'), Decimal('39'))]:
-            config = localization.pricing_for_country(catalog.PRICES, country)
-            self.assertEqual(config['bookPolicies']['book24'],
-                             {'price': float(unit), 'bundleEligible': False, 'previewEnabled': False})
-            for count in range(4):
-                for subset in combinations(ids, count):
-                    result = catalog.pricing_breakdown(list(subset), config)
-                    self.assertEqual(result['total'], pack if count == 3 else unit * count)
-                    self.assertEqual(result['offerIds'], ['marriage-awareness'] if count == 3 else [])
-            self.assertEqual(catalog.total_for_items(ids + ['book1'], config),
-                             1199 if country == 'EG' else 48.99)
-            overlap = catalog.pricing_breakdown(ids + ['book20', 'book21'], config)
-            self.assertEqual(overlap['total'], Decimal('1750' if country == 'EG' else '68.99'))
-            self.assertEqual(overlap['offerIds'], ['sigma-trilogy'])
-            self.assertNotIn('marriage-awareness', overlap['offerIds'])
-
-    def test_advertised_packs_and_related_book_identity(self):
-        expected={'change-starter':(['book18','book14','book6'],300,15),
-                  'money-and-wealth':(['book4','book17','book9','book8'],350,20),
-                  'self-growth':(['book18','book14','book6','book2','book19'],400,23)}
-        self.assertEqual(set(catalog.OFFERS),set(expected)|{'sigma-couple','sigma-trilogy','marriage-awareness'})
-        for key,(ids,egp,usd) in expected.items():
-            self.assertEqual(catalog.OFFERS[key]['books'],ids)
-            self.assertNotIn('book20',ids)
-            for country,total in [('EG',egp),('SA',usd)]:
-                config=localization.pricing_for_country(catalog.PRICES,country)
-                self.assertEqual(catalog.total_for_items(ids,config),total)
-                self.assertEqual(catalog.total_for_items(list(reversed(ids)),config),total)
-                config['offers'][0]['price']=0.01
-                self.assertEqual(catalog.total_for_items(ids,config),total)
-
-    def test_overlaps_partial_packs_disjoint_packs_and_sigma(self):
-        starter=catalog.OFFERS['change-starter']['books'];growth=catalog.OFFERS['self-growth']['books'];money=catalog.OFFERS['money-and-wealth']['books']
-        cases=[(starter,300,15),(growth,400,23),(money,350,20),
-               (starter+money,650,35),(growth+money,750,43),
-               (growth[:-1],499,24.99),(starter[:-1],299,17.99),
-               (['book1','book2','book3'],399,24.99),
-               (starter+['book20'],800,34.99),(money+['book20'],850,39.99),
-               (growth+['book20'],900,42.99),
-               (list(catalog.BOOKS),3849,181.97)]
-        for ids,egp,usd in cases:
-            for country,expected in [('EG',egp),('SA',usd)]:
-                with self.subTest(country=country,ids=ids):
-                    actual=catalog.total_for_items(ids,localization.pricing_for_country(catalog.PRICES,country))
-                    self.assertEqual(Decimal(str(actual)),Decimal(str(expected)))
-        config=localization.pricing_for_country(catalog.PRICES,'EG')
-        self.assertEqual(catalog.pricing_breakdown(growth,config)['offerIds'],['self-growth'])
-        with self.assertRaises(ValueError):catalog.total_for_items(starter+starter,config)
+    def test_removing_a_required_book_removes_the_pack_and_duplicates_are_rejected(self):
+        for country in ('EG','SA'):
+            config=localization.pricing_for_country(catalog.PRICES,country,at=0)
+            for oid,offer in catalog.OFFERS.items():
+                for removed in offer['books']:
+                    ids=[bid for bid in offer['books'] if bid!=removed]
+                    self.assertNotIn(oid,catalog.pricing_breakdown(ids,config)['offerIds'])
+            with self.assertRaises(ValueError):catalog.total_for_items(['book20','book20'],config)
 
 
 class OfferPageTests(HTTPCase):

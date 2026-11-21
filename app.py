@@ -230,7 +230,7 @@ def checkout_catalog_revision(country, at):
     # Bind carts to the current currency policy and the currency shown to the buyer.
     currency = localization.COUNTRIES[country]['currency']
     revision = book_promotion.revision(store_catalog.revision(), at, currency)
-    return f'{revision}:egp-usd:{currency}'
+    return f'{revision}:egp-usd:{currency}:{catalog.PRICING_VERSION}'
 
 def paypal_ready(currency):
     checks=checkout_readiness()

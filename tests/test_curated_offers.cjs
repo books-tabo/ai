@@ -35,81 +35,68 @@ for(const group of fixture){
  c.storeConfig=group.config;c.PRICING_LADDER=group.config.prices;
  for(const sample of group.cases){
   c.cart=sample.ids.map(id=>({type:'book',id}));
-  assert.equal(vm.runInContext('calculatePricing().final',c),sample.total,group.config.currency+':'+sample.ids);
-  count++;
+  const result=vm.runInContext('calculatePricing()',c);
+  assert.equal(result.final,sample.total,group.config.currency+':'+sample.ids);count++;
  }
 }
-c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
-for (const group of fixture) {
- c.storeConfig={...group.config,offers:[...group.config.offers].reverse()};c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
- c.addCuratedOffer('sigma-trilogy');c.addCuratedOffer('sigma-trilogy');assert.equal(c.cart.length,4);
- assert.equal(vm.runInContext('calculatePricing().final',c),group.config.currency==='EGP'?1250:49);
- assert.deepEqual(Array.from(c.TaboOfferPricing.best(c.cart.map(x=>x.id),c.storeConfig).offerIds),['sigma-trilogy']);
- for (const removed of ['book20','book21','book22','book23']) {
-  const ids=['book20','book21','book22','book23'].filter(x=>x!==removed);
-  assert(!c.TaboOfferPricing.best(ids,c.storeConfig).offerIds.includes('sigma-trilogy'));
+// Every possible single-book addition stays nondecreasing and receives at
+// least the stated quantity saving, including carts that contain curated packs.
+for(const group of fixture){
+ const key=ids=>[...ids].sort().join(','),totals=new Map(group.cases.map(x=>[key(x.ids),Math.round(x.total*100)]));
+ const members=[...new Set(group.config.offers.flatMap(o=>o.books).concat('book1'))];
+ const unit=Math.round(group.config.prices['1']*100);
+ for(const sample of group.cases)for(const id of members){
+  if(sample.ids.includes(id))continue;
+  const next=totals.get(key([...sample.ids,id]));if(next===undefined)continue;
+  const current=Math.round(sample.total*100);
+  assert(next>=current,'Adding a book reduced the total');
+  assert(next-current<=unit-(sample.ids.length?100:0),'Extra-book quantity saving was lost');
  }
 }
-c.cart=[];events.length=0;c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;
+for(const group of fixture){
+ c.storeConfig={...group.config,offers:[...group.config.offers].reverse()};c.PRICING_LADDER=c.storeConfig.prices;
+ for(const offer of group.config.offers){
+  c.cart=[];events.length=0;
+  c.addCuratedOffer(offer.id);c.addCuratedOffer(offer.id);
+  assert.equal(c.cart.length,offer.books.length);
+  assert.equal(vm.runInContext('calculatePricing().final',c),offer.price);
+  assert.equal(events.length,1);assert.equal(events[0].data.value,offer.price);
+  assert.deepEqual(Array.from(c.TaboOfferPricing.best(c.cart.map(x=>x.id),c.storeConfig).offerIds),[offer.id]);
+  for(const removed of offer.books){
+   assert(!c.TaboOfferPricing.best(offer.books.filter(id=>id!==removed),c.storeConfig).offerIds.includes(offer.id));
+  }
+ }
+ c.cart=[{id:'book20'},{id:'book21'},{id:'book1'}];
+ assert.equal(vm.runInContext('calculatePricing().final',c),group.config.currency==='EGP'?428.98:11.98);
+ c.cart=[{id:'book20'},{id:'book21'},{id:'book22'},{id:'book23'},{id:'book24'}];
+ const result=c.TaboOfferPricing.best(c.cart.map(x=>x.id),c.storeConfig);
+ assert.equal(result.totalMinor,group.config.currency==='EGP'?68898:1798);
+ const covered=result.offerIds.flatMap(id=>group.config.offers.find(o=>o.id===id).books);
+ assert.equal(covered.length,new Set(covered).size);
+}
+c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];events.length=0;
 assert.equal(c.addCuratedOffer('unknown'),false);assert.equal(events.length,0);
-assert(c.addCuratedOffer('change-starter'));assert.equal(c.cart.length,3);
-assert.equal(vm.runInContext('calculatePricing().final',c),15);
-assert.equal(events.length,1);assert.equal(events[0].data.value,15);
-c.addCuratedOffer('change-starter');assert.equal(c.cart.length,3);assert.equal(events.length,1);
-c.addCuratedOffer('self-growth');assert.equal(c.cart.length,5);assert.equal(events[1].data.value,8);
-assert.equal(vm.runInContext('calculatePricing().final',c),23);
-c.cart.push({id:'book20'});assert.equal(vm.runInContext('calculatePricing().final',c),42.99);
-c.storeConfig=fixture[0].config;c.PRICING_LADDER=c.storeConfig.prices;
-assert.equal(vm.runInContext('calculatePricing().final',c),900);
-c.cart=c.cart.filter(x=>x.id!=='book19');assert.equal(vm.runInContext('calculatePricing().final',c),999);
-assert(saved.every(items=>new Set(items.map(x=>x.id)).size===items.length));
-c.cart=[];c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;
+c.addCuratedOffer('change-starter');assert.equal(events[0].data.value,10.99);
+c.addCuratedOffer('self-growth');assert.equal(events[1].data.value,6);
+assert.equal(vm.runInContext('calculatePricing().final',c),16.99);
+c.cart=[];
 c.location.search='?offer=money-and-wealth&utm_source=facebook&utm_campaign=wealth&fbclid=synthetic%2Btest&cart=1';
-c.completeOfferIntent();assert.equal(c.cart.length,4);assert.equal(vm.runInContext('calculatePricing().final',c),20);
-c.cart=[];c.storeConfig=fixture[1].config;c.PRICING_LADDER=c.storeConfig.prices;
-c.addCuratedOffer('sigma-couple');assert.equal(c.cart.length,2);assert.equal(vm.runInContext('calculatePricing().final',c),34.99);
-assert.equal(events.at(-1).data.value,34.99);
-c.addCuratedOffer('sigma-couple');assert.equal(c.cart.length,2);
-c.cart=c.cart.filter(x=>x.id!=='book20');assert.equal(vm.runInContext('calculatePricing().final',c),19.99);
-c.cart=[{id:'book20'}];assert.equal(vm.runInContext('calculatePricing().final',c),19.99);
-c.addCuratedOffer('sigma-couple');assert.equal(events.at(-1).data.value,15);
-assert.equal(vm.runInContext('calculatePricing().final',c),34.99);
-c.addCuratedOffer('change-starter');assert.equal(vm.runInContext('calculatePricing().final',c),49.99);
-const individualSale={bookId:'book21',currency:'USD',price:10};
-c.storeConfig={...fixture[1].config,bookPromotion:individualSale};c.PRICING_LADDER=c.storeConfig.prices;
-for(const [ids,expected] of [[['book21'],10],[['book21','book1'],19.99],
-    [['book20','book21'],34.99],[['book20','book21','book22','book23'],49],[['book20'],19.99]]){
- c.cart=ids.map(id=>({id}));
- assert.equal(vm.runInContext('calculatePricing().final',c),expected);
-}
-c.storeConfig=fixture[0].config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
-assert.equal(c.addCuratedOffer('sigma-couple'),false);assert.equal(c.cart.length,0);
-c.cart=[{id:'book20'},{id:'book21'}];assert.equal(vm.runInContext('calculatePricing().final',c),1100);
+c.completeOfferIntent();assert.equal(c.cart.length,4);assert.equal(vm.runInContext('calculatePricing().final',c),13.99);
+assert(saved.every(items=>new Set(items.map(x=>x.id)).size===items.length));
 const after=new URLSearchParams(histories.at(-1).split('?')[1]);
 assert.equal(after.get('utm_source'),'facebook');assert.equal(after.get('fbclid'),'synthetic+test');assert.equal(after.has('offer'),false);
 vm.runInContext(fs.readFileSync('offer-ui.js','utf8'),c);
 const destination=c.TaboOfferUI.cartUrl('self-growth','?utm_source=instagram&fbclid=synthetic%2Fid');
 const params=new URLSearchParams(destination.split('?')[1]);assert.equal(params.get('fbclid'),'synthetic/id');assert.equal(params.get('offer'),'self-growth');
-// The USD-only exception must never advertise a discounted EGP cart action or
-// compare the pair with the unrelated two-ordinary-book quantity ladder.
 const elements=new Map();
 const element=key=>{if(!elements.has(key))elements.set(key,{textContent:'',hidden:false,setAttribute(name,value){this[name]=value;}});return elements.get(key);};
 const buy=element('buy');
 const card={dataset:{offerId:'sigma-couple'},querySelector:element,querySelectorAll:selector=>selector==='[data-offer-buy]'||selector==='[data-offer-buy],[data-add-offer]'?[buy]:[]};
 c.document={querySelectorAll:selector=>selector==='[data-offer-id]'?[card]:[]};
-c.TABO_CURATED_OFFERS=JSON.parse(fs.readFileSync('content/offers.json'));
-c.TABO_OFFER_BOOK_NAMES={};
-c.TaboOfferUI.render(fixture[0].config,'ar');
-assert.equal(buy.hidden,true);assert.equal(elements.get('[data-offer-original]').hidden,true);
-assert.match(elements.get('[data-offer-availability]').textContent,/خارج مصر بالدولار/);
-assert.doesNotMatch(elements.get('[data-offer-availability]').textContent,/الدينار/);
-c.TaboOfferUI.render(fixture[1].config,'en');
-assert.equal(buy.hidden,false);assert.equal(buy.disabled,false);
-assert.match(elements.get('[data-offer-price]').textContent,/34\.99/);
-assert.match(elements.get('[data-offer-original]').textContent,/39\.98/);
-card.dataset.offerId='sigma-trilogy';
-for(const [config,price,original] of [[fixture[0].config,/1,250[.,]00|1250[.,]00/,/2,100[.,]00|2100[.,]00/],[fixture[1].config,/49[.,]00/,/79[.,]96/]]) {
- c.TaboOfferUI.render(config,'en');assert.equal(buy.hidden,false);assert.match(elements.get('[data-offer-price]').textContent,price);
+c.TABO_CURATED_OFFERS=JSON.parse(fs.readFileSync('content/offers.json'));c.TABO_OFFER_BOOK_NAMES={};
+for(const [config,price,original] of [[fixture[0].config,/279[.,]99/,/298[.,]98/],[fixture[1].config,/7[.,]99/,/8[.,]98/]]){
+ c.TaboOfferUI.render(config,'en');assert.equal(buy.hidden,false);assert.equal(buy.disabled,false);
+ assert.match(elements.get('[data-offer-price]').textContent,price);
  assert.match(elements.get('[data-offer-original]').textContent,original);
 }
 assert(!events.some(e=>e.name==='Purchase'));
@@ -118,21 +105,4 @@ for(const route of ['/offers',...Object.keys(JSON.parse(fs.readFileSync('content
  for(const script of source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/application\/(ld\+)?json/.test(script[1]))new vm.Script(script[2]);
  assert(source.includes('data-offer-buy'));
 }
-
-// New pack uses all three actual IDs and adds no duplicate cart entries.
-for (const group of fixture) {
- c.storeConfig=group.config;c.PRICING_LADDER=c.storeConfig.prices;c.cart=[];
- const egp=group.config.currency==='EGP';
- const price=egp?1000:39;
- c.addCuratedOffer('marriage-awareness');c.addCuratedOffer('marriage-awareness');
- assert.equal(c.cart.length,3);
- assert.deepEqual(Array.from(c.cart,x=>x.id),['book24','book23','book22']);
- assert.equal(vm.runInContext('calculatePricing().final',c),price);
- for(const removed of ['book24','book23','book22']){
-  const ids=['book24','book23','book22'].filter(id=>id!==removed);
-  const result=c.TaboOfferPricing.best(ids,c.storeConfig);
-  assert(!result.offerIds.includes('marriage-awareness'));
-  assert.equal(result.totalMinor,egp?100000:3998);
- }
-}
-console.log(`Curated offers: ${count} Python/browser pricing comparisons, exact pack totals, Sigma, overlap, removal, upgrade, duplicate prevention, ad parameters and single AddToCart passed.`);
+console.log(`Curated offers: ${count} Python/browser pricing comparisons; packs, extra-book discounts, overlap, removal, upgrade, duplicate prevention and ad parameters passed.`);

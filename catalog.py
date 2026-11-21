@@ -30,41 +30,23 @@ BOOKS = {'book1': ('هرمون', 'cover-edition-20261109/book1.pdf'),
  'book24': ('تحت المجهر', 'cover-edition-20261109/book24.pdf'),
  'book25': ('رسائل الياسمين — الجزء الأول', 'book25.pdf')}
 
-PRICES = {1: 199,
- 2: 299,
- 3: 399,
- 4: 499,
- 5: 599,
- 6: 699,
- 7: 799,
- 8: 899,
- 9: 999,
- 10: 1099,
- 11: 1199,
- 12: 1299,
- 13: 1399,
- 14: 1499,
- 15: 1599,
- 16: 1699,
- 17: 1799,
- 18: 1899,
- 19: 1999}
+# All titles share the same unit prices and per-additional-book discount.
+UNIT_PRICES = {'EGP': 149.99, 'USD': 4.99}
+PRICING_VERSION = 'uniform-20261121'
 
-# Fixed-price books never contribute to the ordinary bundle count.
-FIXED_PRICES = {'book20': {'EGP': 500, 'USD': 19.99},
-                'book21': {'EGP': 600, 'USD': 19.99},
-                'book22': {'EGP': 500, 'USD': 19.99},
-                'book23': {'EGP': 500, 'USD': 19.99},
-                'book24': {'EGP': 500, 'USD': 19.99},
-                'book25': {'EGP': 250, 'USD': 9.99}}
+def quantity_prices(currency):
+    unit = Decimal(str(UNIT_PRICES[currency]))
+    return {count: float(unit * count - (count - 1)) for count in range(1, len(BOOKS) + 1)}
+
+PRICES = quantity_prices('EGP')
+# Preview restrictions are independent of price and quantity-discount eligibility.
+FIXED_PRICES = {}
 PREVIEW_DISABLED = frozenset({'book20', 'book21', 'book22', 'book23', 'book24'})
 
 OFFERS = json.loads((Path(__file__).resolve().parent / 'content/offers.json').read_text())
 for _offer in OFFERS.values():
-    _fixed_bundle = _offer.get('fixedPriceBundle', False)
     if (len(_offer['books']) < 2 or len(_offer['books']) != len(set(_offer['books'])) or
             any(b not in BOOKS for b in _offer['books']) or
-            any((b in FIXED_PRICES) != _fixed_bundle for b in _offer['books']) or
             not _offer['prices'] or set(_offer['prices']) - {'EGP', 'USD'} or
             any(Decimal(str(v)) <= 0 for v in _offer['prices'].values())):
         raise ValueError('Invalid curated offer')
@@ -103,11 +85,11 @@ def public_offers(currency):
 
 
 def pricing_breakdown(ids, price_config):
-    """Choose disjoint packs, then price the ordinary and fixed-price remainder.
+    """Apply the quantity discount to the whole cart and disjoint pack savings.
 
-    Eligibility depends only on actual book IDs. A shared title is never counted
-    twice. Fixed-price books only receive their explicitly configured special pack;
-    they never contribute to the ordinary quantity discount.
+    Each pack saves the difference between its standalone quantity total and
+    its advertised price. This preserves the extra-book discount across packs
+    and uncovered books without counting a shared title twice.
     """
     if len(set(ids)) != len(ids) or any(book_id not in BOOKS for book_id in ids):
         raise ValueError('Invalid or duplicate book')
@@ -120,10 +102,9 @@ def pricing_breakdown(ids, price_config):
     ordinary = set(ids) - fixed.keys()
     def regular(count):
         return Decimal(str(price_config['prices'][str(count)])) if count else Decimal(0)
-    def remainder(used):
-        fixed_total = sum((price for book_id, price in fixed.items() if book_id not in used), Decimal(0))
-        return regular(len(ordinary - used)) + fixed_total
-    baseline = remainder(set())
+    def standalone(ids):
+        return regular(len(ordinary.intersection(ids))) + sum((fixed.get(book_id, Decimal(0)) for book_id in ids), Decimal(0))
+    baseline = standalone(ids)
     best, applied, covered = baseline, [], set()
     eligible = [(key,offer) for key,offer in current_offers().items()
                 if currency in offer['prices'] and set(offer['books']) <= set(ids)]
@@ -135,10 +116,13 @@ def pricing_breakdown(ids, price_config):
                 if used & books:
                     break
                 used |= books; selected.append(key)
-                cost += Decimal(str(offer['prices'][currency]))
+                cost += standalone(books) - Decimal(str(offer['prices'][currency]))
         else:
-            cost += remainder(used)
-            # Prefer the fuller advertised pack when totals tie (overlapping fixed-price packs).
+            cost = baseline - cost
+            # Never select a malformed combination with a non-positive total.
+            if cost <= 0:
+                continue
+            # Prefer the fuller advertised pack when totals tie.
             if cost < best or (cost == best and applied and len(used) > len(covered)):
                 best, applied, covered = cost, selected, used
     offer_savings = baseline - best

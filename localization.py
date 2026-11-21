@@ -37,29 +37,8 @@ COUNTRIES = {
     'MR': {'ar': 'موريتانيا', 'en': 'Mauritania', 'currency': 'USD'},
 }
 
-# Fixed international bundle ladder. It preserves the Egyptian bundle discounts
-# while keeping one simple price for every supported country outside Egypt.
-USD_PRICES = {
-    '1': 9.99,
-    '2': 17.99,
-    '3': 24.99,
-    '4': 29.99,
-    '5': 34.99,
-    '6': 39.99,
-    '7': 44.99,
-    '8': 49.99,
-    '9': 54.99,
-    '10': 59.99,
-    '11': 64.99,
-    '12': 69.99,
-    '13': 74.99,
-    '14': 79.99,
-    '15': 84.99,
-    '16': 89.99,
-    '17': 94.99,
-    '18': 99.99,
-    '19': 104.99,
-}
+# The same quantity rule covers every published title outside Egypt.
+USD_PRICES = {str(count): price for count, price in catalog.quantity_prices('USD').items()}
 
 _GEO_CACHE = {}
 _GEO_CACHE_LOCK = threading.Lock()
@@ -131,7 +110,8 @@ def pricing_for_country(base_prices, country, *, at=None):
         'prices': prices,
         'bookPolicies': catalog.public_policies(currency, prices['1']),
         'offers': catalog.public_offers(currency),
-        'compareAtPrice': 299 if egypt else 14.99,
+        'compareAtPrice': prices['1'],
+        'quantityDiscountPerAdditionalBook': 1,
         'rateSource': 'fixed',
         'countries': [
             {'code': item_code, 'nameAr': item['ar'], 'nameEn': item['en'],

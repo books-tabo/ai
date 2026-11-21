@@ -6,28 +6,20 @@ const rendered = require('./rendered_template.cjs');
 const html = rendered('index.html');
 const booksSource = html.match(/const BOOKS = (\[[^\n]*\]);/)[1];
 const source = fs.readFileSync('checkout-core.js','utf8').split('/* Catalog pricing start */')[1].split('/* Catalog pricing end */')[0];
-const egp = Object.fromEntries(Array.from({length: 19}, (_, i) => [String(i + 1), 199 + i * 100]));
-const usd = {1: 9.99, 2: 17.99, 3: 24.99, ...Object.fromEntries(Array.from({length: 16}, (_, i) => [String(i + 4), Number((29.99 + i * 5).toFixed(2))]))};
-const context = vm.createContext({storeConfig: {}, PRICING_LADDER: {}, currentLanguage: 'ar', cart: []});
-vm.runInContext('const BOOKS=' + booksSource + '; BOOKS.forEach((book,i)=>book.id="book"+(i+1));\n' + source, context);
-for (const [currency, ladder, fixed, compare] of [['EGP', egp, 500, 299], ['USD', usd, 19.99, 14.99]]) {
-    context.storeConfig = {currency, prices: ladder, compareAtPrice: compare};
-    context.PRICING_LADDER = ladder;
-    for (let count = 0; count <= 19; count++) {
-        const ordinary = Array.from({length: count}, (_, i) => ({id: 'book' + (i + 1)}));
-        context.cart = [...ordinary, {id: 'book20'}];
-        const result = vm.runInContext('calculatePricing()', context);
-        assert.equal(result.standardCount, count);
-        assert.equal(result.fixedTotal, fixed);
-        assert.equal(result.final, Math.round(((ladder[count] || 0) + fixed) * 100) / 100);
-        context.cart.reverse();
-        assert.equal(vm.runInContext('calculatePricing().final', context), result.final);
-        context.cart = ordinary;
-        assert.equal(vm.runInContext('calculatePricing().final', context), ladder[count] || 0);
-    }
-    context.cart = [{id: 'book20'}];
-    assert.equal(vm.runInContext('calculatePricing().discount', context), 0);
-    assert.equal(vm.runInContext('bookPolicy(BOOKS[19]).previewEnabled', context), false);
+const egp=Object.fromEntries(Array.from({length:25},(_,i)=>[i+1,Number((149.99*(i+1)-i).toFixed(2))]));
+const usd=Object.fromEntries(Array.from({length:25},(_,i)=>[i+1,Number((4.99*(i+1)-i).toFixed(2))]));
+const context=vm.createContext({storeConfig:{},PRICING_LADDER:{},currentLanguage:'ar',cart:[]});
+vm.runInContext('const BOOKS='+booksSource+';'+source,context);
+for(const [currency,ladder,unit] of [['EGP',egp,149.99],['USD',usd,4.99]]){
+ context.storeConfig={currency,prices:ladder,compareAtPrice:unit};context.PRICING_LADDER=ladder;
+ for(let count=1;count<=25;count++){
+  context.cart=Array.from({length:count},(_,i)=>({id:'book'+(i+1)}));
+  const result=vm.runInContext('calculatePricing()',context);
+  assert.equal(result.count,count);assert.equal(result.standardCount,count);assert.equal(result.fixedTotal,0);
+  assert.equal(result.final,ladder[count]);assert.equal(result.discount,count-1);
+  context.cart.reverse();assert.equal(vm.runInContext('calculatePricing().final',context),ladder[count]);
+ }
+ assert.equal(vm.runInContext('bookPolicy(BOOKS[19]).previewEnabled',context),false);
 }
 
 function product(bookId, currency, promotion) {
@@ -43,85 +35,45 @@ function product(bookId, currency, promotion) {
         localStorage: {getItem: () => null}, navigator: {language: 'ar'}, performance: {now: () => 0},
         window:{}, document: {documentElement: {}, getElementById: node, querySelectorAll: () => []}});
     vm.runInContext(detailScript, c);
-    c.productConfig = {currency, prices: {'1': currency === 'EGP' ? 199 : 9.99}, compareAtPrice: currency === 'EGP' ? 299 : 14.99, countries: [], bookPromotion: promotion};
+    c.productConfig = {currency, prices: {'1': currency === 'EGP' ? 149.99 : 4.99}, compareAtPrice: currency === 'EGP' ? 149.99 : 4.99, countries: [], bookPromotion: promotion};
     vm.runInContext('config=productConfig;promotionDeadline=config.bookPromotion?.expiresInMs||0;pricingLoaded=true;render()', c);
     return nodes;
 }
-for (const currency of ['EGP', 'USD']) {
-    const nodes = product('book20', currency);
-    assert.equal(nodes.get('previewLink').hidden, true);
-    assert.equal(nodes.get('previewLink').href, undefined);
-    assert.equal(nodes.get('previousPrice').hidden, true);
-    assert.equal(nodes.has('fixedPriceNote'), false);
-    assert.equal(nodes.has('downloads'), false);
-    assert.match(nodes.get('price').textContent, currency === 'EGP' ? /500/ : /19\.99/);
-    assert.equal(nodes.get('price').textContent, nodes.get('mobileBuyPrice').textContent);
-    const companion = product('book21', currency);
-    assert.equal(companion.get('previewLink').hidden, true);
-    assert.equal(companion.get('previewLink').href, undefined);
-    assert.equal(companion.get('previousPrice').hidden, true);
-    assert.match(companion.get('price').textContent, currency === 'EGP' ? /600/ : /19\.99/);
-    assert.equal(companion.get('price').textContent, companion.get('mobileBuyPrice').textContent);
-    const court = product('book22', currency);
-    assert.equal(court.get('previewLink').hidden, true);
-    assert.equal(court.get('previewLink').href, undefined);
-    assert.equal(court.get('previousPrice').hidden, true);
-    assert.equal(court.has('fixedPriceNote'), false);
-    assert.equal(court.has('downloads'), false);
-    assert.match(court.get('price').textContent, currency === 'EGP' ? /500/ : /19\.99/);
-    assert.equal(court.get('price').textContent, court.get('mobileBuyPrice').textContent);
-    const hormones = product('book23', currency);
-    assert.equal(hormones.get('previewLink').hidden, true);
-    assert.equal(hormones.get('previewLink').href, undefined);
-    assert.equal(hormones.get('previousPrice').hidden, true);
-    assert.equal(hormones.has('fixedPriceNote'), false);
-    assert.equal(hormones.has('downloads'), false);
-    assert.match(hormones.get('price').textContent, currency === 'EGP' ? /500/ : /19\.99/);
-    assert.equal(hormones.get('price').textContent, hormones.get('mobileBuyPrice').textContent);
-    const microscope = product('book24', currency);
-    assert.equal(microscope.get('previewLink').hidden, true);
-    assert.equal(microscope.get('previewLink').href, undefined);
-    assert.equal(microscope.get('previousPrice').hidden, true);
-    assert.equal(microscope.has('fixedPriceNote'), false);
-    assert.equal(microscope.has('downloads'), false);
-    assert.match(microscope.get('price').textContent, currency === 'EGP' ? /500/ : /19\.99/);
-    assert.equal(microscope.get('price').textContent, microscope.get('mobileBuyPrice').textContent);
-    const jasmine = product('book25', currency);
-    assert.equal(jasmine.get('previewLink').hidden, false);
-    assert.equal(jasmine.get('previewLink').href, '/previews/book25');
-    assert.equal(jasmine.get('previousPrice').hidden, true);
-    assert.match(jasmine.get('price').textContent, currency === 'EGP' ? /250/ : /9\.99/);
-    assert.equal(jasmine.get('price').textContent, jasmine.get('mobileBuyPrice').textContent);
-    assert.equal(jasmine.get('bookPromotionDetail').hidden, true);
-    const ordinary = product('book19', currency);
-    assert.equal(ordinary.get('previewLink').hidden, false);
-    assert.equal(ordinary.get('previewLink').href, '/previews/book19');
-    assert.equal(ordinary.get('previousPrice').hidden, false);
+for(const currency of ['EGP','USD']){
+ for(let n=1;n<=25;n++){
+  const id='book'+n,nodes=product(id,currency);
+  assert.equal(nodes.get('price').textContent,currency==='EGP'?'149.99 جنيه':'$4.99');
+  assert.equal(nodes.get('mobileBuyPrice').textContent,nodes.get('price').textContent);
+  assert.equal(nodes.get('previousPrice').hidden,true);
+  assert.equal(nodes.get('bookPromotionDetail').hidden,true);
+  assert.equal(nodes.get('previewLink').hidden,n>=20&&n<=24);
+  if(n<20||n===25)assert.equal(nodes.get('previewLink').href,'/previews/'+id);
+ }
 }
-const promotion = {bookId: 'book21', currency: 'USD', price: 10, regularPrice: 19.99, percent: 50, expiresInMs: 604800000};
+const promotion = {bookId: 'book21', currency: 'USD', price: 2.49, regularPrice: 4.99, percent: 50, expiresInMs: 604800000};
 const discounted = product('book21', 'USD', promotion);
-assert.equal(discounted.get('price').textContent, '$10.00');
-assert.equal(discounted.get('previousPrice').textContent, '$19.99');
-assert.equal(discounted.get('mobileBuyPrice').textContent, '$10.00');
+assert.equal(discounted.get('price').textContent, '$2.49');
+assert.equal(discounted.get('previousPrice').textContent, '$4.99');
+assert.equal(discounted.get('mobileBuyPrice').textContent, '$2.49');
 assert.equal(discounted.get('bookPromotionDetail').hidden, false);
 assert.equal(discounted.get('bookPromotion').hidden, true);
 assert.match(discounted.get('bookPromotionHeadline').textContent, /٥٠/);
-assert.equal(discounted.get('bookPromotionPrice').textContent, '$10.00');
-assert.equal(discounted.get('bookPromotionRegular').textContent, '$19.99');
+assert.equal(discounted.get('bookPromotionPrice').textContent, '$2.49');
+assert.equal(discounted.get('bookPromotionRegular').textContent, '$4.99');
 assert.equal(discounted.get('bookPromotionDays').textContent, '7 أيام');
 assert.equal(discounted.get('bookPromotionCountdown').textContent, '00:00:00');
 const egypt = product('book21', 'EGP', promotion);
-assert.equal(egypt.get('price').textContent, '600 جنيه');
+assert.equal(egypt.get('price').textContent, '149.99 جنيه');
 assert.equal(egypt.get('bookPromotionDetail').hidden, true);
-const egyptPromotion = {...promotion, currency:'EGP', price:299, regularPrice:600};
+const egyptPromotion = {...promotion, currency:'EGP', price:74.99, regularPrice:149.99};
 const egyptDiscounted = product('book21', 'EGP', egyptPromotion);
-assert.equal(egyptDiscounted.get('price').textContent, '299 جنيه');
-assert.equal(egyptDiscounted.get('mobileBuyPrice').textContent, '299 جنيه');
-assert.equal(egyptDiscounted.get('previousPrice').textContent, '600 جنيه');
-assert.equal(egyptDiscounted.get('mobilePreviousPrice').textContent, '600 جنيه');
+assert.equal(egyptDiscounted.get('price').textContent, '74.99 جنيه');
+assert.equal(egyptDiscounted.get('mobileBuyPrice').textContent, '74.99 جنيه');
+assert.equal(egyptDiscounted.get('previousPrice').textContent, '149.99 جنيه');
+assert.equal(egyptDiscounted.get('mobilePreviousPrice').textContent, '149.99 جنيه');
 assert.equal(egyptDiscounted.get('bookPromotionDetail').hidden, false);
-assert.equal(egyptDiscounted.get('bookPromotionPrice').textContent, '299 جنيه');
-assert.equal(egyptDiscounted.get('bookPromotionRegular').textContent, '600 جنيه');
+assert.equal(egyptDiscounted.get('bookPromotionPrice').textContent, '74.99 جنيه');
+assert.equal(egyptDiscounted.get('bookPromotionRegular').textContent, '149.99 جنيه');
 assert.equal(egyptDiscounted.get('bookPromotionDays').textContent, '7 أيام');
 assert.equal(egyptDiscounted.get('bookPromotionCountdown').textContent, '00:00:00');
 assert.equal(product('book20', 'EGP', egyptPromotion).get('bookPromotionDetail').hidden, true);

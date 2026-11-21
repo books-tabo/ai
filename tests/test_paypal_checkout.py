@@ -179,7 +179,7 @@ class PayPalHTTPTests(HTTPCase):
                   'customer':{'name':'Synthetic buyer','email':'fixture@example.invalid','phone':'01000000000'},
                   'total':1,'currency':'EGP'}
             status,result,_=self.post('/api/orders',body)
-        self.assertEqual(status,201);self.assertEqual(saved[0]['total'],34.99)
+        self.assertEqual(status,201);self.assertEqual(saved[0]['total'],7.99)
         self.assertEqual(saved[0]['currency'],'USD');self.assertEqual(saved[0]['paymentMethod'],'PayPal')
         self.assertEqual(saved[0]['paymentMode'],'test');self.assertIsNone(saved[0]['pricingQuote']);quote.assert_not_called()
 
@@ -196,7 +196,7 @@ class PayPalHTTPTests(HTTPCase):
             self.assertEqual(config['currency'],'USD')
             self.assertTrue(config['paypalAvailable'])
             self.assertNotIn('paypalPricing', config)
-            self.assertEqual(config['bookPolicies']['book20']['price'],19.99)
+            self.assertEqual(config['bookPolicies']['book20']['price'],4.99)
             self.assertIn('sigma-couple',[offer['id'] for offer in config['offers']])
             # HTTPCase uses a synthetic non-Egyptian client IP; pin the
             # trusted server geolocation for the Egyptian pricing assertion.
@@ -212,13 +212,13 @@ class PayPalHTTPTests(HTTPCase):
                 'total':0.01,'currency':'KWD'}
             status,result,_=self.post('/api/orders',request)
         self.assertEqual(status,201)
-        self.assertEqual((result['order']['currency'],result['order']['total']),('USD',34.99))
+        self.assertEqual((result['order']['currency'],result['order']['total']),('USD',7.99))
         self.assertEqual(saved[0]['country'],'KW')
         self.assertEqual(saved[0]['paymentMethod'],'PayPal')
         self.assertIsNone(saved[0]['pricingQuote'])
         self.assertEqual(app.payment_price_summary(saved[0]),{
-            'displayCurrency':'USD','displayTotal':'34.99',
-            'chargeCurrency':'USD','chargeTotal':'34.99'})
+            'displayCurrency':'USD','displayTotal':'7.99',
+            'chargeCurrency':'USD','chargeTotal':'7.99'})
         signed_quote.assert_not_called()
 
     def test_capture_requires_original_cookie_exact_provider_order_and_verified_api(self):

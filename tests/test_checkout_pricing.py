@@ -106,19 +106,19 @@ class QuoteHTTPTests(HTTPCase):
             status, data, _=self.post('/api/orders', {'items':self.items,'country':'SA',
                 'customer':self.customer,'quoteToken':q['token'],'total':1,'currency':'USD'})
         self.assertEqual(status, 201)
-        self.assertEqual((data['order']['total'],data['order']['currency']), (541.16,'EGP'))
-        self.assertEqual((captured[0]['amount'],captured[0]['currency']), ('541.16','EGP'))
+        self.assertEqual((data['order']['total'],data['order']['currency']), (270.31,'EGP'))
+        self.assertEqual((captured[0]['amount'],captured[0]['currency']), ('270.31','EGP'))
         self.assertEqual(captured[0]['metaData']['displayNotes'], {
-            'سعر الطلب بالدولار الأمريكي':'9.99 USD',
-            'المبلغ المحصل بالجنيه المصري':'541.16 EGP'})
+            'سعر الطلب بالدولار الأمريكي':'4.99 USD',
+            'المبلغ المحصل بالجنيه المصري':'270.31 EGP'})
         stored=self.db.orders[data['order']['id']]
-        self.assertEqual(stored['pricingQuote']['displayTotal'], '9.99')
+        self.assertEqual(stored['pricingQuote']['displayTotal'], '4.99')
         self.assertEqual(stored['pricingQuote']['rate'], '54.16975051')
         self.assertNotIn('token', stored['pricingQuote'])
         with self.opener.open(self.base+'/api/order-status?key='+stored['statusKey']) as response:
             tracking=json.loads(response.read())
-        self.assertEqual(tracking['pricing'], {'displayCurrency':'USD','displayTotal':'9.99',
-            'chargeCurrency':'EGP','chargeTotal':'541.16'})
+        self.assertEqual(tracking['pricing'], {'displayCurrency':'USD','displayTotal':'4.99',
+            'chargeCurrency':'EGP','chargeTotal':'270.31'})
         self.assertNotIn('token',tracking['pricing'])
         self.assertNotIn('buyer',tracking)
         wrong, sig=kashier_payload(stored, amount=9.99, currency='USD')
@@ -151,28 +151,24 @@ class QuoteHTTPTests(HTTPCase):
             self.assertIsNone(self.post('/api/checkout-quote',{'items':self.items})[1]['quote'])
             status,data,_=self.post('/api/orders',{'items':self.items,'customer':self.customer})
         self.assertEqual(status, 201)
-        self.assertEqual((data['order']['total'],data['order']['currency']), (199,'EGP'))
+        self.assertEqual((data['order']['total'],data['order']['currency']), (149.99,'EGP'))
         self.assertIsNone(self.db.orders[data['order']['id']]['pricingQuote'])
 
     def test_all_18_bundle_quotes_preserve_usd_prices(self):
-        for count in range(1,19):
+        for count in range(1,len(app.BOOKS)+1):
             self.items=[{'id':'book'+str(i)} for i in range(1,count+1)]
             q=self.quote()
-            self.assertEqual(Decimal(q['displayTotal']), Decimal(str(app.localization.USD_PRICES[str(count)])))
+            self.assertEqual(Decimal(q['displayTotal']), Decimal(str(app.catalog.total_for_items([item['id'] for item in self.items],app.localization.pricing_for_country(app.PRICES,'SA')))))
             self.assertEqual(q['chargeCurrency'], 'EGP')
 
-    def test_sigma_mixed_quotes_keep_its_full_price_for_every_bundle_size(self):
-        ordinary=[book_id for book_id in app.BOOKS if book_id not in app.catalog.FIXED_PRICES]
-        for count in range(len(ordinary)+1):
-            self.items=[{'id':book_id,'price':1} for book_id in ordinary[:count]+['book20']]
-            q=self.quote()
-            subtotal=Decimal(str(app.localization.USD_PRICES[str(count)])) if count else Decimal(0)
-            if count==19:subtotal=Decimal('102.99')
-            self.assertEqual(Decimal(q['displayTotal']),subtotal+Decimal('19.99'))
+    def test_former_sigma_titles_participate_in_quantity_discounts(self):
+        for ids,total in [(['book20'],'4.99'),(['book1','book20'],'8.98'),(['book1','book20','book2'],'12.97')]:
+            self.items=[{'id':bid,'price':1,'bundleEligible':False} for bid in ids]
+            self.assertEqual(Decimal(self.quote()['displayTotal']),Decimal(total))
         self.insert.assert_not_called()
 
     def test_sigma_egypt_orders_ignore_client_prices_and_bundle_position(self):
-        cases=[(['book20'],500),(['book20','book1'],699),(['book1','book20','book2'],799),(['book21'],600),(['book22'],500),(['book22','book1','book2'],799),(['book20','book21'],1100),(['book23'],500),(['book24'],500),(['book24','book23','book22'],1000),(['book20','book21','book22'],1600),(['book20','book21','book22','book23'],1250),(list(app.BOOKS),3849)]
+        cases=[(['book20'],149.99),(['book20','book1'],298.98),(['book1','book20','book2'],447.97),(['book21'],149.99),(['book22'],149.99),(['book22','book1','book2'],447.97),(['book20','book21'],279.99),(['book23'],149.99),(['book24'],149.99),(['book24','book23','book22'],409.99),(['book20','book21','book22'],428.98),(['book20','book21','book22','book23'],539.99),(['book25'],149.99),(['book25','book21'],298.98),(list(app.BOOKS),3535.85)]
         with patch.object(app.Handler,'pricing_country',return_value='EG'), patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')):
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
@@ -183,7 +179,7 @@ class QuoteHTTPTests(HTTPCase):
                 self.assertEqual(self.db.orders[data['order']['id']]['total'],total)
 
     def test_sigma_usd_orders_bind_fixed_price_to_actual_frozen_egp_charge(self):
-        cases=[(['book20'],Decimal('19.99')),(['book20','book1'],Decimal('29.98')),(['book1','book20','book2'],Decimal('37.98')),(['book21'],Decimal('19.99')),(['book22'],Decimal('19.99')),(['book22','book1','book2'],Decimal('37.98')),(['book20','book21'],Decimal('34.99')),(['book23'],Decimal('19.99')),(['book24'],Decimal('19.99')),(['book24','book23','book22'],Decimal('39')),(['book20','book21','book22'],Decimal('54.98')),(['book20','book21','book22','book23'],Decimal('49')),(list(app.BOOKS),Decimal('181.97'))]
+        cases=[(['book20'],Decimal('4.99')),(['book20','book1'],Decimal('8.98')),(['book1','book20','book2'],Decimal('12.97')),(['book21'],Decimal('4.99')),(['book22'],Decimal('4.99')),(['book22','book1','book2'],Decimal('12.97')),(['book20','book21'],Decimal('7.99')),(['book23'],Decimal('4.99')),(['book24'],Decimal('4.99')),(['book24','book23','book22'],Decimal('10.99')),(['book20','book21','book22'],Decimal('11.98')),(['book20','book21','book22','book23'],Decimal('13.99')),(['book25'],Decimal('4.99')),(list(app.BOOKS),Decimal('90.85'))]
         with patch.object(app,'payment_checkout',return_value=('https://payments.kashier.io/session/synthetic-session?mode=test','synthetic-session')) as gateway:
             for ids,total in cases:
                 app.RATE_LIMITER=app.SlidingWindowLimiter()
@@ -234,7 +230,7 @@ class QuoteHTTPTests(HTTPCase):
             self.assertEqual(status,409);self.assertEqual(body['code'],'QUOTE_REFRESH_REQUIRED');gateway.assert_not_called()
 
     def test_adapter_preserves_quote_and_legacy_rows(self):
-        row={'id':'synthetic','status':'PENDING','items':[],'total':541.16,'currency':'EGP',
+        row={'id':'synthetic','status':'PENDING','items':[],'total':270.31,'currency':'EGP',
              'payment_method':'Kashier','status_key':'synthetic','download_token':None,
              'buyer':None,'transaction_id':None,'paymob_order_id':None}
         q=self.quote(); q.pop('token')

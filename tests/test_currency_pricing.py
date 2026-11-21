@@ -25,9 +25,9 @@ class CurrencyPricingTests(unittest.TestCase):
         for key in ('prices', 'compareAtPrice', 'bookPolicies', 'offers'):
             self.assertEqual(kuwait[key], international[key])
         self.assertEqual(egypt['prices'], {str(count): price for count, price in catalog.PRICES.items()})
-        self.assertEqual(egypt['bookPolicies']['book21']['price'], 600)
-        self.assertEqual(catalog.total_for_items(['book20', 'book21'], kuwait), 34.99)
-        self.assertEqual(catalog.total_for_items(['book20', 'book21', 'book22', 'book23'], kuwait), 49)
+        self.assertEqual(egypt['bookPolicies']['book21']['price'], 149.99)
+        self.assertEqual(catalog.total_for_items(['book20', 'book21'], kuwait), 7.99)
+        self.assertEqual(catalog.total_for_items(['book20', 'book21', 'book22', 'book23'], kuwait), 13.99)
 
     def test_legacy_kwd_quote_is_rejected_for_new_checkout(self):
         key = 'synthetic-session-binding-key-32-bytes'
@@ -77,7 +77,7 @@ class CurrencyPricingHTTPTests(HTTPCase):
         with patch.object(app.Handler, 'client_id', return_value='41.32.1.1'):
             egypt = self.config('KW')
             self.assertEqual((egypt['country'], egypt['currency']), ('EG', 'EGP'))
-            self.assertEqual(egypt['bookPolicies']['book21']['price'], 600)
+            self.assertEqual(egypt['bookPolicies']['book21']['price'], 149.99)
             status, reply, _ = self.post('/api/checkout-quote', {
                 'country': 'KW', 'items': [{'id': 'book21'}], 'catalogRevision': cfg['catalogRevision'],
             })
@@ -89,7 +89,7 @@ class CurrencyPricingHTTPTests(HTTPCase):
         status,reply,_=self.post('/api/checkout-quote', cart)
         self.assertEqual(status,200)
         q=reply['quote']
-        self.assertEqual((q['displayCurrency'],q['chargeCurrency'],q['chargeTotal']),('USD','EGP','999.50'))
+        self.assertEqual((q['displayCurrency'],q['chargeCurrency'],q['chargeTotal']),('USD','EGP','249.50'))
         gateway_response={'_id':'synthetic-session','sessionUrl':'https://payments.kashier.io/session/synthetic-session?mode=test'}
         captured=[]
         def gateway(request, timeout):
@@ -103,11 +103,11 @@ class CurrencyPricingHTTPTests(HTTPCase):
                 'customer':self.customer,'quoteToken':q['token'],'promoterCode':'f'*16},
                 {'Cookie': app.owner_dashboard.PROMOTER_COOKIE + '=' + referral})
         self.assertEqual(status,201)
-        self.assertEqual((data['order']['currency'],data['order']['total']),('EGP',999.50))
-        self.assertEqual((captured[0]['currency'],captured[0]['amount']),('EGP','999.50'))
+        self.assertEqual((data['order']['currency'],data['order']['total']),('EGP',249.50))
+        self.assertEqual((captured[0]['currency'],captured[0]['amount']),('EGP','249.50'))
         self.assertEqual(captured[0]['metaData']['displayNotes'],{
-            'سعر الطلب بالدولار الأمريكي':'19.99 USD',
-            'المبلغ المحصل بالجنيه المصري':'999.50 EGP'})
+            'سعر الطلب بالدولار الأمريكي':'4.99 USD',
+            'المبلغ المحصل بالجنيه المصري':'249.50 EGP'})
         stored=self.db.orders[data['order']['id']]
         self.assertEqual(stored['promoterCode'], promoter_code)
         self.assertNotIn('promoterCode', data['order'])
@@ -116,8 +116,8 @@ class CurrencyPricingHTTPTests(HTTPCase):
         with self.opener.open(self.base+'/api/order-status?key='+stored['statusKey']) as response:
             status_payload=json.load(response)
         self.assertEqual(status_payload['pricing'],{
-            'displayCurrency':'USD','displayTotal':'19.99',
-            'chargeCurrency':'EGP','chargeTotal':'999.50'})
+            'displayCurrency':'USD','displayTotal':'4.99',
+            'chargeCurrency':'EGP','chargeTotal':'249.50'})
 
     def test_stale_kuwait_cart_requires_review_before_payment(self):
         current = self.config('KW')['catalogRevision']

@@ -27,7 +27,7 @@ class CatalogEditTests(unittest.TestCase):
  def setUp(self):
   env=patch.dict(os.environ,ENV,clear=True);env.start();self.addCleanup(env.stop);editor.invalidate();self.addCleanup(editor.invalidate)
  def test_rejects_policy_download_and_price_attacks(self):
-  for value in ({'unknown':1},{'books':{'book20':{'previewEnabled':True}}},{'books':{'book1':{'pdf':'/secret'}}},{'books':{'book1':{'image':'https://evil.invalid/a.jpg'}}},{'independentPrices':{'book20':{'EGP':1,'USD':1}}},{'order':['book1']},{'independentPrices':{'book1':{'EGP':0,'USD':float('nan')}}}):
+  for value in ({'unknown':1},{'books':{'book20':{'previewEnabled':True}}},{'books':{'book1':{'pdf':'/secret'}}},{'books':{'book1':{'image':'https://evil.invalid/a.jpg'}}},{'order':['book1']},{'independentPrices':{'book1':{'EGP':0,'USD':float('nan')}}}):
    with self.assertRaises((ValueError,TypeError)):editor.validate(value)
   offers=copy.deepcopy(catalog.OFFERS);offers['sigma-couple']['prices']['USD']=1
   with self.assertRaises(ValueError):editor.validate({'offers':offers})
@@ -35,7 +35,7 @@ class CatalogEditTests(unittest.TestCase):
    offers=copy.deepcopy(catalog.OFFERS);offers['sigma-trilogy'][field]=value
    with self.assertRaises(ValueError):editor.validate({'offers':offers})
   self.assertEqual(editor.validate({'offers':copy.deepcopy(catalog.OFFERS)})['offers'],catalog.OFFERS)
-  offers=copy.deepcopy(catalog.OFFERS);offers['change-starter']['books']=['book1','book20']
+  offers=copy.deepcopy(catalog.OFFERS);offers['change-starter']['books']=['book1','book1']
   with self.assertRaises(ValueError):editor.validate({'offers':offers})
  def test_one_snapshot_changes_public_metadata_order_and_both_price_engines(self):
   doc=editor.validate({'books':{'book1':{'name':'<script>synthetic</script>','short':'Edited summary'}},'order':list(reversed(catalog.BOOKS)), 'independentPrices':{'book1':{'EGP':250,'USD':12}}})
@@ -43,8 +43,8 @@ class CatalogEditTests(unittest.TestCase):
    self.assertEqual(list(seo.current_books())[0],'book25')
    config=localization.pricing_for_country(catalog.PRICES,'EG')
    self.assertEqual(config['bookPolicies']['book1'],{'price':250,'bundleEligible':False,'previewEnabled':True})
-   self.assertEqual(catalog.total_for_items(['book1','book2'],config),449)
-   self.assertEqual(catalog.total_for_items(['book20','book21'],localization.pricing_for_country(catalog.PRICES,'SA')),34.99)
+   self.assertEqual(catalog.total_for_items(['book1','book2'],config),399.99)
+   self.assertEqual(catalog.total_for_items(['book20','book21'],localization.pricing_for_country(catalog.PRICES,'SA')),7.99)
    html=seo.render((app.ROOT/'index.html').read_text(),'/','tabobooks.com','index.html')
    self.assertIn('const BOOKS = [{"id":"book25"',html)
    self.assertNotIn('<script>synthetic</script>',html)
