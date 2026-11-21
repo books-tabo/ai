@@ -270,7 +270,7 @@ def page_data(path, include_drafts=False, *, canonical_path=None):
             extra = book_extra(book_id, language)
         elif path == '/offers':
             title = 'عروض باقات الكتب' if ar else 'Book pack offers'
-            description = 'باقات مختارة من كتب تابو نور العربية PDF في التغيير والمال وتطوير الذات، وعرض خاص لكتابَي السيجما معًا بالدولار. تصفح كتب كل باقة وأسعارها.' if ar else 'Curated Arabic PDF book packs by TABO NOOR on change, money and personal growth, plus a dedicated USD offer for the two Sigma books.'
+            description = 'باقات كتب PDF من تابو نور في التغيير والمال وتطوير الذات والعلاقات. الأسعار بالجنيه لمصر وبالدولار لباقي الدول، ويُطبق سعر الباقة تلقائيًا في السلة.' if ar else 'Explore TABO NOOR PDF book packs on change, money, personal growth and relationships. Prices use EGP in Egypt and USD elsewhere; pack savings apply automatically in the cart.'
             trail += [(None,title)]
             body = paragraphs(description) + offers_section(language)
             body += paragraphs('يُطبق سعر الباقة عند اكتمال كتبها في السلة وفي العملة المحددة للعرض، ويُختار أقل إجمالي مستحق عند جمع العروض. حذف كتاب قد يغيّر العرض المستحق.' if ar else 'A pack price applies when all its books are in the cart and the offer supports the current currency. The lowest eligible total is used when packs are combined. Removing a book may change eligibility.')
