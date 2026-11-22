@@ -1,4 +1,4 @@
-/* Actual optional PayPal storefront and return scripts; synthetic network only. */
+/* Actual regional PayPal storefront and return scripts; synthetic network only. */
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync('index.html','utf8');
 const core=fs.readFileSync('checkout-core.js','utf8');
@@ -10,7 +10,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function boot(){
  const nodes={checkoutBtn:{disabled:false},paypalCheckoutBtn:{disabled:false},paypalCheckoutNote:{},chargeCurrencyNote:{style:{}},checkoutName:{value:'Synthetic buyer'},checkoutEmail:{value:'test@example.invalid'},checkoutPhone:{value:'01000000000'}};
  const calls=[],events=[],alerts=[],redirects=[];
- const context={document:{getElementById:id=>nodes[id]},storeConfig:{paypalAvailable:true,paymentProvider:'kashier',currency:'USD',country:'SA',checkoutSupported:true},
+ const context={document:{getElementById:id=>nodes[id]},storeConfig:{paypalAvailable:true,paymentProvider:'paypal',currency:'USD',country:'SA',checkoutSupported:true},
  cart:[{id:'book20'},{id:'book21'}],currentLanguage:'ar',calculatePricing:()=>({final:20,count:2}),BACKEND_URL:'https://synthetic.invalid',
  location:{origin:'https://synthetic.invalid',search:'?utm_source=facebook&fbclid=synthetic'},
  window:{TABO_CHECKOUT_READY:true,TaboTracking:{track:(...args)=>events.push(args)},location:{assign:value=>redirects.push(value)}},
@@ -23,7 +23,7 @@ function boot(){
  {
   const {context:c,nodes,calls,events,redirects}=boot();
   c.renderPayPalChoice();assert.equal(nodes.paypalCheckoutBtn.hidden,false);assert.match(nodes.paypalCheckoutNote.textContent,/الدولار/);
-  assert.equal(c.needsEgpQuote(),true); // Existing Kashier conversion is preserved.
+  assert.equal(c.needsEgpQuote(),false); // International purchases do not use Kashier conversion.
   await c.checkoutWithPaymentLink('paypal');
   assert.equal(calls.length,1);assert.match(calls[0].url,/\/api\/orders$/);
   const body=JSON.parse(calls[0].options.body);assert.equal(body.paymentProvider,'paypal');assert(!('quoteToken'in body));
@@ -32,7 +32,7 @@ function boot(){
  }
  {
   const {context:c,nodes,calls}=boot();c.storeConfig.paypalAvailable=false;c.renderPayPalChoice();
-  assert.equal(nodes.paypalCheckoutBtn.hidden,true);await c.checkoutWithPaymentLink('paypal');assert.equal(calls.length,0);
+  assert.equal(nodes.paypalCheckoutBtn.hidden,false);assert.equal(nodes.paypalCheckoutBtn.disabled,true);assert.equal(nodes.checkoutBtn.hidden,true);await c.checkoutWithPaymentLink('paypal');assert.equal(calls.length,0);
   c.storeConfig.paypalAvailable=true;c.storeConfig.currency='EGP';c.renderPayPalChoice();assert.equal(nodes.paypalCheckoutBtn.hidden,true);
   await c.checkoutWithPaymentLink('paypal');assert.equal(calls.length,0);
  }
@@ -43,7 +43,7 @@ function boot(){
   await c.checkoutWithPaymentLink('paypal');await c.checkoutWithPaymentLink();
   assert.equal(calls.length,1);assert.equal(nodes.checkoutBtn.disabled,true);assert.equal(nodes.paypalCheckoutBtn.disabled,true);
   resolve({ok:false,json:async()=>({error:'Synthetic outage'})});await pending;
-  assert.equal(nodes.checkoutBtn.disabled,false);assert.equal(nodes.paypalCheckoutBtn.disabled,false);
+  assert.equal(nodes.checkoutBtn.disabled,true);assert.equal(nodes.paypalCheckoutBtn.disabled,false);
  }
  {
   const {context:c,nodes,calls,events,redirects}=boot();
@@ -81,7 +81,7 @@ function boot(){
   await c.checkoutWithPaymentLink('paypal');
   assert.equal(calls.length,1);
   assert.equal(redirects.length,0);
-  assert.equal(nodes.checkoutBtn.disabled,false);
+  assert.equal(nodes.checkoutBtn.disabled,true);
   assert.equal(nodes.paypalCheckoutBtn.disabled,false);
  }
  const returnHtml=fs.readFileSync('paypal-return.html','utf8');

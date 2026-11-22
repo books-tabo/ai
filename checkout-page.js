@@ -11,8 +11,8 @@ try{
     cart=[...new Map(cart.map(item=>[item.id,item])).values()];
 }catch(_){cart=[];}
 const CHECKOUT_COPY={
- ar:{title:'سلة الكتب وإتمام الدفع',country:'الدولة',original:'السعر السابق',final:'الإجمالي',checkout:'الدفع بالبطاقات والمحافظ و\u2066Apple Pay\u2069',delete:'حذف',emptyCart:'السلة فارغة حاليًا.',browse:'تصفح الكتب',name:'الاسم الكامل',email:'البريد الإلكتروني',phone:'رقم الهاتف',loading:'جارٍ تحميل الأسعار ووسائل الدفع…',configError:'تعذر تحميل الأسعار الآن. أعد المحاولة قبل الدفع.',retry:'إعادة المحاولة',preview:'الدفع بالبطاقات والمحافظ غير متاح حاليًا.',currencyPending:'الدفع بالبطاقات والمحافظ غير متاح بهذه العملة حاليًا.',invalidCustomer:'أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.',checkoutError:'تعذر الاتصال بخادم الدفع.',applePayAvailability:'Apple Pay حسب إتاحته في كاشير وعلى الأجهزة المدعومة.',delivery:'بعد تأكيد الدفع، تنتقل تلقائيًا لتحميل كتبك.'},
- en:{title:'Your cart and checkout',country:'Country',original:'Previous price',final:'Total',checkout:'Pay by card, wallet or Apple Pay',delete:'Remove',emptyCart:'Your cart is empty.',browse:'Browse books',name:'Full name',email:'Email address',phone:'Phone number',loading:'Loading prices and payment options…',configError:'Could not load prices. Retry before paying.',retry:'Retry',preview:'Card and wallet payments are temporarily unavailable.',currencyPending:'Card and wallet payment is unavailable for this currency.',invalidCustomer:'Enter a valid name, email address and phone number to continue.',checkoutError:'Could not connect to checkout.',applePayAvailability:'Apple Pay is subject to availability in Kashier and on supported devices.',delivery:'After payment confirmation, you go straight to your book downloads.'}
+ ar:{title:'سلة الكتب وإتمام الدفع',country:'الدولة',original:'السعر السابق',final:'الإجمالي',checkout:'الدفع بالبطاقات والمحافظ و\u2066Apple Pay\u2069',delete:'حذف',emptyCart:'السلة فارغة حاليًا.',browse:'تصفح الكتب',name:'الاسم الكامل',email:'البريد الإلكتروني',phone:'رقم الهاتف',loading:'جارٍ تحميل الأسعار ووسائل الدفع…',configError:'تعذر تحميل الأسعار الآن. أعد المحاولة قبل الدفع.',retry:'إعادة المحاولة',preview:'الدفع غير متاح مؤقتًا. يرجى المحاولة لاحقًا.',currencyPending:'وسيلة الدفع غير متاحة مؤقتًا. يرجى المحاولة لاحقًا.',invalidCustomer:'أدخل اسمًا وبريدًا إلكترونيًا ورقم هاتف صحيحين لإكمال الدفع.',checkoutError:'تعذر الاتصال بخادم الدفع.',applePayAvailability:'Apple Pay حسب إتاحته في كاشير وعلى الأجهزة المدعومة.',delivery:'بعد تأكيد الدفع، تنتقل تلقائيًا لتحميل كتبك.'},
+ en:{title:'Your cart and checkout',country:'Country',original:'Previous price',final:'Total',checkout:'Pay by card, wallet or Apple Pay',delete:'Remove',emptyCart:'Your cart is empty.',browse:'Browse books',name:'Full name',email:'Email address',phone:'Phone number',loading:'Loading prices and payment options…',configError:'Could not load prices. Retry before paying.',retry:'Retry',preview:'Checkout is temporarily unavailable. Please try again later.',currencyPending:'The payment method is temporarily unavailable. Please try again later.',invalidCustomer:'Enter a valid name, email address and phone number to continue.',checkoutError:'Could not connect to checkout.',applePayAvailability:'Apple Pay is subject to availability in Kashier and on supported devices.',delivery:'After payment confirmation, you go straight to your book downloads.'}
 };
 function t(key){return CHECKOUT_COPY[currentLanguage][key]||key;}
 function localizedBook(book){return {...book,name:currentLanguage==='en'?book.enName:book.name};}
@@ -42,8 +42,8 @@ function renderEmailHelp(){
 }
 async function loadStoreConfig(country=browserCountryHint()){
     const request=++configRequest;
-    configLoaded=false;window.TABO_CHECKOUT_READY=false;storeConfig.paypalAvailable=false;
-    updateCart();document.getElementById('countrySelect').disabled=true;
+    configLoaded=false;window.TABO_CHECKOUT_READY=false;storeConfig.paypalAvailable=false;storeConfig.paymentProvider='';
+    updateCart();renderPayPalChoice();document.getElementById('countrySelect').disabled=true;
     const notice=document.getElementById('configNotice');notice.hidden=false;notice.textContent=t('loading');
     document.getElementById('retryConfig').hidden=true;
     try{

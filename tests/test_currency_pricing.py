@@ -12,7 +12,6 @@ import catalog
 import checkout_pricing as fx
 import localization
 from support import HTTPCase
-from test_kashier import FakeResponse
 
 
 class CurrencyPricingTests(unittest.TestCase):
@@ -47,7 +46,7 @@ class CurrencyPricingHTTPTests(HTTPCase):
         super().setUp()
         self.install()
         os.environ['TABO_PUBLIC_URL']='https://tabobooks.com'
-        for target,name,result in ((app,'checkout_ready',True),
+        for target,name,result in ((app,'checkout_ready',True),(app,'paypal_ready',True),
                                    (fx,'usd_egp_rate',(Decimal('50'),'2026-11-13'))):
             p=patch.object(target,name,return_value=result)
             p.start();self.addCleanup(p.stop)
@@ -70,7 +69,8 @@ class CurrencyPricingHTTPTests(HTTPCase):
     def test_international_currency_and_egypt_with_a_saved_kuwait_selection(self):
         cfg = self.config('KW')
         self.assertEqual((cfg['country'], cfg['currency']), ('KW', 'USD'))
-        self.assertEqual(cfg['chargeCurrency'],'EGP')
+        self.assertEqual(cfg['chargeCurrency'],'USD')
+        self.assertEqual(cfg['paymentProvider'],'paypal')
         self.assertTrue(cfg['checkoutSupported'])
         for country in ('EG', 'SA', 'US', 'AU', 'BR'):
             self.assertEqual(self.config(country)['currency'], 'USD')
@@ -83,41 +83,30 @@ class CurrencyPricingHTTPTests(HTTPCase):
             })
             self.assertEqual((status, reply['code']), (409, 'CATALOG_REFRESH_REQUIRED'))
 
-    def test_kashier_kuwait_order_displays_usd_and_charges_quoted_egp(self):
+    def test_paypal_kuwait_order_charges_usd_and_preserves_private_referral(self):
         items=[{'id':'book20'}]
-        cart = {'country': 'KW', 'items': items, 'catalogRevision': self.config('KW')['catalogRevision']}
-        status,reply,_=self.post('/api/checkout-quote', cart)
-        self.assertEqual(status,200)
-        q=reply['quote']
-        self.assertEqual((q['displayCurrency'],q['chargeCurrency'],q['chargeTotal']),('USD','EGP','249.50'))
-        gateway_response={'_id':'synthetic-session','sessionUrl':'https://payments.kashier.io/session/synthetic-session?mode=test'}
-        captured=[]
-        def gateway(request, timeout):
-            captured.append(json.loads(request.data))
-            return FakeResponse(gateway_response)
-        with patch.object(fx,'usd_egp_rate',side_effect=AssertionError('quote must be reused')), \
-             patch.object(app,'urlopen',side_effect=gateway):
-            promoter_code = '1234567890abcdef'
-            referral = app.owner_dashboard.promoter_cookie(promoter_code)
-            status,data,_=self.post('/api/orders',{**cart,
-                'customer':self.customer,'quoteToken':q['token'],'promoterCode':'f'*16},
-                {'Cookie': app.owner_dashboard.PROMOTER_COOKIE + '=' + referral})
+        cart={'country':'KW','items':items,'catalogRevision':self.config('KW')['catalogRevision']}
+        status,reply,_=self.post('/api/checkout-quote',cart)
+        self.assertEqual((status,reply['quote']),(200,None))
+        with patch.object(fx,'usd_egp_rate',side_effect=AssertionError('no FX conversion')), \
+             patch.object(app,'payment_checkout') as kashier, \
+             patch.object(app.paypal_checkout,'create',return_value=(
+                 'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567','PAYPALORDER1234567')) as paypal:
+            promoter_code='1234567890abcdef'
+            referral=app.owner_dashboard.promoter_cookie(promoter_code)
+            status,data,_=self.post('/api/orders',{**cart,'customer':self.customer,'promoterCode':'f'*16},
+                {'Cookie':app.owner_dashboard.PROMOTER_COOKIE+'='+referral})
         self.assertEqual(status,201)
-        self.assertEqual((data['order']['currency'],data['order']['total']),('EGP',249.50))
-        self.assertEqual((captured[0]['currency'],captured[0]['amount']),('EGP','249.50'))
-        self.assertEqual(captured[0]['metaData']['displayNotes'],{
-            'سعر الطلب بالدولار الأمريكي':'4.99 USD',
-            'المبلغ المحصل بالجنيه المصري':'249.50 EGP'})
+        self.assertEqual((data['order']['currency'],data['order']['total']),('USD',4.99))
+        self.assertEqual((paypal.call_args.args[0]['currency'],paypal.call_args.args[0]['total']),('USD',4.99))
+        kashier.assert_not_called()
         stored=self.db.orders[data['order']['id']]
-        self.assertEqual(stored['promoterCode'], promoter_code)
-        self.assertNotIn('promoterCode', data['order'])
-        self.assertEqual(stored['pricingQuote']['displayCurrency'],'USD')
-        self.assertNotIn('token',stored['pricingQuote'])
+        self.assertEqual(stored['promoterCode'],promoter_code)
+        self.assertNotIn('promoterCode',data['order']);self.assertIsNone(stored['pricingQuote'])
         with self.opener.open(self.base+'/api/order-status?key='+stored['statusKey']) as response:
             status_payload=json.load(response)
-        self.assertEqual(status_payload['pricing'],{
-            'displayCurrency':'USD','displayTotal':'4.99',
-            'chargeCurrency':'EGP','chargeTotal':'249.50'})
+        self.assertEqual(status_payload['pricing'],{'displayCurrency':'USD','displayTotal':'4.99',
+            'chargeCurrency':'USD','chargeTotal':'4.99'})
 
     def test_stale_kuwait_cart_requires_review_before_payment(self):
         current = self.config('KW')['catalogRevision']
