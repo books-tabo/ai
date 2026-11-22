@@ -326,19 +326,33 @@ function paypalUsdTotal(){
 
 function renderPayPalChoice(){
     const button=document.getElementById('paypalCheckoutBtn'),note=document.getElementById('paypalCheckoutNote');
+    const card=document.getElementById('checkoutBtn');
+    const egypt=storeConfig.country==='EG'&&storeConfig.currency==='EGP'&&storeConfig.paymentProvider==='kashier';
+    const international=storeConfig.country!=='EG'&&storeConfig.currency==='USD'&&storeConfig.paymentProvider==='paypal';
+    if(card){card.hidden=!egypt;card.disabled=!egypt||checkoutInFlight||!window.TABO_CHECKOUT_READY||!cart.length;}
+    for(const [id,visible] of [['kashierPaymentBrands',egypt],['paypalPaymentBrands',international],['applePayAvailability',egypt]]){
+        const node=document.getElementById(id);if(node)node.hidden=!visible;
+    }
     if(!button||!note)return;
-    const available=storeConfig.paypalAvailable===true&&storeConfig.currency==='USD'&&cart.length>0;
-    button.hidden=note.hidden=!available;button.disabled=checkoutInFlight||!available;
+    const available=international&&storeConfig.paypalAvailable===true&&window.TABO_CHECKOUT_READY&&cart.length>0;
+    button.hidden=note.hidden=!international;button.disabled=checkoutInFlight||!available;
     button.textContent=currentLanguage==='en'?'Pay with PayPal in USD':'الدفع عبر PayPal بالدولار';
-    note.textContent=currentLanguage==='en'?'PayPal charges the displayed USD total.':'يحصّل PayPal الإجمالي المعروض بالدولار الأمريكي.';
+    note.textContent=storeConfig.paypalAvailable===true?
+        (currentLanguage==='en'?'PayPal charges the displayed USD total.':'يحصّل PayPal الإجمالي المعروض بالدولار الأمريكي.'):
+        (currentLanguage==='en'?'PayPal checkout is temporarily unavailable. Please try again later.':'الدفع عبر PayPal غير متاح مؤقتًا. يرجى المحاولة لاحقًا.');
 }
 
 async function checkoutWithPaymentLink(){
     const selected=arguments[0]==='paypal'?'paypal':storeConfig.paymentProvider;
     if(checkoutInFlight)return;
+    const expected=storeConfig.country==='EG'&&storeConfig.currency==='EGP'?'kashier':'paypal';
+    if(selected!==expected||storeConfig.paymentProvider!==expected){
+        checkoutStatus(currentLanguage==='en'?'Reload checkout to use the payment method for your country.':'حدّث صفحة الشراء لاستخدام وسيلة الدفع المتاحة لدولتك.');
+        return;
+    }
     const useQuote=selected!=='paypal'&&needsEgpQuote();
     const paypalAmount=selected==='paypal'?paypalUsdTotal():null;
-    if(selected==='paypal'?storeConfig.paypalAvailable!==true||paypalAmount===null:!window.TABO_CHECKOUT_READY){
+    if(!window.TABO_CHECKOUT_READY||(selected==='paypal'&&(storeConfig.paypalAvailable!==true||paypalAmount===null))){
         alert(storeConfig.checkoutSupported?t('preview'):t('currencyPending'));
         return;
     }
@@ -392,7 +406,7 @@ async function checkoutWithPaymentLink(){
         sessionStorage.setItem('taboPayment:'+key,data.payment_url);
         try{window.TaboAnalytics?.track('PaymentInfo',{content_ids:data.order.items.map(item=>item.id),value:Number(data.order.total),currency:data.order.currency,payment_type:data.order.paymentMethod|| (selected==='paypal'?'PayPal':'Kashier')});}catch(_){/* Measurement never blocks the payment redirect. */}
         window.location.assign(data.payment_url);
-    } catch(error){if(error instanceof TypeError)window.TaboErrors?.capture('checkout_request_failed');checkoutInFlight=false;button.disabled=!window.TABO_CHECKOUT_READY;if(paypalButton)paypalButton.disabled=storeConfig.paypalAvailable!==true;['countrySelect','languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{const field=document.getElementById(id);if(field)field.disabled=false;});if(error.fieldErrors)showCheckoutErrors(error.fieldErrors);else checkoutStatus(error.message||t('checkoutError'));}
+    } catch(error){if(error instanceof TypeError)window.TaboErrors?.capture('checkout_request_failed');checkoutInFlight=false;renderPayPalChoice();['countrySelect','languageToggle','checkoutName','checkoutEmail','checkoutPhone'].forEach(id=>{const field=document.getElementById(id);if(field)field.disabled=false;});if(error.fieldErrors)showCheckoutErrors(error.fieldErrors);else checkoutStatus(error.message||t('checkoutError'));}
 }
 
 window.TABO_CHECKOUT_READY=false;

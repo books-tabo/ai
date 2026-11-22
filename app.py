@@ -226,11 +226,22 @@ def checkout_ready():
     """Never accept payment unless originals and durable order storage are ready."""
     return all(checkout_readiness().values())
 
+def regional_payment_provider(country):
+    """Only trusted Egyptian pricing may use Kashier; all other visitors use PayPal."""
+    return 'kashier' if country == 'EG' else 'paypal'
+
+
+def regional_checkout_ready(country):
+    if regional_payment_provider(country) == 'paypal':
+        return paypal_ready('USD')
+    return payment_provider() == 'kashier' and checkout_ready() and payment_currency_supported('EGP')
+
+
 def checkout_catalog_revision(country, at):
     # Bind carts to the current currency policy and the currency shown to the buyer.
     currency = localization.COUNTRIES[country]['currency']
     revision = book_promotion.revision(store_catalog.revision(), at, currency)
-    return f'{revision}:egp-usd:{currency}:{catalog.PRICING_VERSION}'
+    return f'{revision}:egp-usd:{currency}:{catalog.PRICING_VERSION}:regional-payments-v1'
 
 def paypal_ready(currency):
     checks=checkout_readiness()
@@ -969,11 +980,13 @@ class Handler(BaseHTTPRequestHandler):
                         or os.environ.get('TABO_CHECKOUT_ENABLED') == '1') and (
                         requested_revision != checkout_catalog_revision(country, pricing_at)):
                     return self.respond(409,{'ok':False,'code':'CATALOG_REFRESH_REQUIRED','error':'تغيرت الأسعار أو العروض. حدّث السلة وراجع الإجمالي قبل الدفع.'})
-                selected=data.get('paymentProvider') or payment_provider()
-                if selected not in (payment_provider(),'paypal'):
-                    return self.respond(400,{'ok':False,'error':'Invalid payment provider'})
+                required_provider = regional_payment_provider(country)
+                selected=data.get('paymentProvider') or required_provider
+                if selected != required_provider:
+                    return self.respond(403,{'ok':False,'code':'PAYMENT_PROVIDER_NOT_ALLOWED',
+                                             'error':'وسيلة الدفع غير متاحة لدولتك. حدّث صفحة الشراء.'})
                 using_paypal=selected=='paypal'
-                if not (paypal_ready('USD') if using_paypal else checkout_ready()):
+                if not regional_checkout_ready(country):
                     return self.respond(503,{'ok':False,'error':'الشراء غير متاح حاليًا. يرجى العودة قريبًا.'})
                 items=data.get('items')
                 if not isinstance(items,list) or not 1<=len(items)<=len(BOOKS):
@@ -1007,7 +1020,7 @@ class Handler(BaseHTTPRequestHandler):
                 order={'id':'TABO-'+secrets.token_hex(8).upper(),'status':'PENDING','items':[{'id':i,'name':seo.current_books()[i]['name']} for i in ids],
                        'total':total,'currency':currency,'country':country,'pricingQuote':pricing_quote,
                        'paymobMethodId':paymob_method_id,'paymentMode':paypal_checkout.mode() if using_paypal else payment_mode(),
-                       'paymentMethod':'PayPal' if using_paypal else ('Kashier' if payment_provider()=='kashier' else 'Paymob'),
+                       'paymentMethod':'PayPal' if using_paypal else 'Kashier',
                        'displayLanguage':'en' if data.get('language')=='en' else 'ar','createdAt':now(),
                        'token':None,'buyer':{**customer,'language':'en' if data.get('language')=='en' else 'ar',
                                              'receiptRequested':order_receipts.enabled(),
@@ -1548,22 +1561,26 @@ class Handler(BaseHTTPRequestHandler):
             return self.asset('tabo-books-logo.webp','image/webp')
         if route in ('/authors','/about','/contact','/privacy','/refund','/delivery'): return self.html('info.html')
         if route=='/health': return self.respond(200,{'ok':True})
-        if route=='/api/config': return self.respond(200,{
-            'checkoutEnabled':checkout_ready(),'paymentProvider':payment_provider()})
+        if route=='/api/config':
+            country=self.pricing_country()
+            return self.respond(200,{'checkoutEnabled':regional_checkout_ready(country),
+                                     'paymentProvider':regional_payment_provider(country)})
         if route=='/api/store-config':
             pricing_at = time.time()
             requested=parse_qs(parsed.query).get('country',[''])[0]
             country=self.pricing_country(requested)
             config=localization.pricing_for_country(PRICES,country,at=pricing_at)
-            config['checkoutEnabled']=checkout_ready()
-            config['checkoutSupported']=payment_currency_supported(config['currency'])
-            config['paypalAvailable']=config['currency']=='USD' and paypal_ready('USD')
+            provider=regional_payment_provider(country)
+            config['checkoutEnabled']=regional_checkout_ready(country)
+            config['checkoutSupported']=True if provider=='paypal' else payment_currency_supported('EGP')
+            config['paypalAvailable']=provider=='paypal' and config['checkoutEnabled']
+            config['allowedPaymentProviders']=[provider]
             config['receiptEmailEnabled']=order_receipts.enabled()
             config['bookEmailEnabled']=book_emails.enabled()
             config['catalogRevision']=checkout_catalog_revision(country, pricing_at)
             config['recoveryEmailEnabled']=checkout_recovery.enabled() and store_catalog.reminders_enabled()
-            config['paymentProvider']=payment_provider()
-            config['chargeCurrency']='EGP' if payment_provider()=='kashier' else config['currency']
+            config['paymentProvider']=provider
+            config['chargeCurrency']=config['currency']
             return self.respond(200,config)
         if route=='/api/book-stats':
             defaults={book_id:{'rating':None,'reviews':0,'pageCount':None}

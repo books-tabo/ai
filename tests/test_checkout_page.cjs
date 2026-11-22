@@ -21,7 +21,7 @@ async function boot(saved=JSON.stringify([{id:'book20'},{id:'book21'}]),reminder
   calls.push({url,options});
   if(url.startsWith('/api/store-config')){
    const egp=new URL(url,c.location.origin).searchParams.get('country')==='EG';
-   return {ok:true,json:async()=>({...fixtures[egp?'egp':'usd'],checkoutEnabled:true,checkoutSupported:true,paymentProvider:'kashier',paypalAvailable:!egp,recoveryEmailEnabled:reminders})};
+   return {ok:true,json:async()=>({...fixtures[egp?'egp':'usd'],checkoutEnabled:true,checkoutSupported:true,paymentProvider:egp?'kashier':'paypal',paypalAvailable:!egp,recoveryEmailEnabled:reminders})};
   }
   if(url==='/api/checkout-quote'){
    const quartet=JSON.parse(options.body).items.some(x=>x.id==='book23');
@@ -56,6 +56,24 @@ async function pendingCase(status,ready,activationFails=false){
  assert(calls.some(call=>call.url==='/api/download-session'&&call.options.method==='POST'));
 }
 (async()=>{
+ for(const file of ['checkout.html','sigma-quiz.html','sigma-king.html','love-court.html']){
+  const page=fs.readFileSync(file,'utf8');
+  for(const id of ['checkoutBtn','paypalCheckoutBtn','kashierPaymentBrands','paypalPaymentBrands','applePayAvailability']){
+   const tag=page.match(new RegExp('<[^>]+id="'+id+'"[^>]*>'));
+   assert(tag&&/\bhidden\b/.test(tag[0]),file+': '+id+' stays hidden until trusted configuration loads');
+  }
+ }
+ {
+  const r=await boot();let resolve;
+  r.c.fetch=()=>new Promise(value=>resolve=value);
+  const loading=r.c.loadStoreConfig('EG');
+  assert.equal(r.nodes.checkoutBtn.hidden,true);assert.equal(r.nodes.paypalCheckoutBtn.hidden,true);
+  assert.equal(r.nodes.kashierPaymentBrands.hidden,true);assert.equal(r.nodes.paypalPaymentBrands.hidden,true);
+  resolve({ok:false,json:async()=>({})});await loading;
+  assert.equal(r.nodes.checkoutBtn.hidden,true);assert.equal(r.nodes.paypalCheckoutBtn.hidden,true);
+  assert.equal(r.nodes.kashierPaymentBrands.hidden,true);
+ }
+
  for(const consent of [false,true]){
   const r=await boot(undefined,true);r.nodes.recoveryConsent.checked=consent;
   await r.nodes.paypalCheckoutBtn.events.click();await flush();await flush();
@@ -64,7 +82,7 @@ async function pendingCase(status,ready,activationFails=false){
  }
 
  {
-  const {nodes,calls}=await boot();
+  const {c,nodes,calls}=await boot();await c.loadStoreConfig('EG');
   nodes.checkoutPhone.value='٠٠٩٦٦ (٥٠) ١٢٣-٤٥٦٧';nodes.checkoutPhone.events.blur({target:nodes.checkoutPhone});
   assert.equal(nodes.checkoutPhone.value,'+966501234567');
   await nodes.checkoutBtn.events.click();
@@ -81,9 +99,11 @@ async function pendingCase(status,ready,activationFails=false){
   nodes.checkoutEmail.events.input();assert.equal(nodes.checkoutEmailError.hidden,true);
  }
  for(const method of ['card','paypal']){
-  const {nodes,calls,redirects,events,session}=await boot();
+  const {c,nodes,calls,redirects,events,session}=await boot();
+  if(method==='card')await c.loadStoreConfig('EG');
   assert.equal(nodes.checkoutContent.hidden,false);assert.equal(nodes.emptyCart.hidden,true);
-  assert.match(nodes.cartFinal.textContent,/7[.,]99/);assert.equal(nodes.paypalCheckoutBtn.hidden,false);
+  assert.match(nodes.cartFinal.textContent,method==='card'?/279[.,]99/:/7[.,]99/);
+  assert.equal(nodes.paypalCheckoutBtn.hidden,method==='card');assert.equal(nodes.checkoutBtn.hidden,method!=='card');
   assert.equal(calls.filter(call=>call.url==='/api/orders').length,0);
   await nodes[method==='card'?'checkoutBtn':'paypalCheckoutBtn'].events.click();
   assert.deepEqual(redirects,[method==='card'?'https://payments.kashier.io/session/synthetic':'https://www.sandbox.paypal.com/checkoutnow?token=PAYPALORDER1234567']);
@@ -100,8 +120,8 @@ async function pendingCase(status,ready,activationFails=false){
   const {c,nodes,calls}=await boot(JSON.stringify(['book20','book21','book22','book23'].map(id=>({id}))));
   assert.match(nodes.cartFinal.textContent,/13[.,]99/);
   assert.match(nodes.cartOfferSummary.textContent,/السيجما/);
-  const quoted=JSON.parse(calls.find(x=>x.url==='/api/checkout-quote').options.body);
-  assert.deepEqual(quoted.items.map(x=>x.id),['book20','book21','book22','book23']);
+  assert(!calls.some(x=>x.url==='/api/checkout-quote'));
+  assert.equal(nodes.checkoutBtn.hidden,true);assert.equal(nodes.kashierPaymentBrands.hidden,true);assert.equal(nodes.applePayAvailability.hidden,true);assert.equal(nodes.paypalPaymentBrands.hidden,false);
   await c.loadStoreConfig('EG');assert.match(nodes.cartFinal.textContent,/539[.,]99/);
   assert.match(nodes.cartOfferSummary.textContent,/السيجما/);
   assert.equal(nodes.paypalCheckoutBtn.hidden,true);

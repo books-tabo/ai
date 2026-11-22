@@ -76,27 +76,10 @@ function boot(){
         assert.match(nodes.chargeCurrencyNote.textContent,/541.16/);
     }
     {
-        const {c,calls,alerts,events,redirects}=boot();
-        // Missing/expired quote must be displayed before a separate confirmation.
+        const {c,calls,events,redirects}=boot();
+        // A stale client that still selects international Kashier must stop.
         await c.checkoutWithPaymentLink();
-        assert.equal(calls.length,1);
-        assert.ok(calls[0].url.endsWith('/api/checkout-quote'));
-        assert.equal(alerts.length,1);
-        c.fetch=async(url,options)=>{
-            calls.push({url,options});
-            return {ok:true,json:async()=>({ok:true,order:{id:'TABO-0000000000000001',
-                total:541.16,currency:'EGP',items:[{id:'book1'}]},
-                payment_url:'https://payments.kashier.io/session/synthetic',
-                tracking_url:'/pending.html?key=synthetic'})};
-        };
-        await c.checkoutWithPaymentLink();
-        const body=JSON.parse(calls[1].options.body);
-        assert.equal(body.quoteToken,'synthetic-signed');
-        assert.equal(events[0][0],'InitiateCheckout');
-        assert.equal(events[0][1].currency,'EGP');
-        assert.equal(events[0][1].value,541.16);
-        assert.equal(redirects.length,1);
-        assert.equal(redirects[0],'https://payments.kashier.io/session/synthetic');
+        assert.equal(calls.length,0);assert.equal(events.length,0);assert.equal(redirects.length,0);
     }
     {
         const {c,nodes,quote}=boot();
@@ -110,7 +93,7 @@ function boot(){
         c.storeConfig.catalogRevision='updated-prices';
         assert.equal(Boolean(c.currentCheckoutQuote()),false);
     }
-    console.log('5 checkout quote groups passed, including USD-to-EGP quotes in Kuwait.');
+    console.log('5 legacy quote groups passed; regional checkout rejects international Kashier before payment.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
 require('./test_catalog_pricing.cjs');
