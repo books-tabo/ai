@@ -1,0 +1,19 @@
+name: Live quote HTTP smoke
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/live-quote-smoke.yml'
+      - 'tests/live_quote_smoke.py'
+permissions:
+  contents: read
+jobs:
+  live-quote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check deployed quote without creating an order or payment
+        run: python tests/live_quote_smoke.py

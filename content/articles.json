@@ -1,0 +1,188 @@
+{
+  "learning-with-evidence": {
+    "status": "draft",
+    "books": [
+      "book19",
+      "book18",
+      "book14"
+    ],
+    "title": {
+      "ar": "كيف تبني خطة تعلم ذاتي تثبت مهارتك؟",
+      "en": "How to build a self-learning plan that shows your skills"
+    },
+    "description": {
+      "ar": "خطة عملية لاختيار مهارة، وبناء منهج صغير، وإنتاج عمل يمكن مراجعته، بدل جمع الدورات دون تطبيق.",
+      "en": "Choose a skill, create a small curriculum and produce work others can assess, instead of collecting courses without practice."
+    },
+    "sections": {
+      "ar": [
+        {
+          "heading": "ابدأ بمهمة تستطيع تنفيذها",
+          "text": "قولك «سأتعلم التسويق» يفتح بابًا واسعًا يصعب قياس التقدم فيه. جرّب صياغة هدف أصغر: أريد إعداد صفحة واضحة لمنتج، أو كتابة ثلاث رسائل تجيب عن أسئلة العميل، أو تحليل نتائج حملة تدريبية ببيانات متاحة. المهمة المحددة تساعدك على معرفة ما تحتاج إلى تعلمه الآن وما يمكن تأجيله.\n\nاكتب النتيجة في سطر، ثم اسأل: من يستطيع الحكم على جودة هذا العمل؟ لا تحتاج إلى وعد بوظيفة أو دخل؛ تحتاج إلى معيار يوضح الفرق بين محاولة أولى وعمل أفضل."
+        },
+        {
+          "heading": "ابنِ منهجًا من ثلاثة أجزاء",
+          "text": "قسّم ما تحتاجه إلى فهم، وتطبيق، ومراجعة. الفهم مصدر أساسي واحد تقرؤه أو تشاهده بتركيز. التطبيق عمل صغير تنفذه بنفسك دون نسخ النتيجة الجاهزة. المراجعة مقارنة العمل بمعيار واضح أو عرضه على شخص لديه خبرة مناسبة.\n\nإذا كنت تتعلم تصميم عرض، فقد تقرأ عن وضوح الرسالة، ثم تصمم خمس شرائح، ثم تراجع قدرة شخص آخر على فهم الفكرة. لا تجعل قائمة المصادر أكبر من الوقت الذي تملكه. وجود عشرة مصادر مفتوحة لا يعني أنك أصبحت أقرب إلى تنفيذ المهمة."
+        },
+        {
+          "heading": "اجعل الأسبوع ينتج أثرًا",
+          "text": "خصص وقتًا يناسب ظروفك، مثل أربع جلسات قصيرة في الأسبوع. قد تكون جلستان للتعلم، وجلسة للتطبيق، وأخرى للمراجعة. هذا تقسيم تجريبي يمكنك تعديله، وليس وصفة ملزمة. إذا اكتشفت أن الفهم يستهلك الأسبوع كله، صغّر المهمة حتى يبقى مكان للتنفيذ.\n\nفي نهاية الأسبوع احتفظ بنسخة مما أنجزته، وبملاحظة قصيرة: ما الخطأ الذي ظهر؟ وما التغيير الذي سأجربه؟ سجّل ما فعلته بالفعل، لا عدد الساعات التي كنت تنوي تخصيصها."
+        },
+        {
+          "heading": "كوّن ملف إنجاز يمكن فحصه",
+          "text": "اجمع نماذج قليلة جيدة، واشرح تحت كل نموذج المشكلة التي حاولت حلها، ودورك الفعلي، وكيف راجعت النتيجة. إذا كان العمل تدريبيًا فاكتب ذلك بوضوح. لا تنسب لنفسك عميلاً أو نتيجة تجارية لم تحصل عليها، ولا تعرض بيانات تخص آخرين دون إذن.\n\nملف الإنجاز ليس بديلًا لكل الشهادات أو متطلبات المهن، لكنه طريقة لإظهار جانب من قدرتك العملية. بعض المجالات تتطلب مؤهلات أو تراخيص محددة؛ لذلك افهم متطلبات المجال قبل بناء خطتك."
+        },
+        {
+          "heading": "سؤال المراجعة قبل البدء من جديد",
+          "text": "قبل شراء دورة أخرى، اسأل: هل ينقصني شرح، أم ممارسة، أم ملاحظة على عملي؟ قد يكون المصدر الحالي كافيًا لخطوتك التالية، بينما المشكلة أنك لم تنتج شيئًا يمكن تقييمه بعد.\n\nيتناول «بدون شهادة جامعية» مسؤولية التعليم الذاتي والمهارة وسيرة الإنجاز مع احترام التعليم الجامعي. وإذا كان التعثر في البدء والاستمرار، يمكنك الاطلاع على وصف «كيف تغير حياتك» و«أنت» لاختيار القراءة الأقرب إلى احتياجك."
+        }
+      ],
+      "en": [
+        {
+          "heading": "Start with a task you can complete",
+          "text": "“I will learn marketing” is too broad to assess easily. Try a smaller outcome: write a clear product page, prepare three messages that answer customer questions, or analyze a practice campaign with available data. A defined task shows what you need now and what can wait. Write the outcome in one sentence and identify who could assess its quality. You need a standard for improvement rather than a promise of employment or income."
+        },
+        {
+          "heading": "Use understanding, practice and review",
+          "text": "Choose one main resource, create a small piece of work yourself, and compare it with an explicit standard or ask someone suitably experienced for feedback. If you are learning presentations, study message clarity, create five slides and see whether another person understands the idea. Keep the reading list small enough to leave time for doing."
+        },
+        {
+          "heading": "Make each week produce evidence",
+          "text": "Choose a schedule that fits your responsibilities. Four short sessions might include two for learning, one for practice and one for review. Treat this as an adjustable experiment. Save the work you completed and note one problem and one change to try. Record actual progress rather than planned hours."
+        },
+        {
+          "heading": "Create an honest portfolio",
+          "text": "Keep a few useful examples and explain the problem, your actual role and how you reviewed the result. Label practice projects honestly. Do not invent clients or commercial outcomes, and do not disclose other people’s data without permission. A portfolio demonstrates practical ability; it does not replace every degree, license or professional requirement."
+        },
+        {
+          "heading": "Ask what is missing",
+          "text": "Before buying another course, ask whether you need explanation, practice or feedback. Without a University Degree explores learning, skill and evidence of achievement while respecting formal education. How to Change Your Life in One Day and You offer related reading about direction and personal commitments. The store editions are Arabic PDFs."
+        }
+      ]
+    }
+  },
+  "income-and-commitments": {
+    "status": "draft",
+    "books": [
+      "book17",
+      "book4",
+      "book9"
+    ],
+    "title": {
+      "ar": "لماذا يزيد الدخل وتبقى الضغوط المالية؟",
+      "en": "Why can financial pressure remain when income grows?"
+    },
+    "description": {
+      "ar": "طريقة لمراجعة الالتزامات والمصروفات والمقارنة، وفهم ما إذا كانت زيادة الدخل توسع اختياراتك فعلًا.",
+      "en": "Review commitments, spending and comparison to understand whether higher income is actually expanding your choices."
+    },
+    "sections": {
+      "ar": [
+        {
+          "heading": "انظر إلى ما تبقى بعد الالتزامات",
+          "text": "زيادة الدخل خبر جيد، لكنها لا تشرح وحدها ما يحدث لحياتك. إذا جاءت معها أقساط جديدة ومصروفات ثابتة أعلى، فقد تزيد الأرقام دون أن تزيد قدرتك على الاختيار. وفي أحيان أخرى تكون الزيادة قد استوعبت احتياجات أساسية أو تغيرًا في ظروف الأسرة؛ لا تختزل كل إنفاق في سوء الانضباط.\n\nابدأ بصورة واضحة للشهر: الدخل المتاح، والالتزامات الأساسية، والمصروفات المتغيرة. ضع أمام كل بند سبب وجوده. الهدف فهم الواقع قبل الحكم عليه، لا صناعة شعور بالذنب."
+        },
+        {
+          "heading": "افصل الضروري عن المعتاد",
+          "text": "هناك فرق بين مصروف يحمي حاجة أساسية، ومصروف أصبح تلقائيًا لأنك اعتدت عليه. راجع اشتراكاتك والمشتريات الصغيرة المتكررة والخدمات التي لا تستخدمها. قد تكتشف بنودًا يمكن تعديلها دون أن تمس احتياجات الأسرة.\n\nلكن لا تبنِ خطة على إلغاء شيء يحتاجه غيرك دون اتفاق. المال داخل الأسرة يرتبط بالاحتياجات والوقت والراحة والمسؤوليات، وليس بجدول أرقام فقط. ناقش التغيير وما سيحل محل البند الذي تفكر في خفضه."
+        },
+        {
+          "heading": "اختبر تأثير المقارنة",
+          "text": "اسأل عن آخر شراء مهم: هل كنت تحتاجه قبل أن تراه عند شخص آخر؟ وهل يخدم استخدامًا واضحًا أم شعورًا مؤقتًا بأنك لم تتأخر؟ لا تجعل السؤال اتهامًا لنفسك؛ استخدمه لفهم القرار القادم.\n\nجرّب كتابة سبب الشراء وما سيحدث إن أجّلته مدة تناسب طبيعة الحاجة. هذه المراجعة لا تصلح لكل ظرف، لكنها قد تساعدك على التمييز بين قرار مفيد ورد فعل على المقارنة."
+        },
+        {
+          "heading": "راقب مؤشرًا يعبّر عن هدفك",
+          "text": "إذا كان هدفك توسيع هامش الحركة، فلا تكتفِ بمراقبة إجمالي الدخل. راقب أيضًا حجم الالتزامات التي تتكرر كل شهر، وهل تستطيع التعامل مع مصروف غير متوقع، وما الذي يمكنك تغييره إذا تغيرت ظروفك.\n\nفي «تأثير الكوبرا» تظهر مشكلة المؤشر الذي يتحسن بينما يضيع الهدف الحقيقي. ويمكن تطبيق السؤال نفسه هنا: هل الرقم الذي أحتفل به يعبّر فعلًا عن الاختيارات التي أريدها؟ هذه أداة للتفكير في سلوكك، وليست تقديرًا لعائد استثماري أو توصية باقتراض."
+        },
+        {
+          "heading": "اختر تعديلًا يمكن مراجعته",
+          "text": "حدد خطوة واحدة للشهر القادم: إلغاء اشتراك غير مستخدم، أو وضع قائمة للمشتريات المتكررة، أو مراجعة التزام قبل إضافة آخر. سجّل أثرها الفعلي ثم عدّل خطتك. الحل المناسب لأسرة قد لا يناسب أسرة أخرى، خصوصًا عند اختلاف الدخل والاحتياجات.\n\n«عجلة الفئران» يناقش العمل والاستهلاك والالتزامات واتساع الخيارات. ويتناول «كيف تصنع المليون الأول» العلاقة بين المهارة والقيمة والدخل. اقرأ وصف كل كتاب وعينته لتحديد ما يساعدك في السؤال الذي تواجهه الآن."
+        }
+      ],
+      "en": [
+        {
+          "heading": "Look beyond the headline income",
+          "text": "Higher income does not automatically mean more room to choose. New recurring commitments can absorb it. Sometimes the increase covers essential needs or changed family circumstances; spending is not simply a discipline problem. List available income, basic commitments and variable spending, and explain why each item exists before judging it."
+        },
+        {
+          "heading": "Separate needs from automatic spending",
+          "text": "Review unused subscriptions and recurring purchases that have become automatic. Look for changes that preserve genuine needs. Discuss household changes with those affected: money decisions also involve time, comfort and responsibilities."
+        },
+        {
+          "heading": "Examine comparison",
+          "text": "Think about a recent purchase. Did you want it before seeing it in someone else’s life? What practical use will it serve? Write down the reason and consider what would happen if you delayed it for a suitable period. This is a reflection tool, not a rule for every situation."
+        },
+        {
+          "heading": "Choose a measure that reflects the goal",
+          "text": "If your goal is greater flexibility, look at recurring commitments and your ability to respond to unexpected costs, rather than income alone. Cobra Effect explores the risk of improving a metric while losing the real objective. Apply that question to your own choices without treating it as an investment forecast or borrowing recommendation."
+        },
+        {
+          "heading": "Try one reviewable change",
+          "text": "Choose a step such as canceling an unused subscription or reviewing an existing commitment before adding another. Record its actual effect and adapt. The Rat Race explores work, consumption and choices; How to Make Your First Million examines skill, value and income. Read the descriptions and samples to choose relevant further reading. Store editions are Arabic PDFs."
+        }
+      ]
+    }
+  },
+  "repeatable-first-step": {
+    "status": "draft",
+    "books": [
+      "book18",
+      "book14",
+      "book6"
+    ],
+    "title": {
+      "ar": "من النية إلى عادة: ابدأ بخطوة يمكن تكرارها",
+      "en": "From intention to habit: choose a repeatable first step"
+    },
+    "description": {
+      "ar": "كيف تصغّر بداية التغيير وتربطها بوقت واضح، ثم تراجع ما يحدث في الأيام العادية والصعبة؟",
+      "en": "Make a change small enough to start, attach it to a clear moment and review what happens on ordinary and difficult days."
+    },
+    "sections": {
+      "ar": [
+        {
+          "heading": "اختر سلوكًا بدل وصف نفسك",
+          "text": "«سأصبح شخصًا منضبطًا» نية واسعة يصعب البدء منها. حوّلها إلى فعل يمكن ملاحظته: أقرأ صفحتين بعد الإفطار، أو أرتب مهام الغد قبل إغلاق الحاسوب. لا تقلل من قيمة الهدف الكبير؛ امنحه بداية واضحة تستطيع تنفيذها ومراجعتها.\n\nاسأل: لو شاهدني شخص أثناء هذه الخطوة، هل سيعرف ما الذي فعلته؟ إذا كانت الإجابة غامضة، اجعل الفعل أوضح بدل إضافة وعود جديدة."
+        },
+        {
+          "heading": "خفّض الاحتكاك قبل الاعتماد على الحماس",
+          "text": "قد تكون الخطوة سهلة في ذهنك، لكن بدايتها تحتاج إلى البحث عن كتاب أو فتح ملفات كثيرة أو اختيار وقت كل يوم. جهّز ما تحتاجه مسبقًا: ضع الكتاب في مكان محدد، أو افتح مستند العمل، أو اكتب أول سؤال ستجيب عنه.\n\nليست الفكرة أن تختفي الصعوبة، بل ألا تستهلك طاقتك في ترتيب البداية كل مرة. اختر وقتًا أو فعلًا موجودًا في يومك تربط به الخطوة، ثم اختبر ملاءمته لظروفك."
+        },
+        {
+          "heading": "اتفق مع نفسك على بداية قابلة للتنفيذ",
+          "text": "حدّد مقدارًا صغيرًا يناسب يومك العادي. قد تختار عشر دقائق للمراجعة بدل ساعة لا تجد لها مكانًا. هذا مثال للتجربة، وليس حدًا سحريًا لتكوين العادات. الأهم أن تعرف متى تبدأ وماذا ستفعل وكيف تعرف أنك انتهيت.\n\nيمكنك الاستمرار أكثر إذا رغبت وكان الوقت يسمح. لكن لا تغيّر الاتفاق كل يوم تبعًا للحماس؛ امنح الخطة فرصة لتُختبر في ظروف مختلفة قبل الحكم عليها."
+        },
+        {
+          "heading": "ضع خطة ليوم التعثر",
+          "text": "ستوجد أيام مزدحمة أو متعبة. قرر مسبقًا كيف تتعامل معها: نسخة أقصر من الخطوة، أو نقلها إلى وقت واقعي، أو عودة محددة في اليوم التالي. لا تجعل التعويض عقوبة ترفع العبء حتى يصبح الرجوع أصعب.\n\nعند التعثر اكتب السبب الأقرب: هل الوقت غير مناسب؟ هل المهمة أكبر من المتاح؟ هل نسيت الأدوات؟ ثم غيّر عنصرًا واحدًا. الهدف مراجعة الخطة، لا تحويل كل يوم صعب إلى حكم نهائي على شخصيتك."
+        },
+        {
+          "heading": "راجع الاستمرار وجودة الأثر",
+          "text": "بعد فترة تختارها، راجع عدد المرات التي نفذت فيها الفعل وما الذي تغير في قدرتك أو فهمك. الاستمرار مهم، لكنه يحتاج إلى اتجاه: قراءة منتظمة بلا فهم قد تستدعي تطبيقًا أو تلخيصًا، والعمل المتكرر بلا مراجعة قد يكرر الخطأ نفسه.\n\nيتناول «كيف تغير حياتك» تغيير الاتجاه وبناء بداية قابلة للاستمرار، ويربط «أنت» احترام الذات بالوعود والعادات، بينما يناقش «دليل السمو» التقدم المتدرج والمسؤولية. اختر ما يناسب عقبتك الحالية، واجعل القراءة جزءًا من التجربة العملية."
+        }
+      ],
+      "en": [
+        {
+          "heading": "Choose a behavior, not a label",
+          "text": "“I will be disciplined” is difficult to begin. Try an observable action: read two pages after breakfast or list tomorrow’s tasks before closing the computer. A clear beginning gives a larger aim something you can do and review. Ask whether someone watching could identify the action."
+        },
+        {
+          "heading": "Reduce friction before relying on motivation",
+          "text": "Prepare the book, document or first question in advance. Attach the step to a time or an existing part of your day and test whether that moment fits your responsibilities. The aim is to avoid rebuilding the starting conditions every time."
+        },
+        {
+          "heading": "Define a feasible beginning",
+          "text": "A short session may fit where a full hour does not. Ten minutes is an example to test, not a magic threshold. Define when you will begin, what you will do and how you know the task is complete. You may continue if time permits, but give the agreement a chance before constantly changing it."
+        },
+        {
+          "heading": "Plan for difficult days",
+          "text": "Decide whether a shorter version, a realistic new time or a specified return the next day makes sense. Avoid making compensation so demanding that returning becomes harder. Identify whether timing, task size or missing tools caused the problem, then change one element."
+        },
+        {
+          "heading": "Review progress and usefulness",
+          "text": "Check both repetition and what it helps you understand or do. Regular reading may need a summary or application; repeated work may need feedback. How to Change Your Life in One Day explores direction, You connects self-respect with commitments, and Guide to Elevation examines gradual progress. Choose the reading that fits your present obstacle. Store editions are Arabic PDFs."
+        }
+      ]
+    }
+  }
+}
