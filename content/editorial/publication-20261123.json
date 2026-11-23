@@ -1,0 +1,95 @@
+{
+  "date": "2026-11-23",
+  "articles_published": 4,
+  "book": "book14",
+  "words": 1935,
+  "plan_published": 48,
+  "remaining": 36,
+  "total_posts": 55,
+  "partial_reviewed_batch": true,
+  "publication_utc": "2026-11-23T05:53:54.214482Z",
+  "source_pr": "https://github.com/books-tabo/ai/pull/126",
+  "previous_row_count": 51,
+  "previous_row_fingerprint_before": "8c5d08cbeb53c5509cce7e985a4b6141",
+  "previous_row_fingerprint_after": "8c5d08cbeb53c5509cce7e985a4b6141",
+  "new_inquiries_sent": 0,
+  "followups_sent": 1,
+  "new_independent_backlinks_verified": 0,
+  "independent_endorsements_verified": 0,
+  "qa": {
+    "pages": [
+      {
+        "url": "https://tabobooks.com/blog/people-pleasing-and-your-time",
+        "status": 200,
+        "canonical_ok": true,
+        "description_ok": true,
+        "blogposting": true,
+        "indexable": true,
+        "book_link": true,
+        "complementary_links": 3
+      },
+      {
+        "url": "https://tabobooks.com/blog/self-respect-and-daily-promises",
+        "status": 200,
+        "canonical_ok": true,
+        "description_ok": true,
+        "blogposting": true,
+        "indexable": true,
+        "book_link": true,
+        "complementary_links": 3
+      },
+      {
+        "url": "https://tabobooks.com/blog/guilt-after-setting-a-boundary",
+        "status": 200,
+        "canonical_ok": true,
+        "description_ok": true,
+        "blogposting": true,
+        "indexable": true,
+        "book_link": true,
+        "complementary_links": 3
+      },
+      {
+        "url": "https://tabobooks.com/blog/self-care-without-neglecting-duties",
+        "status": 200,
+        "canonical_ok": true,
+        "description_ok": true,
+        "blogposting": true,
+        "indexable": true,
+        "book_link": true,
+        "complementary_links": 3
+      }
+    ],
+    "navigation": [
+      {
+        "path": "/blog",
+        "status": 200,
+        "slugs_found": [
+          "people-pleasing-and-your-time",
+          "self-respect-and-daily-promises",
+          "guilt-after-setting-a-boundary",
+          "self-care-without-neglecting-duties"
+        ]
+      },
+      {
+        "path": "/blog/sitemap.xml",
+        "status": 200,
+        "slugs_found": [
+          "people-pleasing-and-your-time",
+          "self-respect-and-daily-promises",
+          "guilt-after-setting-a-boundary",
+          "self-care-without-neglecting-duties"
+        ]
+      },
+      {
+        "path": "/robots.txt",
+        "status": 200,
+        "slugs_found": []
+      },
+      {
+        "path": "/books/book14",
+        "status": 200,
+        "slugs_found": []
+      }
+    ]
+  }
+}
